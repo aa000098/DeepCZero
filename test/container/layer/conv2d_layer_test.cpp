@@ -23,7 +23,7 @@ void test_conv2d_forward() {
 
     std::cout << "[Conv2d Forward Test Passed]" << std::endl;
 }
- 
+  
 void test_conv2d_backward() {
     using T = float;
 

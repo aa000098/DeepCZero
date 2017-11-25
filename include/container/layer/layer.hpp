@@ -50,9 +50,9 @@ namespace layer {
 
 		std::unordered_map<std::string, Parameter> flatten_params(const std::string& parent_key = "");
 		
-		void save_weights(std::string path);
+		void save_weights(const std::string& path);
 
-		void load_weights(std::string path);
+		void load_weights(const std::string& path);
 
 	};
 

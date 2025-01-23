@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 
-void Variable::backward(bool retain_grad, bool create_graph) {
+void Variable::backward(bool retain_grad, bool create_graph, bool debug) {
 	if (!impl->grad)
 		impl->grad = std::make_unique<Variable>(Tensor<>(impl->data.get_shape(), 1));
 	impl->grad->set_name("gy");
@@ -17,24 +17,61 @@ void Variable::backward(bool retain_grad, bool create_graph) {
 	Graph graph(creator);
 	std::vector<Function*> topo_order = graph.get_topo_order();
 
-	for (auto& f : topo_order) {
+	if (debug) {
+		std::cout << "[DEBUG] Starting backward pass with " << topo_order.size() << " functions" << std::endl;
+	}
+
+	for (size_t func_idx = 0; func_idx < topo_order.size(); ++func_idx) {
+		auto& f = topo_order[func_idx];
+
+		if (debug) {
+			std::cout << "[DEBUG] Processing function " << func_idx << "/" << topo_order.size()
+			          << " - " << f->name() << std::endl;
+		}
+
 		std::vector<std::shared_ptr<VariableImpl<>>> inputs = f->get_inputs();
 		std::shared_ptr<VariableImpl<>> output = f->get_output();
+
+		if (!output) {
+			if (debug) std::cout << "[DEBUG] Warning: output is null for " << f->name() << std::endl;
+			continue;
+		}
+
+		if (!output->grad) {
+			if (debug) std::cout << "[DEBUG] Warning: output->grad is null for " << f->name() << std::endl;
+			continue;
+		}
+
 		Variable* gy = output->grad.get();
 
 		{
 			dcz::UsingConfig is_higher_order_diff("enable_backprop", create_graph);
+			if (debug) std::cout << "[DEBUG] Calling backward on " << f->name() << std::endl;
 			std::vector<Variable> gxs = f->backward(*gy);
+			if (debug) std::cout << "[DEBUG] Backward returned " << gxs.size() << " gradients" << std::endl;
+
 			for (size_t i = 0; i < gxs.size(); ++i) {
 				std::shared_ptr<VariableImpl<>> input = inputs[i];
 				const Variable& gx = gxs[i];
-				if (!input->grad)
+
+				if (debug) std::cout << "[DEBUG]   Input " << i << " - gradient accumulation" << std::endl;
+
+				if (!input->grad) {
+					if (debug) std::cout << "[DEBUG]     Creating new gradient" << std::endl;
 					input->grad = std::make_unique<Variable>(gx);
-				else 
+				} else {
+					if (debug) std::cout << "[DEBUG]     Adding to existing gradient" << std::endl;
 					(*input->grad) = (*input->grad) + gx;
+				}
+
+				if (debug) std::cout << "[DEBUG]     Gradient accumulation done" << std::endl;
 			}
 			if (!retain_grad) output->grad.reset();
 		}
+	}
+
+	if (debug) {
+		std::cout << "[DEBUG] Backward completed successfully!" << std::endl;
 	}
 }
 
@@ -101,6 +138,36 @@ void Variable::show() const {
 		}
 	} else
 		std::cout << "(no grad)\n";
-	
+
 	std::cout << "}\n";
+}
+
+void Variable::unchain_backward() {
+	std::unordered_set<std::uintptr_t> visited;
+	unchain_backward(visited);
+}
+
+void Variable::unchain_backward(std::unordered_set<std::uintptr_t>& visited) {
+	if (!impl || !impl->creator) {
+		return;
+	}
+
+	// Check if already visited to avoid infinite recursion
+	std::uintptr_t var_id = id();
+	if (visited.find(var_id) != visited.end()) {
+		return;
+	}
+	visited.insert(var_id);
+
+	// Get the creator function
+	auto creator = impl->creator.get();
+
+	// Recursively unchain all input variables
+	for (auto& input : creator->get_inputs()) {
+		Variable input_var(input);
+		input_var.unchain_backward(visited);
+	}
+
+	// Finally, unchain this variable's creator
+	unchain();
 }

@@ -1,6 +1,10 @@
 # compiler
 CXX = g++
-   
+
+# Optional: Enable Intel MKL for optimized BLAS operations
+# To disable: make USE_MKL=0
+USE_MKL ?= 1
+
 # directory
 SRC_DIR = src
 TEST_DIR = test
@@ -11,9 +15,14 @@ THIRD_PARTY_DIR = third_party
 CNPY_DIR = $(THIRD_PARTY_DIR)/cnpy
 STB_DIR = $(THIRD_PARTY_DIR)/stb
 
-# flags
+# base flags
 CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp -I$(CNPY_DIR) -I$(STB_DIR)
 LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
+
+# Include Intel MKL configuration if enabled
+ifeq ($(USE_MKL), 1)
+    -include Makefile.mkl
+endif
 
 # src and objs
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')

@@ -1,0 +1,16 @@
+# Intel MKL Configuration
+# This file is included when USE_MKL=1 (default)
+# To disable MKL: make USE_MKL=0
+
+# MKL installation path
+MKL_ROOT ?= /opt/intel/oneapi/mkl/latest
+
+# MKL include and library paths
+MKL_INC = $(MKL_ROOT)/include
+MKL_LIB = $(MKL_ROOT)/lib
+
+# Add MKL flags to compiler and linker
+CXXFLAGS += -I$(MKL_INC) -DUSE_MKL
+LDFLAGS += -L$(MKL_LIB) -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+
+$(info [MKL] Building with Intel MKL support from $(MKL_ROOT))

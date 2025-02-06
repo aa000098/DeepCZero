@@ -6,6 +6,10 @@
 
 #include <omp.h>
 
+#ifdef USE_MKL
+#include "container/tensor/tensor_ops_mkl.hpp"
+#endif
+
 namespace tensor {
 
 template<typename T>
@@ -304,6 +308,14 @@ Tensor<T> tanh(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 
+#ifdef USE_MKL
+	// Use MKL-optimized version for float and double
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return dot_mkl(a, b);
+	}
+#endif
+
+	// Fallback to naive implementation
 	std::vector<size_t> a_shape = a.get_shape();
 	std::vector<size_t> b_shape = b.get_shape();
 

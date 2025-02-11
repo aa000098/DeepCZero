@@ -3,6 +3,7 @@
 #ifdef USE_MKL
 
 #include <mkl_cblas.h>
+#include <mkl_vml.h>
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensor_functions.hpp"
 #include "container/tensor/tensor_utils.hpp"
@@ -132,6 +133,192 @@ Tensor<T> dot_mkl(const Tensor<T>& a, const Tensor<T>& b) {
     }
 
     return Tensor<T>(result_shape, result_data);
+}
+
+// MKL VML-optimized element-wise math functions
+
+template<typename T>
+Tensor<T> exp_mkl(const Tensor<T>& x) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    std::vector<T> result_data(x.size());
+    const auto& x_data = x.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsExp(x.size(), x_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdExp(x.size(), x_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> log_mkl(const Tensor<T>& x) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    std::vector<T> result_data(x.size());
+    const auto& x_data = x.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsLn(x.size(), x_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdLn(x.size(), x_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> sin_mkl(const Tensor<T>& x) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    std::vector<T> result_data(x.size());
+    const auto& x_data = x.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsSin(x.size(), x_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdSin(x.size(), x_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> cos_mkl(const Tensor<T>& x) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    std::vector<T> result_data(x.size());
+    const auto& x_data = x.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsCos(x.size(), x_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdCos(x.size(), x_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> tanh_mkl(const Tensor<T>& x) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    std::vector<T> result_data(x.size());
+    const auto& x_data = x.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsTanh(x.size(), x_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdTanh(x.size(), x_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> pow_mkl(const Tensor<T>& x, const T scalar) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    std::vector<T> result_data(x.size());
+    const auto& x_data = x.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsPowx(x.size(), x_data.data(), scalar, result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdPowx(x.size(), x_data.data(), scalar, result_data.data());
+    }
+
+    return Tensor<T>(x.get_shape(), result_data);
+}
+
+// MKL VML-optimized element-wise binary operations
+// These work best when tensors have the same shape (no broadcasting needed)
+
+template<typename T>
+Tensor<T> add_mkl(const Tensor<T>& a, const Tensor<T>& b) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    // Check if shapes are the same (no broadcasting needed)
+    if (a.get_shape() != b.get_shape()) {
+        throw std::runtime_error("add_mkl requires same shape tensors");
+    }
+
+    std::vector<T> result_data(a.size());
+    const auto& a_data = a.raw_data();
+    const auto& b_data = b.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsAdd(a.size(), a_data.data(), b_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdAdd(a.size(), a_data.data(), b_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(a.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> sub_mkl(const Tensor<T>& a, const Tensor<T>& b) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    if (a.get_shape() != b.get_shape()) {
+        throw std::runtime_error("sub_mkl requires same shape tensors");
+    }
+
+    std::vector<T> result_data(a.size());
+    const auto& a_data = a.raw_data();
+    const auto& b_data = b.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsSub(a.size(), a_data.data(), b_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdSub(a.size(), a_data.data(), b_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(a.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> mul_mkl(const Tensor<T>& a, const Tensor<T>& b) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    if (a.get_shape() != b.get_shape()) {
+        throw std::runtime_error("mul_mkl requires same shape tensors");
+    }
+
+    std::vector<T> result_data(a.size());
+    const auto& a_data = a.raw_data();
+    const auto& b_data = b.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsMul(a.size(), a_data.data(), b_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdMul(a.size(), a_data.data(), b_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(a.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> div_mkl(const Tensor<T>& a, const Tensor<T>& b) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    if (a.get_shape() != b.get_shape()) {
+        throw std::runtime_error("div_mkl requires same shape tensors");
+    }
+
+    std::vector<T> result_data(a.size());
+    const auto& a_data = a.raw_data();
+    const auto& b_data = b.raw_data();
+
+    if constexpr (std::is_same<T, float>::value) {
+        vsDiv(a.size(), a_data.data(), b_data.data(), result_data.data());
+    } else if constexpr (std::is_same<T, double>::value) {
+        vdDiv(a.size(), a_data.data(), b_data.data(), result_data.data());
+    }
+
+    return Tensor<T>(a.get_shape(), result_data);
 }
 
 } // namespace tensor

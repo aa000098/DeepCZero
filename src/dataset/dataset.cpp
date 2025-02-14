@@ -225,8 +225,7 @@ void MNISTDataset::show(size_t index) {
 }
 
 // [ImageNetDataset]
-ImageNetDataset::ImageNetDataset(bool train) {
-	train = false;
+ImageNetDataset::ImageNetDataset(bool /* train */) {
 	init_dataset();
 }
 

@@ -3,7 +3,7 @@
 **C++로 딥러닝 프레임워크를 밑바닥부터 직접 구현하는 프로젝트입니다.**  
 Python 기반의 [DeZero](https://github.com/oreilly-japan/deep-learning-from-scratch-3)를 모티브로 하되,  
 더 저수준에서 제어 가능한 구조와 고성능 구현을 목표로 합니다.  
-
+  
 
 ## 프로젝트 구조
 DeepCZero/  
@@ -14,7 +14,7 @@ DeepCZero/
 ├── bin/  # (자동 생성) 테스트 실행 파일  
 ├── Makefile  # 빌드 및 테스트 자동화  
 └── README.md   
-
+  
 ## 빌드 및 실행 방법
 ### 전체 빌드
 ```bash
@@ -24,7 +24,7 @@ make
 ```bash
 make test
 ```   
-
+  
 ## 주요 구현 목록
  Variable 클래스 – 값, gradient, creator 추적   
  Function 추상 클래스 – forward / backward 인터페이스 정의   
@@ -52,7 +52,8 @@ make test
 - CMake 전환
 - gtest 기반 유닛 테스트
 - 모델 저장/불러오기, 학습 루프, Optimizer  
-
+  
 
 ## 라이선스
 MIT License  
+  

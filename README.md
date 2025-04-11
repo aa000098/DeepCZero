@@ -5,14 +5,14 @@ Python 기반의 [DeZero](https://github.com/oreilly-japan/deep-learning-from-sc
 더 저수준에서 제어 가능한 구조와 고성능 구현을 목표로 합니다.
 
 ## 프로젝트 구조
-DeepCZero/ 
-├── src/ # 프레임워크 핵심 구현 (Variable, Function 등) 
-├── include/ # 헤더 파일 
-├── test/ # 테스트 코드 (자동화된 유닛 테스트들) 
-├── build/ # (자동 생성) 오브젝트 파일 저장 
-├── bin/ # (자동 생성) 테스트 실행 파일 
-├── Makefile # 빌드 및 테스트 자동화 
-└── README.md
+DeepCZero/  
+├── src/ # 프레임워크 핵심 구현 (Variable, Function 등)  
+├── include/ # 헤더 파일  
+├── test/ # 테스트 코드 (자동화된 유닛 테스트들)  
+├── build/ # (자동 생성) 오브젝트 파일 저장  
+├── bin/ # (자동 생성) 테스트 실행 파일  
+├── Makefile # 빌드 및 테스트 자동화  
+└── README.md  
 
 ## 빌드 및 실행 방법
 ### 전체 빌드

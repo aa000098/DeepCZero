@@ -1,43 +1,42 @@
-#include "container/variable.h"
-#include "container/function.h"
+#include "container/variable.hpp"
+#include "function/function.hpp"
 #include <iostream>
 #include <vector>
 
 Variable::Variable(float data, bool requires_grad)
-    : data(data), grad(0.0), requires_grad(requires_grad), creator(nullptr) {}
+    : data(data), grad(0.0), creator(nullptr), requires_grad(requires_grad) {}
 
-void Variable::set_creator(std::shared_ptr<Function> func) {
-    creator = func;
-}
-
+/*
 void Variable::backward() {
     if (grad == 0.0f)
+		// TODO: gradient random initializing
         grad = 1.0f;
 
     std::vector<std::shared_ptr<Function>> funcs;
     if (creator) funcs.push_back(creator);
 
     while (!funcs.empty()) {
-		auto f = funcs.back();
+		std::shared_ptr<Function> f = funcs.back();
         funcs.pop_back();
 
-		std::vector<std::shared_ptr<Variable>> &inputs = f->inputs;
-		std::vector<std::shared_ptr<Variable>> &outputs = f->outputs;
+		std::shared_ptr<Variable> &input = f.get_input();
+		std::shared_ptr<Variable> &output = f.get_output();
 
-		std::vector<float> gxs = f->backward(outputs[0]->grad);
+		f.backward(output.get_grad());
+		auto gxs = f.backward();
 
         for (size_t i = 0; i < inputs.size(); ++i) {
             if (inputs[i]->grad == 0.0f)
-                inputs[i]->grad = gxs[i];
+                inputs[i]->grad = gxs[i]->data;
             else
-                inputs[i]->grad += gxs[i];
+                inputs[i]->grad += gxs[i]->data;
 
             if (inputs[i]->creator)
                 funcs.push_back(inputs[i]->creator);
         }
     }
 }
-
+*/
 void Variable::show() const {
     std::cout << "Variable(data=" << data << ", grad=" << grad << ")\n";
 }

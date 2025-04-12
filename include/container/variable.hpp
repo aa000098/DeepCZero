@@ -5,7 +5,8 @@
 class Function; // forward declaration
 
 class Variable {
-
+protected:
+	//TODO: extend to tensor
     float data;
     float grad;
     std::shared_ptr<Function> creator;
@@ -14,7 +15,10 @@ class Variable {
 public:
     Variable(float data, bool requires_grad = true);
 
-    void set_creator(std::shared_ptr<Function> func);
+	float get_data() { return data; };
+	float get_grad() { return grad; };
+
+    void set_creator(std::shared_ptr<Function> func) { creator = func; };
     void backward();
     void show() const;
 };

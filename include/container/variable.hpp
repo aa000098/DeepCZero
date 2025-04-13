@@ -1,39 +1,39 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 class Function; // forward declaration
 
-template <typename T>
+using Tensor = std::vector<float>;
+
 class VariableImpl {
 public:
 	//TODO: extend to tensor
-    T data;
-    float grad;
+    Tensor data;
+    Tensor grad;
     std::shared_ptr<Function> creator;
     bool requires_grad;
 
 public:
-	VariableImpl(T data, bool requires_grad=true)
-    : data(data), grad(0.0), creator(nullptr), requires_grad(requires_grad) {}
+	VariableImpl(const Tensor& data, bool requires_grad=true)
+    : data(data), grad(data.size(), 0.0f), creator(nullptr), requires_grad(requires_grad) {}
 };
 
 
 class Variable{
 private:
-	std::shared_ptr<VariableImpl<float>> impl;
+	std::shared_ptr<VariableImpl> impl;
 
 public:
-    Variable(float data, bool requires_grad = true);
-	Variable(std::shared_ptr<VariableImpl<float>> impl);
+    Variable(const Tensor& data, bool requires_grad = true);
+	Variable(std::shared_ptr<VariableImpl> impl);
 
-	std::shared_ptr<VariableImpl<float>> get_impl() { return impl; };
-	float get_data() const { return impl->data; };
-	float get_grad() const { return impl->grad; };
+	const std::shared_ptr<VariableImpl>& get_impl() const { return impl; };
+
 	std::shared_ptr<Function> get_creator() const { return impl->creator; };
-
-	void set_grad(float g) {impl->grad = g; }
     void set_creator(std::shared_ptr<Function> func) { impl->creator = func; };
+
     void backward();
     void show() const;
 };

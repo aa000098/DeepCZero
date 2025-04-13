@@ -7,37 +7,56 @@
 
 Function::~Function() = default;
 
-Variable Function::operator()(Variable input) {
+Variable Function::operator()(const Variable& input) {
 	this->input = input.get_impl();
-	float y = forward();
-
-	std::shared_ptr<VariableImpl<float>> output = std::make_shared<VariableImpl<float>>(y);
-	set_output(output);
-
+	Tensor xs = this->input->data;
+	
+	Tensor ys = forward(xs);
+	
+	output = std::make_shared<VariableImpl>(ys);
+	
 	output->creator = shared_from_this();
+
 	return Variable(output);
 }
 
 
-float Square::forward() {
-	float x = input->data;
-	float result = pow(x, 2);
-	return result;
+Tensor Square::forward(Tensor xs) {
+	Tensor results;
+	for (float x : xs) {
+		float y = pow(x, 2);
+		results.push_back(y);
+	}
+	return results;
 }
 
-float Square::backward(float gy) {
-	float x = input->data;
-	return 2 * x * gy;
+Tensor Square::backward(Tensor gy) {
+	Tensor xs = input->data;
+	Tensor results;
+	for (size_t i = 0; i < xs.size(); ++i) {
+		float gx = 2 * xs[i] * gy[i];
+		results.push_back(gx);
+	}
+	return results;
 }
 
 
-float Exp::forward() {
-	float x = input->data;
-	float result = exp(x);
-	return result;
+Tensor Exp::forward(Tensor xs) {
+	Tensor results;
+	for (float x : xs) {
+		float y = exp(x);
+		results.push_back(y);
+	}
+	return results;
 }
 
-float Exp::backward(float gy) {
-	float x = input->data;
-	return exp(x) * gy;
+Tensor Exp::backward(Tensor gy) {
+	Tensor xs = input->data;
+	Tensor results;
+	for (size_t i = 0; i < xs.size(); ++i) {
+		float gx = exp(xs[i]) * gy[i];
+		results.push_back(gx);
+	}
+	return results;
 }
+

@@ -4,7 +4,7 @@
 #include <iostream>
 
 int main() {
-	Variable x = Variable(8); 
+	Variable x = Variable({8}); 
 	Variable y1 = square(x);
 	std::cout << "[Square(8)]: ";
 	y1.show();
@@ -14,7 +14,7 @@ int main() {
 	std::cout << "[Exp(8)]: ";
 	y2.show();
 
-	Variable x2 = Variable(0.5);
+	Variable x2 = Variable({0.5});
 	Variable y3 = square(x2);
 	Variable y4 = exp(y3);
 	Variable y5 = square(y4);

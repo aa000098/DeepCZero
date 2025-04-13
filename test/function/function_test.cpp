@@ -4,7 +4,7 @@
 #include <iostream>
 
 int main() {
-	Variable x = Variable(8); 
+	Variable x = Variable({8}); 
 	std::shared_ptr<Function> f1 = std::make_shared<Square>();
 	Variable y1 = (*f1)(x);
 	std::cout << "[Square(8)]: ";
@@ -18,7 +18,7 @@ int main() {
 	y2.show();
 	std::cout << std::endl;
 
-	Variable x2 = Variable(0.5);
+	Variable x2 = Variable({0.5});
 	std::shared_ptr<Function> f3 = std::make_shared<Square>();
 	std::shared_ptr<Function> f4 = std::make_shared<Exp>();
 	std::shared_ptr<Function> f5 = std::make_shared<Square>();

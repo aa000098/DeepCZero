@@ -4,28 +4,30 @@
 
 class Function; // forward declaration
 
+template <typename T>
 class VariableImpl {
 public:
 	//TODO: extend to tensor
-    float data;
+    T data;
     float grad;
     std::shared_ptr<Function> creator;
     bool requires_grad;
 
 public:
-	VariableImpl(float data, bool requires_grad = true);
+	VariableImpl(T data, bool requires_grad=true)
+    : data(data), grad(0.0), creator(nullptr), requires_grad(requires_grad) {}
 };
 
 
 class Variable{
 private:
-	std::shared_ptr<VariableImpl> impl;
+	std::shared_ptr<VariableImpl<float>> impl;
 
 public:
     Variable(float data, bool requires_grad = true);
-	Variable(std::shared_ptr<VariableImpl> impl);
+	Variable(std::shared_ptr<VariableImpl<float>> impl);
 
-	std::shared_ptr<VariableImpl> get_impl() { return impl; };
+	std::shared_ptr<VariableImpl<float>> get_impl() { return impl; };
 	float get_data() const { return impl->data; };
 	float get_grad() const { return impl->grad; };
 	std::shared_ptr<Function> get_creator() const { return impl->creator; };

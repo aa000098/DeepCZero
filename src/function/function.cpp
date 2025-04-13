@@ -18,7 +18,7 @@ Variable Function::operator()(Variable input) {
 void Square::forward() {
 	float x = input->data;
 	float result = pow(x, 2);
-	std::shared_ptr<VariableImpl> output = std::make_shared<VariableImpl>(result);
+	std::shared_ptr<VariableImpl<float>> output = std::make_shared<VariableImpl<float>>(result);
 	set_output(output);
 }
 
@@ -31,7 +31,7 @@ float Square::backward(float gy) {
 void Exp::forward() {
 	float x = input->data;
 	float result = exp(x);
-	std::shared_ptr<VariableImpl> output = std::make_shared<VariableImpl>(result);
+	std::shared_ptr<VariableImpl<float>> output = std::make_shared<VariableImpl<float>>(result);
 	set_output(output);
 }
 

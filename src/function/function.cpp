@@ -9,17 +9,20 @@ Function::~Function() = default;
 
 Variable Function::operator()(Variable input) {
 	this->input = input.get_impl();
-	forward();
+	float y = forward();
+
+	std::shared_ptr<VariableImpl<float>> output = std::make_shared<VariableImpl<float>>(y);
+	set_output(output);
+
 	output->creator = shared_from_this();
 	return Variable(output);
 }
 
 
-void Square::forward() {
+float Square::forward() {
 	float x = input->data;
 	float result = pow(x, 2);
-	std::shared_ptr<VariableImpl<float>> output = std::make_shared<VariableImpl<float>>(result);
-	set_output(output);
+	return result;
 }
 
 float Square::backward(float gy) {
@@ -28,11 +31,10 @@ float Square::backward(float gy) {
 }
 
 
-void Exp::forward() {
+float Exp::forward() {
 	float x = input->data;
 	float result = exp(x);
-	std::shared_ptr<VariableImpl<float>> output = std::make_shared<VariableImpl<float>>(result);
-	set_output(output);
+	return result;
 }
 
 float Exp::backward(float gy) {

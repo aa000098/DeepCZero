@@ -17,7 +17,7 @@ protected:
 public:
 	virtual Variable operator()(Variable input);
 
-	virtual void forward() = 0;
+	virtual float forward() = 0;
 	virtual float backward(float gy) = 0; 
 	
 //	virtual void forward(std::vector<std::shared_ptr<Variable>> inputs);
@@ -37,7 +37,7 @@ public:
 class Square: public Function {
 
 public:
-	void forward() override;
+	float forward() override;
 	float backward(float gy) override;
 	
 	~Square() = default;
@@ -46,7 +46,7 @@ public:
 class Exp: public Function {
 
 public:
-	void forward() override;
+	float forward() override;
 	float backward(float gy) override;
 
 	~Exp() = default;

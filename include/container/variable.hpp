@@ -19,6 +19,7 @@ public:
 	float get_grad() { return grad; };
 
     void set_creator(std::shared_ptr<Function> func) { creator = func; };
+	std::shared_ptr<Function> get_creator() { return creator; };
     void backward();
     void show() const;
 };

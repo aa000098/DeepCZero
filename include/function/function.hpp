@@ -5,7 +5,7 @@
 
 class Variable;
 
-class Function {
+class Function : public std::enable_shared_from_this<Function> {
 protected:
 	std::shared_ptr<Variable> input;
 	std::shared_ptr<Variable> output;
@@ -13,9 +13,10 @@ protected:
 	std::vector<std::shared_ptr<Variable>> outputs;
 	
 public:
-	virtual Variable operator()(Variable input) = 0;
+	virtual Variable operator()(Variable input);
 
-	virtual void forward(std::shared_ptr<Variable> input) = 0;
+	virtual void forward() = 0;
+	virtual float backward(float gy) = 0; 
 	
 //	virtual void forward(std::vector<std::shared_ptr<Variable>> inputs);
 	
@@ -34,10 +35,8 @@ public:
 class Square: public Function {
 
 public:
-	Variable operator()(Variable input) override;
-
-public:
-	void forward(std::shared_ptr<Variable> input) override;
+	void forward() override;
+	float backward(float gy) override;
 	
 //	void forward(std::vector<std::shared_ptr<Variable>> inputs);
 	
@@ -50,8 +49,7 @@ public:
 class Exp: public Function {
 
 public:
-	Variable operator()(Variable input) override;
-public:
-	void forward(std::shared_ptr<Variable> input) override;
+	void forward() override;
+	float backward(float gy) override;
 
 };

@@ -6,7 +6,7 @@
 Variable::Variable(float data, bool requires_grad)
     : data(data), grad(0.0), creator(nullptr), requires_grad(requires_grad) {}
 
-/*
+
 void Variable::backward() {
     if (grad == 0.0f)
 		// TODO: gradient random initializing
@@ -19,24 +19,21 @@ void Variable::backward() {
 		std::shared_ptr<Function> f = funcs.back();
         funcs.pop_back();
 
-		std::shared_ptr<Variable> &input = f.get_input();
-		std::shared_ptr<Variable> &output = f.get_output();
+		std::shared_ptr<Variable> input = f->get_input();
+		std::shared_ptr<Variable> output = f->get_output();
 
-		f.backward(output.get_grad());
-		auto gxs = f.backward();
+		float gxs = f->backward(output->get_grad());
 
-        for (size_t i = 0; i < inputs.size(); ++i) {
-            if (inputs[i]->grad == 0.0f)
-                inputs[i]->grad = gxs[i]->data;
-            else
-                inputs[i]->grad += gxs[i]->data;
-
-            if (inputs[i]->creator)
-                funcs.push_back(inputs[i]->creator);
-        }
+        if (input->grad == 0.0f)
+            input->grad = gxs;
+        else
+            input->grad += gxs;
+        
+		if (input->creator)
+            funcs.push_back(input->creator);
     }
 }
-*/
+
 void Variable::show() const {
     std::cout << "Variable(data=" << data << ", grad=" << grad << ")\n";
 }

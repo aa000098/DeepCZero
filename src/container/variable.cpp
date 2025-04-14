@@ -16,20 +16,26 @@ void Variable::backward() {
 		std::shared_ptr<Function> f = funcs.back();
         funcs.pop_back();
 
-		std::shared_ptr<VariableImpl> input = f->get_input();
+		std::vector<std::shared_ptr<VariableImpl>> inputs = f->get_inputs();
 		std::shared_ptr<VariableImpl> output = f->get_output();
 
-		Tensor gys = output->grad;
-		Tensor gxs = f->backward(gys);
-        if (input->grad.empty())
-            input->grad = gxs;
-        else {
-            for (size_t i = 0; i < input->grad.size(); ++i)
-				input->grad[i] += gxs[i];
+		Tensor gy = output->grad;
+		std::vector<Tensor> gxs = f->backward(gy);
+
+		for (size_t i = 0; i < inputs.size(); ++i) {
+			std::shared_ptr<VariableImpl> input = inputs[i];
+			Tensor& gx = gxs[i];
+
+			if (input->grad.empty())
+            	input->grad = gx;
+        	else {
+            	for (size_t j = 0; j < input->grad.size(); ++j)
+					input->grad[j] += gx[j];
 		}
         
-		if (input->creator)
-            funcs.push_back(input->creator);
+			if (input->creator)
+            	funcs.push_back(input->creator);
+		}
     }
 }
 

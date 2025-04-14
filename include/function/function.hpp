@@ -11,18 +11,18 @@ class Variable;
 
 class Function : public std::enable_shared_from_this<Function> {
 protected:
-	std::shared_ptr<VariableImpl> input;
+	std::vector<std::shared_ptr<VariableImpl>> inputs;
 	std::shared_ptr<VariableImpl> output;
 	
 public:
-	virtual Variable operator()(const Variable& input);
+	virtual Variable operator()(const std::vector<Variable>& inputs);
 
-	virtual Tensor forward(Tensor xs) = 0;
-	virtual Tensor backward(Tensor gy) = 0; 
+	virtual Tensor forward(std::vector<Tensor>& xs) = 0;
+	virtual std::vector<Tensor> backward(Tensor& gy) = 0; 
 
 
 public:
-	std::shared_ptr<VariableImpl> get_input() { return input; };
+	std::vector<std::shared_ptr<VariableImpl>> get_inputs() { return inputs; };
 	std::shared_ptr<VariableImpl> get_output() { return output; };
 
 	virtual ~Function();
@@ -31,8 +31,8 @@ public:
 class Square: public Function {
 
 public:
-	Tensor forward(Tensor xs) override;
-	Tensor backward(Tensor gy) override;
+	Tensor forward(std::vector<Tensor>& xs) override;
+	std::vector<Tensor> backward(Tensor& gy) override;
 
 	~Square() = default;
 };
@@ -40,8 +40,17 @@ public:
 class Exp: public Function {
 
 public:
-	Tensor forward(Tensor xs) override;
-	Tensor backward(Tensor gy) override;
+	Tensor forward(std::vector<Tensor>& xs) override;
+	std::vector<Tensor> backward(Tensor& gy) override;
 
 	~Exp() = default;
+};
+
+class Add: public Function {
+
+public:
+	Tensor forward(std::vector<Tensor>& xs) override;
+	std::vector<Tensor> backward(Tensor& gy) override;
+
+	~Add() = default;
 };

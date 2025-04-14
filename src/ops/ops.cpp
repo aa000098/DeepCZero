@@ -5,10 +5,15 @@
 
 Variable square(const Variable &x) {
 	std::shared_ptr<Function> f = std::make_shared<Square>();
-	return (*f)(x);
+	return (*f)({x});
 }
 
 Variable exp(const Variable &x) {
 	std::shared_ptr<Function> f = std::make_shared<Exp>();
-	return (*f)(x);
+	return (*f)({x});
+}
+
+Variable add(const Variable &a, const Variable &b) {
+	std::shared_ptr<Function> f = std::make_shared<Add>();
+	return (*f)({a, b});
 }

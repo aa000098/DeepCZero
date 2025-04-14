@@ -4,4 +4,4 @@
 
 Variable square(const Variable &x);
 Variable exp(const Variable &x);
-
+Variable add(const Variable &a, const Variable &b);

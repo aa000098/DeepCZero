@@ -1,5 +1,8 @@
 #include "container/variable.hpp"
 #include "function/function.hpp"
+#include "graph/graph.hpp"
+
+#include <unordered_set>
 #include <iostream>
 
 Variable::Variable(const Tensor& data, bool requires_grad) : impl(std::make_shared<VariableImpl>(data, requires_grad)) {}
@@ -7,15 +10,13 @@ Variable::Variable(const Tensor& data, bool requires_grad) : impl(std::make_shar
 Variable::Variable(std::shared_ptr<VariableImpl> impl) : impl(std::move(impl)) {}
 
 void Variable::backward() {
-    impl->grad = Tensor(impl->data.size(), 1.0f);
+	impl->grad = Tensor(impl->data.size(), 1.0f);
 
-	std::vector<std::shared_ptr<Function>> funcs;
-	if (impl->creator) funcs.push_back(impl->creator);
+	Graph graph;
+	graph.build_from(impl->creator.get());
+	std::vector<Function*> topo_order = graph.get_topo_order();
 
-    while (!funcs.empty()) {
-		std::shared_ptr<Function> f = funcs.back();
-        funcs.pop_back();
-
+	for (auto& f : topo_order) {
 		std::vector<std::shared_ptr<VariableImpl>> inputs = f->get_inputs();
 		std::shared_ptr<VariableImpl> output = f->get_output();
 
@@ -24,17 +25,14 @@ void Variable::backward() {
 
 		for (size_t i = 0; i < inputs.size(); ++i) {
 			std::shared_ptr<VariableImpl> input = inputs[i];
-			Tensor& gx = gxs[i];
+			const Tensor& gx = gxs[i];
 
 			if (input->grad.empty())
             	input->grad = gx;
         	else {
             	for (size_t j = 0; j < input->grad.size(); ++j)
 					input->grad[j] += gx[j];
-		}
-        
-			if (input->creator)
-            	funcs.push_back(input->creator);
+			}
 		}
     }
 }

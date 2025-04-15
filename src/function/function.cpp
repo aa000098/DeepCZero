@@ -1,23 +1,8 @@
 #include "function/function.hpp"
 
 #include <cmath>
+#include <algorithm>
 
-
-Function::~Function() = default;
-/*
-Variable Function::operator()(const Variable& input) {
-	this->inputs = input.get_impl();
-	Tensor xs = this->input->data;
-	
-	Tensor ys = forward(xs);
-	
-	output = std::make_shared<VariableImpl>(ys);
-	
-	output->creator = shared_from_this();
-
-	return Variable(output);
-}
-*/
 Variable Function::operator()(const std::vector<Variable>& inputs) {
 	this->inputs.clear();
 
@@ -38,7 +23,7 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 	}
 	*/ 
 	output = std::make_shared<VariableImpl>(ys);
-	output->creator = shared_from_this();
+	output->set_creator(shared_from_this());
 
 	return Variable(output);
 }
@@ -97,3 +82,5 @@ Tensor Add::forward(std::vector<Tensor>& xs) {
 std::vector<Tensor> Add::backward(Tensor& gy) {
 	return {gy, gy};
 }
+
+Function::~Function() {}

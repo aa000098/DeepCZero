@@ -17,7 +17,9 @@ public:
 
 public:
 	VariableImpl(const Tensor& data, bool requires_grad=true)
-    : data(data), grad(data.size(), 0.0f), creator(nullptr), requires_grad(requires_grad) {}
+    : data(data), grad(data.size(), {}), creator(nullptr), requires_grad(requires_grad) {};
+
+	void set_creator(std::shared_ptr<Function> creator) { this->creator = creator; };
 };
 
 

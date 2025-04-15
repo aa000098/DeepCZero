@@ -6,7 +6,7 @@
 #include <vector>
 #include <memory>
 
-
+ 
 int main() {
     Variable x({2});
 	Variable a = square(x);

@@ -12,7 +12,7 @@ class Variable;
 class Function : public std::enable_shared_from_this<Function> {
 protected:
 	std::vector<std::shared_ptr<VariableImpl>> inputs;
-	std::shared_ptr<VariableImpl> output;
+	std::weak_ptr<VariableImpl> output;
 	
 public:
 	virtual Variable operator()(const std::vector<Variable>& inputs);
@@ -23,7 +23,7 @@ public:
 
 public:
 	std::vector<std::shared_ptr<VariableImpl>> get_inputs() { return inputs; };
-	std::shared_ptr<VariableImpl> get_output() { return output; };
+	std::shared_ptr<VariableImpl> get_output() { return output.lock(); };
 
 	virtual ~Function();
 };

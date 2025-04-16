@@ -3,6 +3,7 @@
 #include <cmath>
 #include <algorithm>
 
+
 Variable Function::operator()(const std::vector<Variable>& inputs) {
 	this->inputs.clear();
 
@@ -22,10 +23,10 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 		outputs->creator = shared_from_this();
 	}
 	*/ 
-	output = std::make_shared<VariableImpl>(ys);
-	output->set_creator(shared_from_this());
-
-	return Variable(output);
+	auto out = std::make_shared<VariableImpl>(ys);
+	out->creator = shared_from_this();
+	output = out;
+	return Variable(out);
 }
 
 Tensor Square::forward(std::vector<Tensor>& xs) {

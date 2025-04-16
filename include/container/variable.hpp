@@ -17,9 +17,7 @@ public:
 
 public:
 	VariableImpl(const Tensor& data, bool requires_grad=true)
-    : data(data), grad(data.size(), {}), creator(nullptr), requires_grad(requires_grad) {};
-
-	void set_creator(std::shared_ptr<Function> creator) { this->creator = creator; };
+    : data(data), grad(data.size(), {}), creator(), requires_grad(requires_grad) {};
 };
 
 
@@ -34,7 +32,6 @@ public:
 	const std::shared_ptr<VariableImpl>& get_impl() const { return impl; };
 
 	std::shared_ptr<Function> get_creator() const { return impl->creator; };
-    void set_creator(std::shared_ptr<Function> func) { impl->creator = func; };
 
     void backward();
     void show() const;

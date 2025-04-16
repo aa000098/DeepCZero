@@ -32,6 +32,12 @@ int main() {
 	std::cout << "[Square(Exp(Square(0.5)))]: ";
 	y5.show();
 
+	f1.reset();
+	f2.reset();
+	f3.reset();
+	f4.reset();
+	f5.reset();
+
 
 	std::cout << std::endl;
 }

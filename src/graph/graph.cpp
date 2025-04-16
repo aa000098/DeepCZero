@@ -15,15 +15,16 @@ void Graph::build_from(Function* output) {
 }
 
 void Graph::dfs(Function* f, std::unordered_set<Function*>& visited) {
-	if (visited.count(f)) return;
+	if (!f || visited.count(f)) return;
 	visited.insert(f);
 
 	for (auto& input_var : f->get_inputs()) {
-		Function* prev_func = input_var->creator.get();
+		std::shared_ptr<Function> prev_func = input_var->creator;
 		if (prev_func) {
-			graph[prev_func].push_back(f);
+			Function* prev = prev_func.get();
+			graph[prev].push_back(f);
 			in_degree[f]++;
-			dfs(prev_func, visited);
+			dfs(prev, visited);
 		}
 	}
 }

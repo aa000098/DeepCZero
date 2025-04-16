@@ -12,8 +12,11 @@ Variable::Variable(std::shared_ptr<VariableImpl> impl) : impl(std::move(impl)) {
 void Variable::backward() {
 	impl->grad = Tensor(impl->data.size(), 1.0f);
 
+	auto creator = impl->creator;
+	if (!creator) return;
+
 	Graph graph;
-	graph.build_from(impl->creator.get());
+	graph.build_from(creator.get());
 	std::vector<Function*> topo_order = graph.get_topo_order();
 
 	for (auto& f : topo_order) {

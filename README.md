@@ -4,6 +4,12 @@
 Python 기반의 [DeZero](https://github.com/oreilly-japan/deep-learning-from-scratch-3)를 모티브로 하되,  
 더 저수준에서 제어 가능한 구조와 고성능 구현을 목표로 합니다.  
   
+## 개발 노트
+
+프로젝트 진행 중의 기술 결정, 개선 사항, 설계 기록은 아래 Notion 페이지에서 확인하실 수 있습니다:
+
+🔗 [DeepCZero 개발노트 (Notion)](https://www.notion.so/DeepCZero-1d2c4cd6527d80a69debd81ff4fb6f80)
+  
 
 ## 프로젝트 구조
 DeepCZero/  
@@ -26,10 +32,13 @@ make test
 ```   
   
 ## 주요 구현 목록
- Variable 클래스 – 값, gradient, creator 추적   
- Function 추상 클래스 – forward / backward 인터페이스 정의   
-   
- 
+- Variable: Tensor 기반 값 및 gradient 저장, weak_ptr 기반 creator 추적
+- Function: 다입력/다출력 지원, 자동 그래프 연결 및 shared_from_this 연동
+- Graph: 계산 그래프 자동 구성 및 Topological 정렬 기반 backward 연산
+- 연산자: Square, Exp, Add 등 기본 Function 구현
+- 메모리 안정성 확보: Valgrind를 통한 누수 점검 완료 (cyclic reference 제거)
+
+  
  ## 향후 계획
 ### 1단계: 지금 설계 기반에서 확장 가능한 핵심
 - 자동 미분 엔진

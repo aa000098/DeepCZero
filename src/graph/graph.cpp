@@ -18,6 +18,8 @@ void Graph::dfs(Function* f, std::unordered_set<Function*>& visited) {
 	if (!f || visited.count(f)) return;
 	visited.insert(f);
 
+	if (!graph.count(f)) graph[f] = {};
+
 	for (auto& input_var : f->get_inputs()) {
 		std::shared_ptr<Function> prev_func = input_var->creator;
 		if (prev_func) {

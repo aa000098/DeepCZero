@@ -33,7 +33,7 @@ public:
 
 	std::shared_ptr<Function> get_creator() const { return impl->creator; };
 
-    void backward();
+    void backward(bool retain_grad=false);
     void show() const;
 };
 	

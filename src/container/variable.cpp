@@ -9,14 +9,13 @@ Variable::Variable(const Tensor& data, bool requires_grad) : impl(std::make_shar
 
 Variable::Variable(std::shared_ptr<VariableImpl> impl) : impl(std::move(impl)) {}
 
-void Variable::backward() {
+void Variable::backward(bool retain_grad) {
 	impl->grad = Tensor(impl->data.size(), 1.0f);
 
-	auto creator = impl->creator;
+	auto creator = impl->creator.get();
 	if (!creator) return;
-
 	Graph graph;
-	graph.build_from(creator.get());
+	graph.build_from(creator);
 	std::vector<Function*> topo_order = graph.get_topo_order();
 
 	for (auto& f : topo_order) {
@@ -37,6 +36,8 @@ void Variable::backward() {
 					input->grad[j] += gx[j];
 			}
 		}
+
+		if (!retain_grad) output->grad = Tensor({0});
     }
 }
 

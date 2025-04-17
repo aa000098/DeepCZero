@@ -1,4 +1,5 @@
 #include "function/function.hpp"
+#include "config/config.hpp"
 
 #include <cmath>
 #include <algorithm>
@@ -8,12 +9,17 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 	this->inputs.clear();
 
 	std::vector<Tensor> xs;
-	for (const auto& input : inputs) {
-		std::shared_ptr<VariableImpl> impl = input.get_impl();
-		this->inputs.push_back(impl);
-		xs.push_back(impl->data);
+	if (dcz::Config::get().enable_backprop) {
+		for (const auto& input : inputs) {
+			std::shared_ptr<VariableImpl> impl = input.get_impl();
+			this->inputs.push_back(impl);
+			xs.push_back(impl->data);
+		}
+	} else {
+		for (const auto& input : inputs) {
+			xs.push_back(input.get_impl()->data);
+		}
 	}
-		
 	Tensor ys = forward(xs);
 	
 	// TODO: make multiple outputs
@@ -24,7 +30,7 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 	}
 	*/ 
 	auto out = std::make_shared<VariableImpl>(ys);
-	out->creator = shared_from_this();
+	if (dcz::Config::get().enable_backprop) out->creator = shared_from_this();
 	output = out;
 	return Variable(out);
 }

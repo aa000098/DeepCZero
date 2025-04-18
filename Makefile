@@ -1,7 +1,7 @@
 # compiler and flags
 CXX = g++
 CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -MMD -MP
-
+ 
 # directory
 SRC_DIR = src
 TEST_DIR = test

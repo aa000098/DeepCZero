@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-using Tensor = std::vector<float>;
-
 int main() {
 	Variable x({0.5});
 

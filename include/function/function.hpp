@@ -5,8 +5,6 @@
 #include <vector>
 #include <memory>
 
-using Tensor = std::vector<float>;
-
 class Variable;
 
 class Function : public std::enable_shared_from_this<Function> {

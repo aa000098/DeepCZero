@@ -37,42 +37,34 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 
 Tensor Square::forward(std::vector<Tensor>& xs) {
 	Tensor x = xs[0];
-	Tensor result;
-	for (auto data : x) {
-		float y = pow(data, 2);
-		result.push_back(y);
-	}
+	Tensor result({x.size()}, 0.0f);
+	for (size_t i = 0; i < x.size(); ++i)
+		result[i] = pow(x[i], 2);	
 	return result;
 }
 
 std::vector<Tensor> Square::backward(Tensor& gy) {
 	Tensor x = inputs[0]->data;
-	Tensor result;
-	for (size_t i = 0; i < x.size(); ++i) {
-		float gx = 2 * x[i] * gy[i];
-		result.push_back(gx);
-	}
+	Tensor result({x.size()}, 0.0f);
+	for (size_t i = 0; i < x.size(); ++i)
+		result[i] = 2 * x[i] * gy[i];
 	return {result};
 }
 
 
 Tensor Exp::forward(std::vector<Tensor>& xs) {
 	Tensor x = xs[0];
-	Tensor result;
-	for (auto data : x) {
-		float y = exp(data);
-		result.push_back(y);
-	}
+	Tensor result({x.size()}, 0.0f);
+	for (size_t i = 0; i < x.size(); ++i)
+		result[i] = exp(x[i]);
 	return result;
 }
 
 std::vector<Tensor> Exp::backward(Tensor& gy) {
 	Tensor x = inputs[0]->data;
-	Tensor result;
-	for (size_t i = 0; i < x.size(); ++i) {
-		float gx = exp(x[i]) * gy[i];
-		result.push_back(gx);
-	}
+	Tensor result({x.size()}, 0.0f);
+	for (size_t i = 0; i < x.size(); ++i)
+		result[i] = exp(x[i]) * gy[i];
 	return {result};
 }
 
@@ -80,9 +72,9 @@ Tensor Add::forward(std::vector<Tensor>& xs) {
 	Tensor a = xs[0];
 	Tensor b = xs[1];
 
-	Tensor result;
-	for(size_t i = 0; i < a.size(); ++i)
-		result.push_back(a[i] + b[i]);
+	Tensor result({a.size()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result[i] = a[i] + b[i];
 	return result;
 }
 

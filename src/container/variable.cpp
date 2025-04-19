@@ -3,14 +3,12 @@
 #include "graph/graph.hpp"
 
 #include <unordered_set>
+#include <string>
 #include <iostream>
 
-Variable::Variable(const Tensor& data, bool requires_grad) : impl(std::make_shared<VariableImpl>(data, requires_grad)) {}
-
-Variable::Variable(std::shared_ptr<VariableImpl> impl) : impl(std::move(impl)) {}
 
 void Variable::backward(bool retain_grad) {
-	impl->grad = Tensor(impl->data.size(), 1.0f);
+	impl->grad = Tensor(impl->data.get_shape(), 1.0f);
 
 	auto creator = impl->creator.get();
 	if (!creator) return;
@@ -37,7 +35,7 @@ void Variable::backward(bool retain_grad) {
 			}
 		}
 
-		if (!retain_grad) output->grad = Tensor({0});
+		if (!retain_grad) output->grad = Tensor(output->data.get_shape(), 0.0f);
     }
 }
 
@@ -48,8 +46,10 @@ void Variable::show() const {
 		std::cout << impl->data[i];
 		if (i != impl->data.size() -1) std::cout << ", ";
 	}
-	std:: cout << " ]\n";
+	std::cout << " ]\n";
 
+	std::cout << "  name: " << impl->name << std::endl;
+	
     std::cout << "  grad: [ ";
     for (size_t i = 0; i < impl->grad.size(); ++i) {
         std::cout << impl->grad[i];

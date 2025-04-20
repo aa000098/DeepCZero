@@ -29,6 +29,7 @@ namespace tensor {
 		const T& operator()(const std::vector<size_t>& indices) const { return (*data_ptr)[flatten_index(indices)]; };
 		
 		std::vector<float>& raw_data() {return *data_ptr;};
+		const std::vector<float>& raw_data() const {return *data_ptr;};
 		const std::vector<size_t>& get_shape() const { return shape; };
 		bool empty() { return (*data_ptr).empty(); };
 		size_t size() const {return (*data_ptr).size(); };

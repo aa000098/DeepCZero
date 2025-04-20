@@ -30,7 +30,7 @@ void Variable::backward(bool retain_grad) {
             	input->grad = gx;
         	else {
             	for (size_t j = 0; j < input->grad.size(); ++j)
-					input->grad[j] += gx[j];
+					input->grad.raw_data()[j] = input->grad.raw_data()[j] + gx.raw_data()[j];
 			}
 		}
 
@@ -42,7 +42,7 @@ void print_tensor(const Tensor& tensor, size_t depth = 0, std::vector<size_t> pr
     if (tensor.ndim() == 1) {
         std::cout << "[ ";
         for (size_t i = 0; i < tensor.size(); ++i) {
-            std::cout << tensor[i];
+            std::cout << tensor.raw_data()[i];
             if (i != tensor.size() - 1) std::cout << ", ";
         }
         std::cout << " ]";

@@ -15,8 +15,8 @@ namespace tensor {
 
 	public:
 		TensorView(	const std::vector<size_t>& shape,
-					const std::vector<size_t>& strides,
-					std::shared_ptr<std::vector<T>> data_ptr,
+					const std::vector<size_t>& strides = nullptr,
+					std::shared_ptr<std::vector<T>> data_ptr = nullptr,
 					size_t offset = 0)
 			: shape(shape), strides(strides), data_ptr(data_ptr), offset(offset) {};
 
@@ -26,7 +26,10 @@ namespace tensor {
 					size_t offset)
 			: data_ptr(raw_data), shape(shape), strides(strides), offset(offset) {};
 
+		std::vector<T>& raw_data() { return (*data_ptr); };
+		const std::vector<T>& raw_data() const { return (*data_ptr); };
 		const std::vector<size_t>& get_shape() const {return shape; };
+		const std::vector<size_t>& get_strides() const {return strides; };
 
 		size_t ndim() const { return shape.size(); };
 		size_t size() const;
@@ -35,12 +38,17 @@ namespace tensor {
 
 		const T& operator()(const std::vector<size_t>& indices) const { return const_cast<TensorView*> (this)->operator()(indices); };
 
-
 		TensorView<T> operator[](size_t index) const;
+/*
+		friend TensorView<T>& operator+=(TensorView<T>& lhs, const TensorView<T>& rhs);
+		
+		friend T operator*(TensorView<T>& a, size_t n);
+		friend TensorView<T>& operator+(TensorView<T>& a, const TensorView<T>& b);
+*/
+		TensorView<T>& exp();
+		TensorView<T>& pow(size_t mul);
 
-		friend TensorView<T>& operator+=(TensorView<T>&& lhs, const TensorView<T>& rhs);
-
-		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);
+//		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);
 	};
 }
 

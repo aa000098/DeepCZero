@@ -39,7 +39,7 @@ Tensor Square::forward(std::vector<Tensor>& xs) {
 	Tensor x = xs[0];
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
-		result[i] = pow(x[i], 2);	
+		result[i] = x[i].pow(2);	
 	return result;
 }
 
@@ -47,7 +47,7 @@ std::vector<Tensor> Square::backward(Tensor& gy) {
 	Tensor x = inputs[0]->data;
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
-		result[i] = 2 * x[i] * gy[i];
+		result.raw_data()[i] = 2 * x.raw_data()[i] * gy.raw_data()[i];
 	return {result};
 }
 
@@ -56,7 +56,7 @@ Tensor Exp::forward(std::vector<Tensor>& xs) {
 	Tensor x = xs[0];
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
-		result[i] = exp(x[i]);
+		result[i] = x[i].exp();
 	return result;
 }
 
@@ -64,7 +64,7 @@ std::vector<Tensor> Exp::backward(Tensor& gy) {
 	Tensor x = inputs[0]->data;
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
-		result[i] = exp(x[i]) * gy[i];
+		result.raw_data()[i] = exp(x.raw_data()[i]) * gy.raw_data()[i];
 	return {result};
 }
 
@@ -74,7 +74,7 @@ Tensor Add::forward(std::vector<Tensor>& xs) {
 
 	Tensor result({a.size()}, 0.0f);
 	for (size_t i = 0; i < a.size(); ++i)
-		result[i] = a[i] + b[i];
+		result.raw_data()[i] = a.raw_data()[i] + b.raw_data()[i];
 	return result;
 }
 

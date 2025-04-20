@@ -2,6 +2,7 @@
 
 #include "container/tensorview.hpp"
 
+#include <cmath>
 #include <stdexcept>
 #include <ostream>
 
@@ -39,18 +40,60 @@ namespace tensor {
 		for (auto s : shape) total * s;
 		return total;
 	}
-
+/*
 	template<typename T>
-	TensorView<T>& operator+=(TensorView<T>&& lhs, const TensorView<T>& rhs) {
+	TensorView<T>& operator+=(TensorView<T>& lhs, const TensorView<T>& rhs) {
 		if (lhs.get_shape() != rhs.get_shape())
 			throw std::invalid_argument("Shape mismatch in TensorView += operator");
 		
 		for (size_t i = 0; i < lhs.size(); i++) 
-			lhs({i}) += rhs({i});
+			lhs.raw_data()[i] += rhs({i});
 
 		return lhs;
 	}
-	
+
+	template<typename T>
+	T operator*(TensorView<T> a, const TensorView<T>& b) {
+		if (a.get_shape() != b.get_shape())
+			throw std::invalid_argument("Shape mismatch in TensorView += operator");
+		T result;
+		std::vector<T> a_data = a.raw_data();
+		std::vector<T> b_data = b.raw_data();
+		for (size_t i = 0; i < a.size(); i++) 
+			result += a_data[i] * b_data[i];
+		return result;
+	}
+
+	template<typename T>
+	TensorView<T>& operator+(TensorView<T> a, const TensorView<T>& b) {
+		if (a.get_shape() != b.get_shape())
+			throw std::invalid_argument("Shape mismatch in TensorView += operator");
+		std::vector<T> result_data(a.size());
+		for (int i = 0; i < a.size(); i++) 
+			result_data[i] = a.raw_data()[i] + b.raw_data()[i];
+		auto shape = a.get_shape();
+		auto strides = a.get_strides();
+		auto data_ptr = std::make_shared<std::vector<T>>(result_data);
+
+		TensorView<T> result(shape, strides, data_ptr);
+		return result;	
+	}
+*/
+	template<typename T>
+	TensorView<T>& TensorView<T>::exp() {
+		for (size_t i = 0; i < this->size(); i++)
+			(*data_ptr)[i] = std::exp((*data_ptr)[i]);
+		return *this;
+	}
+
+	template<typename T>
+	TensorView<T>& TensorView<T>::pow(size_t mul) {
+		for (size_t i = 0; i < this->size(); i++)
+			(*data_ptr)[i] = std::pow((*data_ptr)[i], mul);
+		return *this;
+	}
+
+	/*
 	template<typename T>
 	std::ostream& operator<<(std::ostream& os, const TensorView<T>& view) {
 		os << "[";
@@ -61,4 +104,5 @@ namespace tensor {
 		os << "]";
 		return os;
 	}
+	*/
 }

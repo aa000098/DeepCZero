@@ -1,0 +1,47 @@
+#pragma once
+
+#include <memory>
+#include <vector>
+#include <stdexcept>
+
+namespace tensor {
+	template<typename T>
+	class TensorView {
+	private:
+		std::shared_ptr<std::vector<T>> data_ptr;
+		std::vector<size_t> shape;
+		std::vector<size_t> strides;
+		size_t offset;
+
+	public:
+		TensorView(	const std::vector<size_t>& shape,
+					const std::vector<size_t>& strides,
+					std::shared_ptr<std::vector<T>> data_ptr,
+					size_t offset = 0)
+			: shape(shape), strides(strides), data_ptr(data_ptr), offset(offset) {};
+
+		TensorView(	std::vector<T>& raw_data, 
+					const std::vector<size_t>& shape, 
+					const std::vector<size_t>& strides, 
+					size_t offset)
+			: data_ptr(raw_data), shape(shape), strides(strides), offset(offset) {};
+
+		const std::vector<size_t>& get_shape() const {return shape; };
+
+		size_t ndim() const { return shape.size(); };
+		size_t size() const;
+		
+		T& operator()(const std::vector<size_t>& indices);
+
+		const T& operator()(const std::vector<size_t>& indices) const { return const_cast<TensorView*> (this)->operator()(indices); };
+
+
+		TensorView<T> operator[](size_t index) const;
+
+		friend TensorView<T>& operator+=(TensorView<T>&& lhs, const TensorView<T>& rhs);
+
+		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);
+	};
+}
+
+#include "container/tensorview.tpp"

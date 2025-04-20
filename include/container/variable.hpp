@@ -21,11 +21,15 @@ public:
     bool requires_grad;
 
 public:
-	VariableImpl(const Tensor& data, std::string name="", bool requires_grad=true) : data(data), name(name), grad(data.get_shape(), {}), creator(), requires_grad(requires_grad) {};
+	VariableImpl(	const Tensor& data, 
+					std::string name="", 
+					bool requires_grad=true) 
+		: data(data), name(name), grad(data.get_shape(), {}), creator(), requires_grad(requires_grad) {};
 	
-//	VariableImpl(const std::vector<float>& vec, std::string name="", bool requires_grad=true) : data({vec.size()}, vec), name(name), grad(data.get_shape(), {}), creator(), requires_grad(requires_grad) {};
-
-	VariableImpl(const std::vector<size_t>& shape, const std::vector<float>& values, std::string name="", bool requires_grad=true) : data(shape, values), name(name), grad(data.get_shape(), {}), creator(), requires_grad(requires_grad) {};
+	VariableImpl(	const std::vector<float>& vec, 
+					std::string name="", 
+					bool requires_grad=true) 
+		: data({vec.size()}, vec), name(name), grad(data.get_shape(), {}), creator(), requires_grad(requires_grad) {};
 
 };
 
@@ -35,12 +39,16 @@ private:
 	std::shared_ptr<VariableImpl> impl;
 
 public:
-    Variable(const Tensor& data, std::string name,  bool requires_grad = true) : impl(std::make_shared<VariableImpl>(data, name, requires_grad)) {};
+    Variable(	const Tensor& data, 
+				std::string name="",  
+				bool requires_grad = true) 
+		: impl(std::make_shared<VariableImpl>(data, name, requires_grad)) {};
 
-//	Variable(const std::vector<float>& vec, std::string name="", bool requires_grad = true) : impl(std::make_shared<VariableImpl>(vec, name, requires_grad)) {};
+	Variable(	const std::vector<float>& vec, 
+				std::string name="", 
+				bool requires_grad = true) 
+		: impl(std::make_shared<VariableImpl>(vec, name, requires_grad)) {};
 
-	Variable(const std::vector<float>& values, const std::vector<size_t>& shape = {}, std::string name="", bool requires_grad = true) : impl(std::make_shared<VariableImpl>(shape, values, name, requires_grad)) {};
-	
 	Variable(std::shared_ptr<VariableImpl> impl) : impl(std::move(impl)) {};
 
 	const std::shared_ptr<VariableImpl>& get_impl() const { return impl; };
@@ -51,7 +59,8 @@ public:
 
 public:
 
-	float& operator[](size_t idx) {return impl->data[idx]; };
+//	float& operator[](size_t idx) {return impl->data[idx]; };
+	tensor::TensorView<float> operator[](size_t idx) const { return impl->data[idx]; };
 	std::vector<size_t> shape() { return impl->data.get_shape(); };
 	bool empty() { return impl->data.empty(); };
 	size_t size() const {return impl->data.size(); };

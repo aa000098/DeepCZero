@@ -1,4 +1,5 @@
 #include "container/variable.hpp"
+#include "container/tensor.hpp"
 #include "ops/ops.hpp"
 
 #include <iostream>
@@ -13,11 +14,12 @@ int main() {
 	std::cout << std::endl;
 	std::cout << "a.size() : " << a.size() << std::endl;
 	std::cout << "a.ndim() : " << a.ndim() << std:: endl;
-	std::cout << "a[1] : " << a[1] << std::endl;
+//	std::cout << "a[1] : " << a[1] << std::endl;
 	std::cout << "a.show() : \n" << std::endl;
 	a.show();
 	
-	Variable b({2, 2}, {3, 4, 5, 6});
+	Tensor t({2,2}, {3, 4, 5, 6});
+	Variable b(t);
 
 	std::cout << "Variable b({2, 2}, {3, 4, 5, 6})" << std::endl;
 	std::cout << "b.get_shape() : ";
@@ -26,7 +28,7 @@ int main() {
 	std::cout << std::endl;
 	std::cout << "b.size() : " << b.size() << std::endl;
 	std::cout << "b.ndim() : " << b.ndim() << std:: endl;
-	std::cout << "b[1] : " << b[1] << std::endl;
+//	std::cout << "b[1] : " << b[1] << std::endl;
 	std::cout << "b.show() : \n" << std::endl;
 	b.show();
 }

@@ -6,16 +6,6 @@
 #include <string>
 #include <iostream>
 
-Variable::Variable(	const std::vector<float>& values, 
-					const std::vector<size_t>& shape, 
-					std::string name, 
-					bool requires_grad) {
-	std::vector<size_t> final_shape = shape;
-	if (final_shape.empty()) 
-		final_shape = {values.size()};
-	impl = std::make_shared<VariableImpl>(final_shape, values, name, requires_grad);
-}
-
 void Variable::backward(bool retain_grad) {
 	impl->grad = Tensor(impl->data.get_shape(), 1.0f);
 

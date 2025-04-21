@@ -38,12 +38,13 @@ void Variable::backward(bool retain_grad) {
     }
 }
 
-void print_tensor(const Tensor& tensor, size_t depth = 0, std::vector<size_t> prefix = {}) {
-    if (tensor.ndim() == 1) {
+void print_tensor(const Tensor& tensor, size_t depth = 0, size_t offset = 0) {
+	const std::vector<size_t> shape = tensor.get_shape();
+    if (tensor.ndim()-1 == depth) {
         std::cout << "[ ";
-        for (size_t i = 0; i < tensor.size(); ++i) {
+        for (size_t i = offset*shape[depth]; i < (offset+1)*shape[depth]; ++i) {
             std::cout << tensor.raw_data()[i];
-            if (i != tensor.size() - 1) std::cout << ", ";
+            if (i != (offset+1)*shape[depth] - 1) std::cout << ", ";
         }
         std::cout << " ]";
     } else {
@@ -51,10 +52,8 @@ void print_tensor(const Tensor& tensor, size_t depth = 0, std::vector<size_t> pr
         size_t dim = shape[depth];
         std::cout << "[";
         for (size_t i = 0; i < dim; ++i) {
-            std::vector<size_t> new_prefix = prefix;
-            new_prefix.push_back(i);
             if (i > 0) std::cout << " ";
-            print_tensor(tensor, depth + 1, new_prefix);
+            print_tensor(tensor, depth + 1, offset+i);
             if (i != dim - 1) std::cout << "," << std::endl;
         }
         std::cout << "]";
@@ -63,13 +62,13 @@ void print_tensor(const Tensor& tensor, size_t depth = 0, std::vector<size_t> pr
 
 void Variable::show() const {
     std::cout << "Variable {\n";
-    std::cout << "  data: ";
+    std::cout << "  data: \n";
     print_tensor(impl->data);
     std::cout << std::endl;
 
     std::cout << "  name: " << impl->name << std::endl;
 
-    std::cout << "  grad: ";
+    std::cout << "  grad: \n";
     print_tensor(impl->grad);
     std::cout << std::endl;
 

@@ -31,4 +31,18 @@ int main() {
 //	std::cout << "b[1] : " << b[1] << std::endl;
 	std::cout << "b.show() : \n" << std::endl;
 	b.show();
+
+	Tensor t2({2, 3, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24});
+	Variable c(t2);
+	std::cout << "Variable c({3, 4}, {1,2,3,4,5,6,7,8,9,10,11,12})" << std::endl;
+	std::cout << "c.get_shape() : ";
+	for (size_t i=0; i< c.ndim(); i++) 
+		std::cout << c.shape()[i] << " "; 
+	std::cout << std::endl;
+	std::cout << "c.size() : " << c.size() << std::endl;
+	std::cout << "c.ndim() : " << c.ndim() << std:: endl;
+	std::cout << "c.show() : \n" << std::endl;
+	c.show();
+
+
 }

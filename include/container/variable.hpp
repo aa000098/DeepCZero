@@ -1,6 +1,6 @@
 #pragma once
 
-#include "container/tensor.hpp"
+#include "container/tensorbase.hpp"
 
 #include <memory>
 #include <vector>
@@ -8,8 +8,7 @@
 
 class Function; // forward declaration
 
-using Tensor = tensor::Tensor<float>;
-
+using Tensor = tensor::TensorBase;
 
 class VariableImpl {
 public:

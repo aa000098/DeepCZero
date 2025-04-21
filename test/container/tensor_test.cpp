@@ -1,5 +1,5 @@
 #include "container/variable.hpp"
-#include "container/tensor.hpp"
+#include "container/tensorND.hpp"
 #include "ops/ops.hpp"
 
 #include <iostream>
@@ -18,7 +18,7 @@ int main() {
 	std::cout << "a.show() : \n" << std::endl;
 	a.show();
 	
-	Tensor t({2,2}, {3, 4, 5, 6});
+	TensorND t({2,2}, {3, 4, 5, 6});
 	Variable b(t);
 
 	std::cout << "Variable b({2, 2}, {3, 4, 5, 6})" << std::endl;
@@ -32,7 +32,7 @@ int main() {
 	std::cout << "b.show() : \n" << std::endl;
 	b.show();
 
-	Tensor t2({2, 3, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24});
+	TensorND t2({2, 3, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24});
 	Variable c(t2);
 	std::cout << "Variable c({3, 4}, {1,2,3,4,5,6,7,8,9,10,11,12})" << std::endl;
 	std::cout << "c.get_shape() : ";

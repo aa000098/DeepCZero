@@ -41,7 +41,7 @@ Tensor Square::forward(std::vector<Tensor>& xs) {
 	for (size_t i = 0; i < x.size(); ++i)
 		result[i] = x[i].pow(2);	
 	return result;
-}
+} 
 
 std::vector<Tensor> Square::backward(Tensor& gy) {
 	Tensor x = inputs[0]->data;

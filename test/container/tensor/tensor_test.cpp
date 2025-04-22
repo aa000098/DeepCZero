@@ -1,8 +1,10 @@
-#include "container/variable.hpp"
-#include "container/tensorND.hpp"
+/*#include "container/variable.hpp"
+#include "container/tensor/tensorND.hpp"
 #include "ops/ops.hpp"
 
 #include <iostream>
+
+using namespace tensor;
 
 int main() {
 	Variable a({3, 4, 5});
@@ -46,3 +48,4 @@ int main() {
 
 
 }
+*/

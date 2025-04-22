@@ -1,6 +1,6 @@
 #pragma once
 
-#include "container/tensorview.hpp"
+#include "container/tensor/tensorview.hpp"
 
 #include <cmath>
 #include <stdexcept>

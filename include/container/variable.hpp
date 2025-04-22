@@ -1,6 +1,8 @@
 #pragma once
 
-#include "container/tensorbase.hpp"
+#include "container/tensor/tensorbase.hpp"
+#include "container/tensor/tensor1D.hpp"
+#include "container/tensor/tensorND.hpp"
 
 #include <memory>
 #include <vector>
@@ -8,7 +10,7 @@
 
 class Function; // forward declaration
 
-using Tensor = tensor::TensorBase;
+using Tensor = std::shared_ptr<tensor::TensorBase<float>>;
 
 class VariableImpl {
 public:
@@ -23,12 +25,13 @@ public:
 	VariableImpl(	const Tensor& data, 
 					std::string name="", 
 					bool requires_grad=true) 
-		: data(data), name(name), grad(data.get_shape(), {}), creator(), requires_grad(requires_grad) {};
-	
+		: data(std::make_shared<tensor::Tensor(data)), name(name), requires_grad(requires_grad) {};
+
 	VariableImpl(	const std::vector<float>& vec, 
 					std::string name="", 
 					bool requires_grad=true) 
-		: data({vec.size()}, vec), name(name), grad(data.get_shape(), {}), creator(), requires_grad(requires_grad) {};
+		: data(std::make_shared<tensor::Tensor1D<float>>(vec)), 
+		name(name), grad(std::make_shared<tensor::TensorND<float>(data->shape(), {})), creator(), requires_grad(requires_grad) {};
 
 };
 
@@ -38,11 +41,11 @@ private:
 	std::shared_ptr<VariableImpl> impl;
 
 public:
-    Variable(	const Tensor& data, 
-				std::string name="",  
-				bool requires_grad = true) 
+	Variable(	const Tensor& data, 
+				std::string name="", 
+				bool requires_grad=true) 
 		: impl(std::make_shared<VariableImpl>(data, name, requires_grad)) {};
-
+	
 	Variable(	const std::vector<float>& vec, 
 				std::string name="", 
 				bool requires_grad = true) 
@@ -60,7 +63,7 @@ public:
 
 //	float& operator[](size_t idx) {return impl->data[idx]; };
 	tensor::TensorView<float> operator[](size_t idx) const { return impl->data[idx]; };
-	std::vector<size_t> shape() { return impl->data.get_shape(); };
+	std::vector<size_t> shape() { return impl->data->shape(); };
 	bool empty() { return impl->data.empty(); };
 	size_t size() const {return impl->data.size(); };
 	size_t ndim() const {return impl->data.ndim(); };

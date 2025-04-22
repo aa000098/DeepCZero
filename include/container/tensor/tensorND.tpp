@@ -1,5 +1,7 @@
-#include "container/tensorview.hpp"
+#pragma once
 
+#include "container/tensor/tensorview.hpp"
+#include "container/tensor/tensorND.hpp"
 #include <stdexcept>
 
 namespace tensor {
@@ -9,15 +11,7 @@ namespace tensor {
 			T init) : shape(shape) {
 		size_t total_size = 1;
 		for (auto dim : shape) total_size *= dim;
-		data_ptr = std::make_shared<std::vector<T>>(total_size, init);
-		compute_strides();
-	}
-
-	template<typename T>
-	TensorND<T>::TensorND(	
-			const std::vector<size_t>& shape, 
-			const std::vector<T>& init_data) : shape(shape) {
-		data_ptr = std::make_shared<std::vector<T>>(init_data);
+		data = std::vector<T>(total_size, init);
 		compute_strides();
 	}
 
@@ -30,7 +24,7 @@ namespace tensor {
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
 		size_t offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, new_strides, data_ptr, offset);
+		return TensorView<T>(new_shape, new_strides, data, offset);
 	}
 
 	template<typename T>
@@ -42,7 +36,7 @@ namespace tensor {
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
 		size_t offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, new_strides, data_ptr, offset);
+		return TensorView<T>(new_shape, new_strides, data, offset);
 	}
 
 	template<typename T>

@@ -1,3 +1,6 @@
+#pragma once
+
+#include "container/tensor/tensorbase.hpp"
 
 namespace tensor {
 	template<typename T>
@@ -5,9 +8,13 @@ namespace tensor {
 	private:
 		std::vector<T> data;
 	public:
+		Tensor1D(const std::vector<T>& vec) : data(vec) {};
 		Tensor1D(size_t len, T init = T()) : data(len, init) {};
+		
+		std::vector<size_t> shape() const override { return {data.size()}; };
 		size_t size() const override { return data.size(); };
 		size_t ndim() const override { return 1; };
-		std::vector<size_t> shape() const override { return {data.size()}; };
+		bool empty() const override { 
+			return data.empty(); };
 	};
 }

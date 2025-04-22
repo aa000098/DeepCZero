@@ -52,4 +52,4 @@ namespace tensor {
 	};
 }
 
-#include "container/tensorview.tpp"
+#include "container/tensor/tensorview.tpp"

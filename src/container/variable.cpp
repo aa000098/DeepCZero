@@ -6,8 +6,20 @@
 #include <string>
 #include <iostream>
 
+VariableImpl::VariableImpl(
+		const std::vector<size_t>& shape,
+		const std::vector<float>& vec,
+		std::string name, 
+		bool requires_grad) 
+		: name(name), grad(shape, {}), creator(), requires_grad(requires_grad) {
+	if (shape.size() == 1)
+		data = tensor::Tensor1D(vec);
+	else
+		data = tensor::TensorND(shape, vec);
+	grad = tensor::TensorND(shape, {});
+};
+
 void Variable::backward(bool retain_grad) {
-	impl->grad = Tensor(impl->data.get_shape(), 1.0f);
 
 	auto creator = impl->creator.get();
 	if (!creator) return;

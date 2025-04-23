@@ -11,7 +11,7 @@ namespace tensor {
 		Tensor1D(const std::vector<T>& vec) : data(vec) {};
 		Tensor1D(size_t len, T init = T()) : data(len, init) {};
 		
-		std::vector<size_t> shape() const override { return {data.size()}; };
+		std::vector<size_t> get_shape() const { return {data.size()}; };
 		size_t size() const override { return data.size(); };
 		size_t ndim() const override { return 1; };
 		bool empty() const override { 

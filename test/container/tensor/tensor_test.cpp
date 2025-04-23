@@ -1,13 +1,14 @@
-/*#include "container/variable.hpp"
+/*
+#include "container/variable.hpp"
 #include "container/tensor/tensorND.hpp"
 #include "ops/ops.hpp"
 
 #include <iostream>
 
 using namespace tensor;
-
+*/
 int main() {
-	Variable a({3, 4, 5});
+/*	Variable a({3, 4, 5});
 
 	std::cout << "Variable a({3, 4, 5})" << std::endl;
 	std::cout << "a.get_shape() : ";
@@ -45,7 +46,6 @@ int main() {
 	std::cout << "c.ndim() : " << c.ndim() << std:: endl;
 	std::cout << "c.show() : \n" << std::endl;
 	c.show();
-
+*/
 
 }
-*/

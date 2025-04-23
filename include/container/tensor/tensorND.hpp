@@ -41,7 +41,7 @@ namespace tensor {
 			return data;};
 
 
-		std::vector<size_t>& shape() const override { 
+		std::vector<size_t> get_shape() const { 
 			return data.shape(); };
 		size_t size() const override {
 			return data.size(); };

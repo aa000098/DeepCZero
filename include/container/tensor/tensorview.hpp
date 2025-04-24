@@ -24,7 +24,7 @@ namespace tensor {
 					const std::vector<size_t>& shape, 
 					const std::vector<size_t>& strides, 
 					size_t offset)
-			: data_ptr(raw_data), shape(shape), strides(strides), offset(offset) {};
+			: data_ptr(std::make_shared<std::vector<T> raw_data), shape(shape), strides(strides), offset(offset) {};
 
 		std::vector<T>& raw_data() { return (*data_ptr); };
 		const std::vector<T>& raw_data() const { return (*data_ptr); };

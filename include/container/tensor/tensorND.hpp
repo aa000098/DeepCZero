@@ -10,8 +10,8 @@ namespace tensor {
 	template<typename T>
 	class TensorND : public TensorBase<T> {
 	private:
-		std::vector<T> data;
 		std::vector<size_t> shape;
+		std::vector<T> data;
 		std::vector<size_t> strides;
 		size_t offset = 0;
 
@@ -20,8 +20,7 @@ namespace tensor {
 					T init = T());
 
 		TensorND(	const std::vector<size_t>& shape, 
-					const std::vector<T>& init_data)
-			: shape(shape), data(init_data) {};
+					const std::vector<T>& init_data);
 
 		TensorND() = default;
 
@@ -41,14 +40,19 @@ namespace tensor {
 			return data;};
 
 
+		
 		std::vector<size_t> get_shape() const { 
-			return data.shape(); };
+			return shape; };
+		std::vector<size_t> get_strides() const {
+			return strides; };
 		size_t size() const override {
 			return data.size(); };
 		size_t ndim() const override {
 			return shape.size(); };
 		bool empty() const override { 
 			return data.empty(); };
+
+		void show();
 
 	private:
 		void compute_strides();

@@ -4,12 +4,13 @@
 using namespace tensor;
 
 int main() {
-	TensorND<float> tensor({4, 3});
+	TensorND<float> tensor({4, 3, 2});
 
 
-	TensorView<float> view({2, 6}, tensor.raw_data(), {5, 1});
+	TensorView<float> view({2}, tensor.shared_data(), {1});
 
-	std::cout << "TensorView view({2, 6})" << std::endl;
+	std::cout << "TensorView view({2}, tensor.shared_data(), {1})" << std::endl;
+	view.show();
 	std::cout << "view.get_shape() : "; 
 	for (auto shape : view.get_shape())
 		std::cout <<  shape << " ";
@@ -21,7 +22,18 @@ int main() {
 	for (auto s : view.get_strides())
 		std::cout <<  s << " ";
 	std::cout << std::endl; 
-	
-	view.show();
 
+	view({1}) = 2;
+	std::cout << "view({1}) = 2" << std::endl;
+	std::cout << "view.show()" <<std::endl;
+	view.show();
+	std::cout << "tensor.show()" <<std::endl;
+	tensor.show();
+	
+	tensor({0,0,0}) = 4;
+	std::cout << "tensor({0,0,0}) = 4" << std::endl;
+	std::cout << "view.show()" <<std::endl;
+	view.show();
+	std::cout << "tensor.show()" <<std::endl;
+	tensor.show();
 }

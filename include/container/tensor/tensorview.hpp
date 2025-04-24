@@ -9,16 +9,16 @@ namespace tensor {
 	class TensorView {
 	private:
 		std::vector<size_t> shape;
-		std::vector<T>* data_ptr;
+		std::shared_ptr<std::vector<T>> data_ptr;
 		std::vector<size_t> strides;
 		size_t offset;
 
 	public:
 		TensorView(	const std::vector<size_t>& shape, 
-					std::vector<float>& raw_data, 
+					std::shared_ptr<std::vector<T>> data_ptr, 
 					const std::vector<size_t>& strides, 
 					size_t offset = 0)
-			: shape(shape), data_ptr(&raw_data), strides(strides), offset(offset) {};
+			: shape(shape), data_ptr(data_ptr), strides(strides), offset(offset) {};
 
 		std::vector<T>& raw_data() { return (*data_ptr); };
 		const std::vector<T>& raw_data() const { return (*data_ptr); };

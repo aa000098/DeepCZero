@@ -11,7 +11,7 @@ namespace tensor {
 	class TensorND : public TensorBase<T> {
 	private:
 		std::vector<size_t> shape;
-		std::vector<T> data;
+		std::shared_ptr<std::vector<T>> data_ptr;
 		std::vector<size_t> strides;
 		size_t offset = 0;
 
@@ -29,26 +29,30 @@ namespace tensor {
 		
 		T& operator()(	
 				const std::vector<size_t>& indices) {
-			return data[flatten_index(indices)]; };
+			return (*data_ptr)[flatten_index(indices)]; };
 		const T& operator()(
 				const std::vector<size_t>& indices) const { 
-			return data[flatten_index(indices)]; };
+			return (*data_ptr)[flatten_index(indices)]; };
 		
-		std::vector<float>& raw_data() {
-			return data;};
-		const std::vector<float>& raw_data() const {
-			return data;};
+		std::vector<T>& raw_data() {
+			return *data_ptr;};
+		const std::vector<T>& raw_data() const {
+			return *data_ptr;};
+		std::shared_ptr<std::vector<T>>& shared_data() {
+			return data_ptr; };
+
+		TensorView<T> view(size_t index) const;
 		
 		std::vector<size_t> get_shape() const { 
 			return shape; };
 		std::vector<size_t> get_strides() const {
 			return strides; };
 		size_t size() const override {
-			return data.size(); };
+			return (*data_ptr).size(); };
 		size_t ndim() const override {
 			return shape.size(); };
 		bool empty() const override { 
-			return data.empty(); };
+			return (*data_ptr).empty(); };
 
 		void show();
 

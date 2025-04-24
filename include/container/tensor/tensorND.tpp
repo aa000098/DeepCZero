@@ -17,7 +17,7 @@ namespace tensor {
 
 		size_t total_size = 1;
 		for (auto dim : shape) total_size *= dim;
-		data = std::vector<T>(total_size, init);
+		data_ptr = std::make_shared<std::vector<T>>(total_size, init);
 
 		compute_strides();
 	}
@@ -26,7 +26,7 @@ namespace tensor {
 	TensorND<T>::TensorND(	
 			const std::vector<size_t>& shape, 
 			const std::vector<T>& init_data)
-		: shape(shape), data(init_data) {
+		: shape(shape) {
 		if (shape.size() < 2)
 			throw std::runtime_error("Tensor must be at least 2D to define ND tensor");
 
@@ -35,6 +35,8 @@ namespace tensor {
 
 		if (expected_size != init_data.size())
 			throw std::invalid_argument("TensorND: shape does not match size of init_data:");
+
+		data_ptr = std::make_shared<std::vector<T>>(init_data);
 
 		compute_strides(); 
 	};
@@ -49,7 +51,7 @@ namespace tensor {
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
 		size_t offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, new_strides, data, offset);
+		return TensorView<T>(new_shape, new_strides, data_ptr, offset);
 	}
 
 	template<typename T>
@@ -61,7 +63,19 @@ namespace tensor {
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
 		size_t offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, new_strides, data, offset);
+		return TensorView<T>(new_shape, new_strides, data_ptr, offset);
+	}
+
+	template<typename T>
+	TensorView<T> TensorND<T>::view(size_t index) const {
+		if (shape.size() < 2)
+			throw std::runtime_error("Cannot slice 1D tensor");
+
+		std::vector<size_t> new_shape(shape.begin() + 1, shape.end());
+		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
+		size_t new_offset = index * strides[0];
+
+		return TensorView<T>(new_shape, data_ptr, new_strides, new_offset);
 	}
 
 	template<typename T>

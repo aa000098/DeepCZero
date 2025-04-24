@@ -9,12 +9,12 @@ int main() {
 	TensorND<float> a({3,2}, {3, 4, 5, 6, 7, 8});
 
 	std::cout << "TensorND a({3, 2}, {3, 4, 5, 6, 7, 8})" << std::endl;
+	a.show();
 
 	std::cout << "a.get_shape() : "; 
 	for (auto shape : a.get_shape())
 		std::cout <<  shape << " ";
 	std::cout << std::endl; 
-//	std::cout << "a[1] : " << a[1] << std::endl;
 	
 	std::cout << "a.size() : " << a.size() << std::endl;
 	std::cout << "a.ndim() : " << a.ndim() << std:: endl;
@@ -22,12 +22,19 @@ int main() {
 	for (auto s : a.get_strides())
 		std::cout <<  s << " ";
 	std::cout << std::endl; 
+	std::cout << "a({0, 1}) : " << a(std::vector<size_t>{0, 1}) << std::endl;
+	std::cout << "a({2, 0}) : " << a(std::vector<size_t>{2, 0}) << std::endl;
+//	std::cout << "a[1] : " << a[1] << std::endl;
 
+	std::cout << std::endl;
 
 	
 	TensorND<float> b({4,3,2}, 1.0f);
-
 	std::cout << "TensorND b({4, 3, 2}, 1.0f)" << std::endl;
+	b.show();
+	
+	b({2, 1, 1}) = 3;
+	std::cout << "b({2, 1, 1}) = 3" << std::endl;
 	b.show();
 
 

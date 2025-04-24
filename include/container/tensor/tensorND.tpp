@@ -2,6 +2,7 @@
 
 #include "container/tensor/tensorview.hpp"
 #include "container/tensor/tensorND.hpp"
+#include "container/tensor/tensor_debug.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -76,7 +77,7 @@ namespace tensor {
 	template<typename T>
 	size_t TensorND<T>::flatten_index(const std::vector<size_t>& indices) {
 		if (indices.size() != shape.size())
-			throw std::invalid_argument("Dimension mismatch in %s", __func__);
+			throw std::invalid_argument("Dimension mismatch in " + std::string(__func__));
 		size_t idx = 0;
 		for (size_t i = 0; i < indices.size(); ++i) {
 			if (indices[i] >= shape[i])
@@ -84,34 +85,6 @@ namespace tensor {
 			idx += indices[i] * strides[i];
 		}
 		return idx;
-	}
-
-	template<typename T>
-	void print_tensor(
-			const TensorND<T>& tensor, 
-			size_t depth = 0, 
-			size_t offset = 0) {
-		const std::vector<size_t> shape = tensor.get_shape();
-		size_t ndim = tensor.ndim();
-		std::string indent(depth * 2, ' ');
-
-		if (depth == ndim-1) {
-			std::cout << indent << "[ ";
-        	for (size_t i = offset*shape[depth]; i < (offset+1)*shape[depth]; ++i) {
-            	std::cout << tensor.raw_data()[i];
-            	if (i != (offset+1)*shape[depth] - 1) std::cout << ", ";
-        	}
-        	std::cout << " ]";
-    	} else {
-        	std::vector<size_t> shape = tensor.get_shape();
-        	size_t dim = shape[depth];
-        	std::cout << indent << "[\n";
-        	for (size_t i = 0; i < dim; ++i) {
-            	print_tensor(tensor, depth + 1, offset+i);
-            	if (i != dim - 1) std::cout << "," << std::endl;
-        	}
-        	std::cout << std::endl << indent << "]";
-    	}
 	}
 
 	template<typename T>

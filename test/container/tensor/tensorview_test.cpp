@@ -5,12 +5,23 @@ using namespace tensor;
 
 int main() {
 	TensorND<float> tensor({4, 3});
-	std::shared_ptr<std::vector<float>> data = std::make_shared<std::vector<float>>(tensor.raw_data());
+
+
+	TensorView<float> view({2, 6}, tensor.raw_data(), {5, 1});
+
+	std::cout << "TensorView view({2, 6})" << std::endl;
+	std::cout << "view.get_shape() : "; 
+	for (auto shape : view.get_shape())
+		std::cout <<  shape << " ";
+	std::cout << std::endl; 
+//	std::cout << "view[1] : " << view[1] << std::endl;
+	std::cout << "view.size() : " << view.size() << std::endl;
+	std::cout << "view.ndim() : " << view.ndim() << std:: endl;
+	std::cout << "view.get_strides() : ";
+	for (auto s : view.get_strides())
+		std::cout <<  s << " ";
+	std::cout << std::endl; 
 	
-	TensorView<float> a(tensor.get_shape(), tensor.get_strides(), data);	
-
-	TensorView<float> b(tensor.raw_data(), tensor.get_shape(), tensor.get_strides(), 0);
-
-
+	view.show();
 
 }

@@ -8,23 +8,17 @@ namespace tensor {
 	template<typename T>
 	class TensorView {
 	private:
-		std::shared_ptr<std::vector<T>> data_ptr;
 		std::vector<size_t> shape;
+		std::vector<T>* data_ptr;
 		std::vector<size_t> strides;
 		size_t offset;
 
 	public:
-		TensorView(	const std::vector<size_t>& shape,
-					const std::vector<size_t>& strides = nullptr,
-					std::shared_ptr<std::vector<T>> data_ptr = nullptr,
-					size_t offset = 0)
-			: shape(shape), strides(strides), data_ptr(data_ptr), offset(offset) {};
-
-		TensorView(	std::vector<T>& raw_data, 
-					const std::vector<size_t>& shape, 
+		TensorView(	const std::vector<size_t>& shape, 
+					std::vector<float>& raw_data, 
 					const std::vector<size_t>& strides, 
-					size_t offset)
-			: data_ptr(std::make_shared<std::vector<T> raw_data), shape(shape), strides(strides), offset(offset) {};
+					size_t offset = 0)
+			: shape(shape), data_ptr(&raw_data), strides(strides), offset(offset) {};
 
 		std::vector<T>& raw_data() { return (*data_ptr); };
 		const std::vector<T>& raw_data() const { return (*data_ptr); };
@@ -49,6 +43,8 @@ namespace tensor {
 		TensorView<T>& pow(size_t mul);
 
 //		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);
+//
+		void show();
 	};
 }
 

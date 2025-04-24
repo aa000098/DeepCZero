@@ -4,7 +4,7 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <ostream>
+#include <iostream>
 
 namespace tensor {
 	template<typename T>
@@ -37,7 +37,7 @@ namespace tensor {
 	template<typename T>
 	size_t TensorView<T>::size() const { 
 		size_t total = 1;
-		for (auto s : shape) total * s;
+		for (auto s : shape) total *= s;
 		return total;
 	}
 /*
@@ -105,4 +105,10 @@ namespace tensor {
 		return os;
 	}
 	*/
+	template<typename T>
+	void TensorView<T>::show() {
+		std::cout << "Data: \n";	
+		print_tensor(*this);
+		std::cout << std::endl;
+	}
 }

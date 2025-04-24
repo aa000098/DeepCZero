@@ -38,8 +38,6 @@ namespace tensor {
 			return data;};
 		const std::vector<float>& raw_data() const {
 			return data;};
-
-
 		
 		std::vector<size_t> get_shape() const { 
 			return shape; };

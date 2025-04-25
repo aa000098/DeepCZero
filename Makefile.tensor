@@ -12,7 +12,7 @@ OBJ := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRC))
 BIN := $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(SRC))
 
 # 디폴트 타겟
-all: $(BIN)
+all: $(BIN) run
 
 $(BIN_DIR)/%: $(BUILD_DIR)/%.o
 	@mkdir -p $(dir $@)

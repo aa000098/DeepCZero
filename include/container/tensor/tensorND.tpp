@@ -49,9 +49,9 @@ namespace tensor {
 
 		std::vector<size_t> new_shape(shape.begin() + 1, shape.end());
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
-		size_t offset = idx * strides[0];
+		size_t new_offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, new_strides, data_ptr, offset);
+		return TensorView<T>(new_shape, data_ptr, new_strides, new_offset);
 	}
 
 	template<typename T>
@@ -61,9 +61,9 @@ namespace tensor {
 
 		std::vector<size_t> new_shape(shape.begin() + 1, shape.end());
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
-		size_t offset = idx * strides[0];
+		size_t new_offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, new_strides, data_ptr, offset);
+		return TensorView<T>(new_shape, data_ptr, new_strides, new_offset);
 	}
 
 	template<typename T>

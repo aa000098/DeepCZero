@@ -19,7 +19,7 @@ namespace tensor {
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
 		size_t new_offset = offset + idx * strides[0];
 
-		return TensorView<T>(data_ptr, new_shape, new_strides, new_offset);
+		return TensorView<T>(new_shape, data_ptr, new_strides, new_offset);
 	}
 
 	template<typename T>
@@ -108,7 +108,7 @@ namespace tensor {
 	template<typename T>
 	void TensorView<T>::show() {
 		std::cout << "Data: \n";	
-		print_tensor(*this);
+		print_tensor(*this, 0, offset);
 		std::cout << std::endl;
 	}
 }

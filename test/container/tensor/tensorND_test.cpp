@@ -37,6 +37,10 @@ int main() {
 	std::cout << "b({2, 1, 1}) = 3" << std::endl;
 	b.show();
 
+	
+	std::cout << "b[2].show()" << std::endl;
+	b[2].show();
+
 
 
 /*	Variable b(t);

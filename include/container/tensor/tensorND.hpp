@@ -17,7 +17,7 @@ namespace tensor {
 
 	public:
 		TensorND(	const std::vector<size_t>& shape, 
-					T init = T());
+					T init = T{});
 
 		TensorND(	const std::vector<size_t>& shape, 
 					const std::vector<T>& init_data);
@@ -54,7 +54,7 @@ namespace tensor {
 		bool empty() const override { 
 			return (*data_ptr).empty(); };
 
-		void show();
+		void show() override;
 
 	private:
 		void compute_strides();

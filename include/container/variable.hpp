@@ -31,7 +31,7 @@ public:
 					std::string name="", 
 					bool requires_grad=true) 
 		: data(std::make_shared<tensor::Tensor1D<float>>(vec)), 
-		name(name), grad(std::make_shared<tensor::TensorND<float>(data->shape(), {})), creator(), requires_grad(requires_grad) {};
+		name(name), grad(std::make_shared<tensor::TensorND<float>>(data->shape(), {})), creator(), requires_grad(requires_grad) {};
 
 };
 
@@ -62,11 +62,11 @@ public:
 public:
 
 //	float& operator[](size_t idx) {return impl->data[idx]; };
-	tensor::TensorView<float> operator[](size_t idx) const { return impl->data[idx]; };
-	std::vector<size_t> shape() { return impl->data->shape(); };
-	bool empty() { return impl->data.empty(); };
-	size_t size() const {return impl->data.size(); };
-	size_t ndim() const {return impl->data.ndim(); };
+	tensor::TensorView<float> operator[](size_t idx) const { return (*impl->data)[idx]; };
+	std::vector<size_t> shape() { return (*impl->data).get_shape(); };
+	bool empty() { return (*impl->data).empty(); };
+	size_t size() const {return (*impl->data).size(); };
+	size_t ndim() const {return (*impl->data).ndim(); };
 
     void show() const;
 };

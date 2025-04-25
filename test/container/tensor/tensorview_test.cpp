@@ -37,7 +37,7 @@ int main() {
 	view.show();
 	std::cout << "tensor.show()" <<std::endl;
 	tensor.show();
-	std::cout << "tensor[1].show()" <<std::endl;
+
 	
 	tensor({0,0,0}) = 4;
 	tensor({1,0,1}) = 3;

@@ -2,6 +2,8 @@
 
 #include "container/tensor/tensorbase.hpp"
 
+#include <iostream>
+
 namespace tensor {
 	template<typename T>
 	class Tensor1D : public TensorBase<T> {
@@ -10,11 +12,21 @@ namespace tensor {
 	public:
 		Tensor1D(const std::vector<T>& vec) : data(vec) {};
 		Tensor1D(size_t len, T init = T()) : data(len, init) {};
-		
+
+		T& operator()(const std::vector<size_t>& indices) override {
+			return data[indices[0]];
+		};
 		std::vector<size_t> get_shape() const { return {data.size()}; };
 		size_t size() const override { return data.size(); };
 		size_t ndim() const override { return 1; };
 		bool empty() const override { 
 			return data.empty(); };
+
+		void show() override {
+			for (auto e : data)
+				std::cout << e << " ";
+			std::cout << std::endl;
+		};
+
 	};
 }

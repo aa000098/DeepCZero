@@ -4,8 +4,6 @@
 #include <vector>
 #include <stdexcept>
 
-#include <iostream>
-
 namespace tensor {
 	template<typename T>
 	class TensorView {

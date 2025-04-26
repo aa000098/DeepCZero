@@ -26,16 +26,16 @@ public:
 					const std::vector<T>& vec,
 					std::string name,
 					bool requires_grad);
-
+*/
 	VariableImpl(	const Tensor<T>& data, 
 					std::string name="", 
 					bool requires_grad=true) 
 		: data(data), name(name), requires_grad(requires_grad) {};
-*/
+
 	VariableImpl(	const std::vector<T>& vec, 
 					std::string name="", 
 					bool requires_grad=true) 
-		: data(Tensor<T>(vec)), 
+		: data(Tensor<T>({1}, vec)), 
 		name(name), 
 		grad(Tensor<T>(data.get_shape())), 
 		creator(), 

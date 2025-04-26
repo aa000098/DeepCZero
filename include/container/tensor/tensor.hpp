@@ -18,19 +18,15 @@ namespace tensor {
 		Tensor(std::shared_ptr<TensorBase<T>> ptr) 
 			: impl(std::move(ptr)) {};
 
-		// Tensor1D Initialize
-		Tensor(const std::vector<T>& vec) 
-			: impl(std::make_shared<Tensor1D<T>>(vec)) {}
 		Tensor(size_t len, T init = T())
 			: impl(std::make_shared<Tensor1D<T>>(len, init)) {};
 
-		// TensorND Initialize
 		Tensor(	const std::vector<size_t>& shape, 
 				T init = T{}) {
 			if (shape.size() == 1)
 				impl = std::make_shared<Tensor1D<T>>(init);
-		//	else
-		//		impl = std::make_shared<TensorND<T>>(shape, T{});
+			else
+				impl = std::make_shared<TensorND<T>>(shape, T{});
 		};
 
 		Tensor(	const std::vector<size_t>& shape,

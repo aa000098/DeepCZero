@@ -44,5 +44,5 @@ run: $(BIN)
 clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
--include $(OBJ:.o=.d)
+-include $(SRC_OBJ:.o=.d) $(TEST_OBJ:.o=.d)
 

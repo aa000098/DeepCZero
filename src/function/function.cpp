@@ -8,10 +8,10 @@
 Variable Function::operator()(const std::vector<Variable>& inputs) {
 	this->inputs.clear();
 
-	std::vector<Tensor> xs;
+	std::vector<Tensor<>> xs;
 	if (dcz::Config::get().enable_backprop) {
 		for (const auto& input : inputs) {
-			std::shared_ptr<VariableImpl> impl = input.get_impl();
+			std::shared_ptr<VariableImpl<>> impl = input.get_impl();
 			this->inputs.push_back(impl);
 			xs.push_back(impl->data);
 		}
@@ -29,13 +29,13 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 		outputs->creator = shared_from_this();
 	}
 	*/ 
-	auto out = std::make_shared<VariableImpl>(ys);
+	auto out = std::make_shared<VariableImpl<>>(ys);
 	if (dcz::Config::get().enable_backprop) out->creator = shared_from_this();
 	output = out;
 	return Variable(out);
 }
 
-Tensor Square::forward(std::vector<Tensor>& xs) {
+Tensor<> Square::forward(std::vector<Tensor<>>& xs) {
 	Tensor x = xs[0];
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
@@ -43,7 +43,7 @@ Tensor Square::forward(std::vector<Tensor>& xs) {
 	return result;
 } 
 
-std::vector<Tensor> Square::backward(Tensor& gy) {
+std::vector<Tensor<>> Square::backward(Tensor<>& gy) {
 	Tensor x = inputs[0]->data;
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
@@ -52,7 +52,7 @@ std::vector<Tensor> Square::backward(Tensor& gy) {
 }
 
 
-Tensor Exp::forward(std::vector<Tensor>& xs) {
+Tensor<> Exp::forward(std::vector<Tensor<>>& xs) {
 	Tensor x = xs[0];
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
@@ -60,7 +60,7 @@ Tensor Exp::forward(std::vector<Tensor>& xs) {
 	return result;
 }
 
-std::vector<Tensor> Exp::backward(Tensor& gy) {
+std::vector<Tensor<>> Exp::backward(Tensor<>& gy) {
 	Tensor x = inputs[0]->data;
 	Tensor result({x.size()}, 0.0f);
 	for (size_t i = 0; i < x.size(); ++i)
@@ -68,7 +68,7 @@ std::vector<Tensor> Exp::backward(Tensor& gy) {
 	return {result};
 }
 
-Tensor Add::forward(std::vector<Tensor>& xs) {
+Tensor<> Add::forward(std::vector<Tensor<>>& xs) {
 	Tensor a = xs[0];
 	Tensor b = xs[1];
 
@@ -78,7 +78,7 @@ Tensor Add::forward(std::vector<Tensor>& xs) {
 	return result;
 }
 
-std::vector<Tensor> Add::backward(Tensor& gy) {
+std::vector<Tensor<>> Add::backward(Tensor<>& gy) {
 	return {gy, gy};
 }
 

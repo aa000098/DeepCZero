@@ -1,22 +1,32 @@
-# Makefile.tensor
+# Makefile.variable
 
 CXX = g++
 CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -MMD -MP
 
+SRC_DIR = src/container
 TEST_DIR = test/container
 BUILD_DIR = build/container
 BIN_DIR = bin/container
 
-SRC := $(wildcard $(TEST_DIR)/*.cpp)
-OBJ := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRC))
-BIN := $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(SRC))
+SRC := $(wildcard $(SRC_DIR)/*.cpp)
+TEST_SRC := $(wildcard $(TEST_DIR)/*.cpp)
+
+SRC_OBJ := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRC))
+TEST_OBJ := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(TEST_SRC))
+
+BIN := $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(TEST_SRC))
 
 # 디폴트 타겟
 all: $(BIN) run
 
-$(BIN_DIR)/%: $(BUILD_DIR)/%.o
+$(BIN_DIR)/%: $(BUILD_DIR)/%.o $(SRC_OBJ)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -o $@ $^
+
+# 오브젝트 생성
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # 오브젝트 생성
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
@@ -32,7 +42,7 @@ run: $(BIN)
 	done
 
 clean:
-	rm -rf build/container/tensor/*.o build/container/tensor/*.d $(BIN)
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 -include $(OBJ:.o=.d)
 

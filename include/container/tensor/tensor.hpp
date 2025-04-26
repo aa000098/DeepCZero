@@ -22,15 +22,24 @@ namespace tensor {
 		Tensor(const std::vector<T>& vec) 
 			: impl(std::make_shared<Tensor1D<T>>(vec)) {}
 		Tensor(size_t len, T init = T())
-			: impl(len, init) {};
+			: impl(std::make_shared<Tensor1D<T>>(len, init)) {};
 
 		// TensorND Initialize
 		Tensor(	const std::vector<size_t>& shape, 
-				T val = T{})
-			: impl(std::make_shared<TensorND<T>>(shape, val)) {};
+				T init = T{}) {
+			if (shape.size() == 1)
+				impl = std::make_shared<Tensor1D<T>>(init);
+		//	else
+		//		impl = std::make_shared<TensorND<T>>(shape, T{});
+		};
+
 		Tensor(	const std::vector<size_t>& shape,
-				const std::vector<T>& init_data) 
-			: impl(shape, init_data) {};
+				const std::vector<T>& init) {
+			if (shape.size() == 1)
+				impl = std::make_shared<Tensor1D<T>>(init);
+			else
+				impl = std::make_shared<TensorND<T>>(shape, init);
+		};
 
 		TensorView<T> operator[](size_t idx) {
 			auto* ptr = dynamic_cast<TensorND<T>*>(impl.get());
@@ -50,10 +59,8 @@ namespace tensor {
 		bool empty() const { 
 			return impl->empty(); };
 
-		void show() {
+		void show() const {
 			impl->show(); };
-
-
 
 	};
 }

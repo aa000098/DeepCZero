@@ -16,7 +16,7 @@ namespace tensor {
 		virtual bool empty() const = 0;
 		virtual std::vector<size_t> get_shape() const = 0;
 
-		virtual void show() = 0;
+		virtual void show() const = 0;
 
 		virtual ~TensorBase() = default;
 	};

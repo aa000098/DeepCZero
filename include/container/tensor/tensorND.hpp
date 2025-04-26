@@ -54,7 +54,7 @@ namespace tensor {
 		bool empty() const override { 
 			return (*data_ptr).empty(); };
 
-		void show() override;
+		void show() const override;
 
 	private:
 		void compute_strides();

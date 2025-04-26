@@ -22,7 +22,7 @@ namespace tensor {
 		bool empty() const override { 
 			return data.empty(); };
 
-		void show() override {
+		void show() const override {
 			for (auto e : data)
 				std::cout << e << " ";
 			std::cout << std::endl;

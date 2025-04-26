@@ -1,22 +1,21 @@
 #include "container/variable.hpp"
+#include "container/tensor/tensor.hpp"
 #include "function/function.hpp"
 #include "graph/graph.hpp"
 
 #include <unordered_set>
 #include <string>
 #include <iostream>
-
-VariableImpl::VariableImpl(
+/*
+template<typename T>
+VariableImpl<T>::VariableImpl(
 		const std::vector<size_t>& shape,
 		const std::vector<float>& vec,
 		std::string name, 
 		bool requires_grad) 
-		: name(name), grad(shape, {}), creator(), requires_grad(requires_grad) {
-	if (shape.size() == 1)
-		data = tensor::Tensor1D(vec);
-	else
-		data = tensor::TensorND(shape, vec);
-	grad = tensor::TensorND(shape, {});
+		: name(name), creator(), requires_grad(requires_grad) {
+	data = Tensor<float>(shape, vec);
+	grad = Tensor(shape);
 };
 
 void Variable::backward(bool retain_grad) {
@@ -49,8 +48,10 @@ void Variable::backward(bool retain_grad) {
 		if (!retain_grad) output->grad = Tensor(output->data.get_shape(), 0.0f);
     }
 }
-
-void print_tensor(const Tensor& tensor, size_t depth = 0, size_t offset = 0) {
+*/
+/*
+template<typename T>
+void print_tensor(const Tensor<T>& tensor, size_t depth = 0, size_t offset = 0) {
 	const std::vector<size_t> shape = tensor.get_shape();
     if (tensor.ndim()-1 == depth) {
         std::cout << "[ ";
@@ -71,18 +72,21 @@ void print_tensor(const Tensor& tensor, size_t depth = 0, size_t offset = 0) {
         std::cout << "]";
     }
 }
+*/
 
 void Variable::show() const {
     std::cout << "Variable {\n";
     std::cout << "  data: \n";
-    print_tensor(impl->data);
-    std::cout << std::endl;
+	impl->data.show();
+    //print_tensor(impl->data);
+    //std::cout << std::endl;
 
     std::cout << "  name: " << impl->name << std::endl;
 
     std::cout << "  grad: \n";
-    print_tensor(impl->grad);
-    std::cout << std::endl;
+    impl->grad.show();
+	//print_tensor(impl->grad);
+    //std::cout << std::endl;
 
     std::cout << "}" << std::endl;
 }

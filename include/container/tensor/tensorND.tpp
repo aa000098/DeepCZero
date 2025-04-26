@@ -102,7 +102,7 @@ namespace tensor {
 	}
 
 	template<typename T>
-	void TensorND<T>::show() {
+	void TensorND<T>::show() const {
 		std::cout << "Data: \n";	
 		print_tensor(*this);
 		std::cout << std::endl;

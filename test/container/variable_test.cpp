@@ -15,5 +15,8 @@ int main() {
 
 
 	Tensor ys = Tensor({2,3,4});
+	std::cout << "[VariableImpl(Tensor({2,3,4})), \"test\", true)]: " << std::endl;
 	auto out = std::make_shared<VariableImpl<>>(ys);
+	Variable my_var3 = Variable(out);
+	my_var3.show();
 }

@@ -1,5 +1,6 @@
 #include "function/function.hpp"
 #include "container/variable.hpp"
+#include "container/tensor/tensor.hpp"
 
 #include <iostream>
 
@@ -40,4 +41,14 @@ int main() {
 
 
 	std::cout << std::endl;
+
+	Tensor<float> t({3,2}, 2); 
+	Variable x3 = Variable(t);
+	std::shared_ptr<Function> f6 = std::make_shared<Square>();
+	Variable y6 = (*f6)({x3});
+	std::cout << "[Square(Tensor({3,2}))]: ";
+	y6.show();
+	std::cout << std::endl;
+
+	f6.reset();
 }

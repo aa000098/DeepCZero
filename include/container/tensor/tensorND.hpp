@@ -34,26 +34,28 @@ namespace tensor {
 				const std::vector<size_t>& indices) const { 
 			return (*data_ptr)[flatten_index(indices)]; };
 		
-		std::vector<T>& raw_data() {
-			return *data_ptr;};
-		const std::vector<T>& raw_data() const {
-			return *data_ptr;};
+		TensorView<T> view(size_t index) const;
+		
+		std::vector<size_t> get_strides() const {
+			return strides; };
+
 		std::shared_ptr<std::vector<T>>& shared_data() {
 			return data_ptr; };
 
-		TensorView<T> view(size_t index) const;
-		
-		std::vector<size_t> get_shape() const { 
+		// TensorBase override
+		std::vector<size_t> get_shape() const override { 
 			return shape; };
-		std::vector<size_t> get_strides() const {
-			return strides; };
 		size_t size() const override {
 			return (*data_ptr).size(); };
 		size_t ndim() const override {
 			return shape.size(); };
 		bool empty() const override { 
 			return (*data_ptr).empty(); };
-
+		std::vector<T>& raw_data() override {
+			return *data_ptr;};
+		const std::vector<T>& raw_data() const override {
+			return *data_ptr;};
+	
 		void show() const override;
 
 	private:

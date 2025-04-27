@@ -19,10 +19,10 @@ int main() {
     std::cout << "[Forward done]" << std::endl;
 
 	y.backward();
-	std::cout << "\n[Result y]: \n";
+	std::cout << "\n[Result y]: (9.22675e+06)\n";
 	y.show();
 
-	std::cout << "\n[Input x auto-backward result]:\n";
+	std::cout << "\n[Input x auto-backward result]: (1.46873e+08)\n";
 	x.show();
 
     // 그래프 생성

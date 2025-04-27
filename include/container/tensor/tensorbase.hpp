@@ -15,6 +15,8 @@ namespace tensor {
 		virtual size_t ndim() const = 0;
 		virtual bool empty() const = 0;
 		virtual std::vector<size_t> get_shape() const = 0;
+		virtual std::vector<T>& raw_data() = 0;
+		virtual const std::vector<T>& raw_data() const = 0;
 
 		virtual void show() const = 0;
 

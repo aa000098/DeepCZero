@@ -5,6 +5,9 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <type_traits>
+
+#include <iostream>
 
 class Function; // forward declaration
 
@@ -21,23 +24,20 @@ public:
     bool requires_grad;
 
 public:
-/*	
-	VariableImpl(	const std::vector<size_t>& shape,
-					const std::vector<T>& vec,
-					std::string name,
-					bool requires_grad);
-*/
 	VariableImpl(	const Tensor<T>& data, 
 					std::string name="", 
 					bool requires_grad=true) 
-		: data(data), name(name), requires_grad(requires_grad) {};
+		: data(data), 
+		name(name), 
+		grad(), 
+		requires_grad(requires_grad) {};
 
 	VariableImpl(	const std::vector<T>& vec, 
 					std::string name="", 
 					bool requires_grad=true) 
 		: data(Tensor<T>({1}, vec)), 
 		name(name), 
-		grad(Tensor<T>(data.get_shape())), 
+		grad(), 
 		creator(), 
 		requires_grad(requires_grad) {};
 
@@ -49,17 +49,23 @@ private:
 	std::shared_ptr<VariableImpl<>> impl;
 
 public:
-/*	Variable(	const Tensor<float>& data, 
+	Variable(	const Tensor<>& data, 
 				std::string name="", 
 				bool requires_grad=true) 
-		: impl(std::make_shared<VariableImpl>(data, name, requires_grad)) {};
-*/	
+		: impl(std::make_shared<VariableImpl<>>(data, name, requires_grad)) {};
+	
 	Variable(	const std::vector<float>& vec, 
 				std::string name="", 
 				bool requires_grad = true) 
 		: impl(std::make_shared<VariableImpl<>>(vec, name, requires_grad)) {};
 
-	Variable(std::shared_ptr<VariableImpl<>> impl) : impl(std::move(impl)) {};
+	Variable(	const std::initializer_list<float>& vec,
+				std::string name="", 
+				bool requires_grad = true) 
+		: impl(std::make_shared<VariableImpl<>>(vec, name, requires_grad)) {};
+
+	Variable(std::shared_ptr<VariableImpl<>> impl) 
+		: impl(std::move(impl)) {};
 
 	const std::shared_ptr<VariableImpl<>>& get_impl() const { return impl; };
 

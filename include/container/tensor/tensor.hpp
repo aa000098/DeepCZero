@@ -15,7 +15,7 @@ namespace tensor {
 	public:
 		Tensor() = default;
 
-		Tensor(std::shared_ptr<TensorBase<T>> ptr) 
+		explicit Tensor(std::shared_ptr<TensorBase<T>> ptr) 
 			: impl(std::move(ptr)) {};
 
 		Tensor(size_t len, T init = T())
@@ -24,9 +24,14 @@ namespace tensor {
 		Tensor(	const std::vector<size_t>& shape, 
 				T init = T{}) {
 			if (shape.size() == 1)
-				impl = std::make_shared<Tensor1D<T>>(init);
+				impl = std::make_shared<Tensor1D<T>>(shape[0], init);
 			else
-				impl = std::make_shared<TensorND<T>>(shape, T{});
+				impl = std::make_shared<TensorND<T>>(shape, init);
+		};
+		
+		Tensor(	const std::initializer_list<size_t>& shape, 
+				T init = T{}) {
+			*this = Tensor(std::vector<size_t>(shape), init);
 		};
 
 		Tensor(	const std::vector<size_t>& shape,
@@ -43,6 +48,8 @@ namespace tensor {
 			return (*ptr)[idx]; };
 		T& operator()(const std::vector<size_t>& indices) {
 			return (*impl)(indices); };
+		const T& operator()(const std::vector<size_t>& indices) const {
+			return (*impl)(indices); };
 
 		std::vector<size_t> get_shape() const { 
 			return impl->get_shape(); };
@@ -53,10 +60,17 @@ namespace tensor {
 		size_t ndim() const {
 			return impl->get_shape().size(); };
 		bool empty() const { 
-			return impl->empty(); };
+			if (!impl) return true;
+			else return impl->empty(); };
+
+		std::vector<T>& raw_data() {
+			return impl->raw_data(); };
+		const std::vector<T>& raw_data() const {
+			return impl->raw_data(); };
 
 		void show() const {
-			impl->show(); };
+			if (!impl) std::cout << "[  ]" << std::endl;
+			else impl->show(); };
 
 	};
 }

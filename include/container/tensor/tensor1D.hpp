@@ -16,12 +16,18 @@ namespace tensor {
 		T& operator()(const std::vector<size_t>& indices) override {
 			return data[indices[0]];
 		};
-		std::vector<size_t> get_shape() const { return {data.size()}; };
+
+		std::vector<size_t> get_shape() const override { return {data.size()}; };
 		size_t size() const override { return data.size(); };
 		size_t ndim() const override { return 1; };
 		bool empty() const override { 
 			return data.empty(); };
 
+		std::vector<T>& raw_data() override {
+			return data;};
+		const std::vector<T>& raw_data() const override {
+			return data;};
+	
 		void show() const override {
 			std::cout << "[ ";
 			for (size_t i = 0; i < data.size(); i++) {

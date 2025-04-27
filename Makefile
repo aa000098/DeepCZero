@@ -40,6 +40,14 @@ test: $(TEST_BINS)
 		./$$bin || exit 1; \
 	done
 
+# memory leak check
+memory: $(TEST_BINS)
+	@echo "Running all tests with valgrind..."
+	@for bin in $(TEST_BINS); do \
+		echo "Running valgrind $$bin"; \
+		valgrind --leak-check=full --error-exitcode=1 ./$$bin || exit 1; \
+	done
+
 clean:
 	rm -rf $(BIN_DIR) $(BUILD_DIR)
 

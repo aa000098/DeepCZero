@@ -86,8 +86,17 @@ public:
 
 	Variable operator+(const Variable& b) const {
 		return add(*this,b); }; 
+	Variable operator+(const float b) const {
+		return add(*this,b); }; 
+	friend Variable operator+(const float lhs, const Variable& rhs) {
+		return add(lhs, rhs); };
+
 	Variable operator*(const Variable& b) const {
 		return mul(*this,b); }; 
+	Variable operator*(const float b) const {
+		return mul(*this,b); }; 
+	friend Variable operator*(const float lhs, const Variable& rhs) {
+		return mul(lhs, rhs); };
 
 // override functions
 	std::vector<size_t> shape() { 

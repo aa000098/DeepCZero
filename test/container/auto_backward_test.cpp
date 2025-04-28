@@ -32,6 +32,8 @@ int main() {
 	x8.backward();
 	x8.show();
 	x6.show();
+	std::cout << "[a auto backward]: ({1728, 20736})";
 	x7.show();
+	std::cout << "[b auto backward]: ({2592, 27648})";
 
 }

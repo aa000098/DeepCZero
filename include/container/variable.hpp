@@ -1,6 +1,7 @@
 #pragma once
 
 #include "container/tensor/tensor.hpp"
+#include "ops/ops.hpp"
 
 #include <memory>
 #include <vector>
@@ -75,14 +76,20 @@ public:
     void backward(bool retain_grad=false);
 
 public:
-
+// operator functions
 	float& operator()(
 			std::vector<size_t> idx) {
 		return impl->data(idx); };
 	tensor::TensorView<float> operator[](
 			size_t idx) const { 
 		return impl->data[idx]; };
-	
+
+	Variable operator+(const Variable& b) const {
+		return add(*this,b); }; 
+	Variable operator*(const Variable& b) const {
+		return mul(*this,b); }; 
+
+// override functions
 	std::vector<size_t> shape() { 
 		return impl->data.get_shape(); };
 	bool empty() { 

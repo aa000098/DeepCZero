@@ -1,6 +1,6 @@
 #pragma once
 
-#include "container/variable.hpp" 
+class Variable;
 
 Variable square(const Variable &x);
 Variable exp(const Variable &x);

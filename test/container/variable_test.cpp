@@ -19,4 +19,16 @@ int main() {
 	auto out = std::make_shared<VariableImpl<>>(ys);
 	Variable my_var3 = Variable(out);
 	my_var3.show();
+
+	Variable test_a({2,3});
+	Variable test_b({2,3});
+	std::cout << "[a({2,3}) + b({2,3})]: " << std::endl;
+	Variable test_c = test_a + test_b;
+	test_c.show();
+	std::cout << "[a({2,3}) * c({4,6})]: " << std::endl;
+	Variable test_d = test_a * test_c;
+	test_d.show();
+	std::cout << "[{ a({2,3}) + b({2,3}) } * d({8,18})]: " << std::endl;
+	Variable test_e = (test_a + test_b) * test_d;
+	test_e.show();
 }

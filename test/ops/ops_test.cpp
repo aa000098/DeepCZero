@@ -23,6 +23,11 @@ int main() {
 	y4.show();
 	y5.show();
 
+	Variable x6 = Variable({3,4});
+	Variable x7 = Variable({2,3});
+	Variable x8 = square(mul(square(x6), square(x7)));
+	std::cout << "[Square(Mul(Square({3,4}), Square({2,3})))] ";
+	x8.show();
 
 	std::cout << std::endl;
 }

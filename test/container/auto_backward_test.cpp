@@ -24,4 +24,14 @@ int main() {
 	a.show();
 	std::cout << "[b auto backward]: (156)";
 	b.show();
+
+	Variable x6 = Variable({3,4});
+	Variable x7 = Variable({2,3});
+	Variable x8 = square(mul(square(x6), square(x7)));
+	std::cout << "[Square(Mul(Square({3,4}), Square({2,3})))] ";
+	x8.backward();
+	x8.show();
+	x6.show();
+	x7.show();
+
 }

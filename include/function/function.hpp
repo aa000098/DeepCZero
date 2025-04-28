@@ -53,3 +53,12 @@ public:
 
 	~Add() = default;
 };
+
+class Mul: public Function {
+
+public:
+	Tensor<> forward(std::vector<Tensor<>>& xs) override;
+	std::vector<Tensor<>> backward(Tensor<>& gy) override;
+
+	~Mul() = default;
+};

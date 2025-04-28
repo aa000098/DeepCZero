@@ -82,4 +82,27 @@ std::vector<Tensor<>> Add::backward(Tensor<>& gy) {
 	return {gy, gy};
 }
 
+Tensor<> Mul::forward(std::vector<Tensor<>>& xs) {
+	Tensor a = xs[0];
+	Tensor b = xs[1];
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = a.raw_data()[i] * b.raw_data()[i];
+	return result;
+}
+
+std::vector<Tensor<>> Mul::backward(Tensor<>& gy) {
+	Tensor a = inputs[0]->data;
+	Tensor b = inputs[1]->data;
+	
+	Tensor result_a({a.get_shape()}, 0.0f);
+	Tensor result_b({b.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i) {
+		result_a.raw_data()[i] = b.raw_data()[i] * gy.raw_data()[i];
+		result_b.raw_data()[i] = a.raw_data()[i] * gy.raw_data()[i];
+	}
+	return {result_a, result_b};
+}
+
 Function::~Function() {}

@@ -17,3 +17,9 @@ Variable add(const Variable &a, const Variable &b) {
 	std::shared_ptr<Function> f = std::make_shared<Add>();
 	return (*f)({a, b});
 }
+
+Variable mul(const Variable &a, const Variable &b) {
+	std::shared_ptr<Function> f = std::make_shared<Mul>();
+	return (*f)({a, b});
+}
+

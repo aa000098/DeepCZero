@@ -33,12 +33,16 @@ int main() {
 	test_e.show();
 
 	Variable test_1({2});
+	std::cout << "[a({2}) + 2]: " << std::endl;
 	Variable test_2 = test_1 + 2;
-	Variable test_3 = 3 + test_2;
-	Variable test_4 = test_1 * 2;
-	Variable test_5 = 3 * test_1;
 	test_2.show();
+	std::cout << "[3 + a({4})]: " << std::endl;
+	Variable test_3 = 3 + test_2;
 	test_3.show();
+	std::cout << "[a({2}) * 2]: " << std::endl;
+	Variable test_4 = test_1 * 2;
 	test_4.show();
+	std::cout << "[3 * a({2})]: " << std::endl;
+	Variable test_5 = 3 * test_1;
 	test_5.show();
 }

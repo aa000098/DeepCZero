@@ -62,3 +62,41 @@ public:
 
 	~Mul() = default;
 };
+
+class Neg: public Function {
+
+public:
+	Tensor<> forward(std::vector<Tensor<>>& xs) override;
+	std::vector<Tensor<>> backward(Tensor<>& gy) override;
+
+	~Neg() = default;
+};
+
+class Sub: public Function {
+
+public:
+	Tensor<> forward(std::vector<Tensor<>>& xs) override;
+	std::vector<Tensor<>> backward(Tensor<>& gy) override;
+
+	~Sub() = default;
+};
+
+class Div: public Function {
+
+public:
+	Tensor<> forward(std::vector<Tensor<>>& xs) override;
+	std::vector<Tensor<>> backward(Tensor<>& gy) override;
+
+	~Div() = default;
+};
+
+class Pow: public Function {
+
+public:
+	Tensor<> forward(std::vector<Tensor<>>& xs) override;
+	std::vector<Tensor<>> backward(Tensor<>& gy) override;
+
+	~Pow() = default;
+};
+
+

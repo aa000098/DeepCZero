@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <memory>
 
 
 Variable Function::operator()(const std::vector<Variable>& inputs) {
@@ -104,5 +105,52 @@ std::vector<Tensor<>> Mul::backward(Tensor<>& gy) {
 	}
 	return {result_a, result_b};
 }
+
+Tensor<> Neg::forward(std::vector<Tensor<>>& xs) {
+	Tensor x = xs[0];
+
+	Tensor result({x.get_shape()}, 0.0f);
+	for (size_t i = 0; i < x.size(); i++)
+		result.raw_data()[i] = x.raw_data()[i] * -1;
+	return result;
+}
+
+std::vector<Tensor<>> Neg::backward(Tensor<>& gy) {
+	Tensor result({gy.get_shape()}, 0.0f);
+	for (size_t i = 0; i < gy.size(); i++)
+		result.raw_data()[i] = gy.raw_data()[i] * -1;
+	return {result};
+}
+
+Tensor<> Sub::forward(std::vector<Tensor<>>& xs) {
+	Tensor a = xs[0];
+	Tensor b = xs[1];
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = a.raw_data()[i] - b.raw_data()[i];
+	return result;
+}
+
+
+std::vector<Tensor<>> Sub::backward(Tensor<>& gy) {
+	Tensor a = inputs[0]->data;
+	Tensor b = inputs[1]->data;
+	
+	Tensor pos_gy = gy;
+
+	std::shared_ptr<Function> f = std::make_shared<Neg>();
+	auto gy_vec = std::vector<Tensor<>>();
+	gy_vec.push_back(gy);
+	Tensor neg_gy = f->forward(gy_vec);
+
+	return {gy, neg_gy};
+}
+/*
+Tensor<> Sub::forward(std::vector<Tensor<>>& xs) {
+}
+std::vector<Tensor<>> Sub::backward(Tensor<>& gy) {
+}
+*/
 
 Function::~Function() {}

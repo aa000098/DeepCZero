@@ -132,7 +132,6 @@ Tensor<> Sub::forward(std::vector<Tensor<>>& xs) {
 	return result;
 }
 
-
 std::vector<Tensor<>> Sub::backward(Tensor<>& gy) {
 	Tensor a = inputs[0]->data;
 	Tensor b = inputs[1]->data;
@@ -146,11 +145,74 @@ std::vector<Tensor<>> Sub::backward(Tensor<>& gy) {
 
 	return {gy, neg_gy};
 }
-/*
-Tensor<> Sub::forward(std::vector<Tensor<>>& xs) {
+
+Tensor<> Div::forward(std::vector<Tensor<>>& xs) {
+	Tensor a = xs[0];
+	Tensor b = xs[1];
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = a.raw_data()[i] / b.raw_data()[i];
+	return result;	
 }
-std::vector<Tensor<>> Sub::backward(Tensor<>& gy) {
+
+std::vector<Tensor<>> Div::backward(Tensor<>& gy) {
+	Tensor a = inputs[0]->data;
+	Tensor b = inputs[1]->data;
+	
+	std::shared_ptr<Function> div_f = std::make_shared<Div>();
+	std::shared_ptr<Function> neg_f = std::make_shared<Neg>();
+	std::shared_ptr<Function> square_f = std::make_shared<Square>();
+	std::shared_ptr<Function> mul_f = std::make_shared<Mul>();
+
+	std::vector<Tensor<>> v;
+	v.push_back(gy);
+	v.push_back(b);
+	Tensor result_0 = div_f->forward(v);
+	v.clear();
+	
+	v.push_back(a);
+	Tensor neg_a = neg_f->forward(v);
+	v.clear();
+	
+	v.push_back(b);
+	Tensor square_b = square_f->forward(v);
+	v.clear();
+
+	v.push_back(neg_a);
+	v.push_back(square_b);
+	Tensor div_a_b = div_f->forward(v);
+	v.clear();
+	
+	v.push_back(gy);
+	v.push_back(div_a_b);
+	Tensor result_1 = mul_f->forward(v);
+	v.clear();
+
+	return {result_0, result_1};
 }
-*/
+
+Tensor<> Pow::forward(std::vector<Tensor<>>& xs) {
+	Tensor a = xs[0];
+	Tensor b = xs[1];
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = pow(a.raw_data()[i], b.raw_data()[i]);
+
+	return result;
+}
+
+std::vector<Tensor<>> Pow::backward(Tensor<>& gy) {
+	Tensor a = inputs[0]->data;
+	Tensor b = inputs[1]->data;
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = b.raw_data()[i] * pow(a.raw_data()[i], b.raw_data()[i] - 1) * gy.raw_data()[i];
+
+	return {result};
+}
+
 
 Function::~Function() {}

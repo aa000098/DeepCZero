@@ -49,6 +49,43 @@ int main() {
 	std::cout << "[Square(Tensor({3,2}))]: ";
 	y6.show();
 	std::cout << std::endl;
-
 	f6.reset();
+
+	std::shared_ptr<Function> mul_f = std::make_shared<Mul>();
+	Tensor<float> t2({2,3}, 3);
+	Tensor<float> t3({2,3}, 2);
+	Variable y7 = (*mul_f)({t2,t3});
+	std::cout << "[Mul(Tensor({2,3},3), Tensor({2,3},2))]: ";
+	y7.show();
+	std::cout << std::endl;
+	mul_f.reset();
+
+	std::shared_ptr<Function> neg_f = std::make_shared<Neg>();
+	Variable y8 = (*neg_f)({t2});
+	std::cout << "[Neg(Tensor({2,3},3))]: ";
+	y8.show();
+	std::cout << std::endl;
+	neg_f.reset();
+	
+	std::shared_ptr<Function> sub_f = std::make_shared<Sub>();
+	Variable y9 = (*sub_f)({t2, t3});
+	std::cout << "[Sub(Tensor({2,3},3), Tensor({2,3},2))]: ";
+	y9.show();
+	std::cout << std::endl;
+	sub_f.reset();	
+
+	std::shared_ptr<Function> div_f = std::make_shared<Div>();
+	Variable y10 = (*div_f)({t2, t3});
+	std::cout << "[Div(Tensor({2,3},3), Tensor({2,3},2))]: ";
+	y10.show();
+	std::cout << std::endl;
+	div_f.reset();	
+
+	std::shared_ptr<Function> pow_f = std::make_shared<Pow>();
+	Variable y11 = (*pow_f)({t2, t3});
+	std::cout << "[Pow(Tensor({2,3},3), Tensor({2,3},2))]: ";
+	y11.show();
+	std::cout << std::endl;
+	pow_f.reset();	
+
 }

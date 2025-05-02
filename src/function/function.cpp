@@ -69,6 +69,7 @@ std::vector<Tensor<>> Exp::backward(Tensor<>& gy) {
 	return {result};
 }
 
+// TODO: scalar broadcasting not implemented
 Tensor<> Add::forward(std::vector<Tensor<>>& xs) {
 	Tensor a = xs[0];
 	Tensor b = xs[1];
@@ -83,6 +84,7 @@ std::vector<Tensor<>> Add::backward(Tensor<>& gy) {
 	return {gy, gy};
 }
 
+// TODO: scalar broadcasting not implemented
 Tensor<> Mul::forward(std::vector<Tensor<>>& xs) {
 	Tensor a = xs[0];
 	Tensor b = xs[1];
@@ -122,6 +124,7 @@ std::vector<Tensor<>> Neg::backward(Tensor<>& gy) {
 	return {result};
 }
 
+// TODO: scalar broadcasting not implemented
 Tensor<> Sub::forward(std::vector<Tensor<>>& xs) {
 	Tensor a = xs[0];
 	Tensor b = xs[1];
@@ -146,6 +149,7 @@ std::vector<Tensor<>> Sub::backward(Tensor<>& gy) {
 	return {gy, neg_gy};
 }
 
+// TODO: scalar broadcasting not implemented
 Tensor<> Div::forward(std::vector<Tensor<>>& xs) {
 	Tensor a = xs[0];
 	Tensor b = xs[1];

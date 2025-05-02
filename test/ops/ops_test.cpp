@@ -30,4 +30,11 @@ int main() {
 	x8.show();
 
 	std::cout << std::endl;
+
+	Variable x9 = Variable({4});
+	Variable x10 = Variable({2});
+	Variable x11 = pow(div(sub(neg(add(x9, x10)), x9), x10), 2);
+	std::cout << "[Pow(Div(Sub(Neg(Add(4, 2)), 4), 2), 2)] ";
+	x11.show();
+	
 }

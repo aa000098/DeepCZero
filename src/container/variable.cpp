@@ -21,7 +21,7 @@ void Variable::backward(bool retain_grad) {
 
 		Tensor gy = output->grad;
 		std::vector<Tensor<>> gxs = f->backward(gy);
-		for (size_t i = 0; i < inputs.size(); ++i) {
+		for (size_t i = 0; i < gxs.size(); ++i) {
 			std::shared_ptr<VariableImpl<>> input = inputs[i];
 			const Tensor<>& gx = gxs[i];
 			if (input->grad.empty())
@@ -31,7 +31,7 @@ void Variable::backward(bool retain_grad) {
 					input->grad.raw_data()[j] = input->grad.raw_data()[i] + gx.raw_data()[i];
 			}
 		}
-		if (!retain_grad) output->grad = Tensor(output->data.get_shape(), 0.0f);
+		if (!retain_grad) output->grad = Tensor<>();
 	}
 }
 

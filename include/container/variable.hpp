@@ -84,20 +84,42 @@ public:
 			size_t idx) const { 
 		return impl->data[idx]; };
 
-	Variable operator+(const Variable& b) const {
-		return add(*this,b); }; 
-	Variable operator+(const float b) const {
-		return add(*this,b); }; 
+public:
+	Variable operator+(const Variable& rhs) const {
+		return add(*this,rhs); }; 
+	Variable operator+(const float rhs) const {
+		return add(*this,rhs); }; 
 	friend Variable operator+(const float lhs, const Variable& rhs) {
-		return add(lhs, rhs); };
+		return add(lhs,rhs); };
 
-	Variable operator*(const Variable& b) const {
-		return mul(*this,b); }; 
-	Variable operator*(const float b) const {
-		return mul(*this,b); }; 
+	Variable operator*(const Variable& rhs) const {
+		return mul(*this,rhs); }; 
+	Variable operator*(const float rhs) const {
+		return mul(*this,rhs); }; 
 	friend Variable operator*(const float lhs, const Variable& rhs) {
-		return mul(lhs, rhs); };
+		return mul(lhs,rhs); };
 
+	friend Variable operator-(const Variable& rhs) {
+		return neg(rhs); };
+
+	Variable operator-(const Variable& rhs) const {
+		return sub(*this,rhs); };
+	Variable operator-(const float rhs) const {
+		return sub(*this,rhs); }; 
+	friend Variable operator-(const float lhs, const Variable& rhs) {
+		return sub(lhs,rhs); };
+
+	Variable operator/(const Variable& rhs) const {
+		return div(*this,rhs); };
+	Variable operator/(const float rhs) const {
+		return div(*this,rhs); }; 
+	friend Variable operator/(const float lhs, const Variable& rhs) {
+		return div(lhs,rhs); };
+
+	Variable operator^(const float rhs) const {
+		return pow(*this,rhs); }; 
+
+public:
 // override functions
 	std::vector<size_t> shape() { 
 		return impl->data.get_shape(); };

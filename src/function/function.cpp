@@ -210,11 +210,10 @@ Tensor<> Pow::forward(std::vector<Tensor<>>& xs) {
 std::vector<Tensor<>> Pow::backward(Tensor<>& gy) {
 	Tensor a = inputs[0]->data;
 	Tensor b = inputs[1]->data;
-
+	
 	Tensor result({a.get_shape()}, 0.0f);
 	for (size_t i = 0; i < a.size(); ++i)
 		result.raw_data()[i] = b.raw_data()[i] * pow(a.raw_data()[i], b.raw_data()[i] - 1) * gy.raw_data()[i];
-
 	return {result};
 }
 

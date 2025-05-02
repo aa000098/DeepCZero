@@ -1,6 +1,7 @@
 # build file
 build/
 bin/
+tags
 
 *.o
 *.out

@@ -45,4 +45,27 @@ int main() {
 	std::cout << "[3 * a({2})]: " << std::endl;
 	Variable test_5 = 3 * test_1;
 	test_5.show();
+
+	Variable test_6({3});
+	std::cout << "[-a({3})]: " << std::endl;
+	Variable test_7 = -test_6;
+	test_7.show();
+	std::cout << "[a({3}) - b({-3})]: " << std::endl;
+	Variable test_8 = test_6 - test_7;
+	test_8.show();
+	std::cout << "[-3 - c({6} - 3)]: " << std::endl;
+	Variable test_9 = -3 - test_8 - 3;
+	test_9.show();
+	std::cout << "[c({-12}) / a({3})]: " << std::endl;
+	Variable test_10 = test_9 / test_6;
+	test_10.show();
+	std::cout << "[10 / (d({-4} / 2))]: " << std::endl;
+	Variable test_11 = 10 / (test_10 / 2);
+	test_11.show();
+	std::cout << "[e({-5})^2]: " << std::endl;
+	Variable test_12 = test_11^2;
+	test_12.show();
+	
+
+
 }

@@ -46,3 +46,19 @@ Variable mul(const float& a, const Variable &b) {
 	std::shared_ptr<Function> f = std::make_shared<Mul>();
 	return (*f)({a_var, b});
 }
+
+Variable neg(const Variable &x) {
+	std::shared_ptr<Function> f = std::make_shared<Neg>();
+	return (*f)({x});
+}
+/*
+Variable sub(const Variable &a, const Variable &b);
+Variable sub(const Variable &a, const float &b);
+Variable sub(const float &a, const Variable &b);
+
+Variable div(const Variable &a, const Variable &b);
+Variable div(const Variable &a, const float &b);
+Variable div(const float &a, const Variable &b);
+
+Variable pow(const Variable &a, const float &b);
+*/

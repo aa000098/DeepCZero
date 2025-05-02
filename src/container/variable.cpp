@@ -28,7 +28,7 @@ void Variable::backward(bool retain_grad) {
 				input->grad = gx;
 			else {
 				for (size_t j = 0; j < input->grad.size(); ++j)
-					input->grad.raw_data()[j] = input->grad.raw_data()[i] + gx.raw_data()[i];
+					input->grad.raw_data()[j] = input->grad.raw_data()[j] + gx.raw_data()[j];
 			}
 		}
 		if (!retain_grad) output->grad = Tensor<>();

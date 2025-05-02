@@ -1,6 +1,7 @@
 # compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -MMD -MP
+CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP
+LDFLAGS = -L$(BIN_DIR) -ldeepczero
  
 # directory
 SRC_DIR = src
@@ -13,16 +14,24 @@ SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 TESTS := $(shell find $(TEST_DIR) -name '*.cpp')
 
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
-TEST_BINS = $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(TESTS))
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(TESTS))
+
+TEST_BINS = $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(TESTS))
 DEPS := $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
-# default rules
-all: $(TEST_BINS)
+LIB_NAME = libdeepczero.so
+LIB_TARGET = $(BIN_DIR)/$(LIB_NAME)
 
-$(BIN_DIR)/%: $(BUILD_DIR)/%.o $(OBJS)
+# default rules
+all: $(LIB_TARGET) $(TEST_BINS)
+
+$(LIB_TARGET): $(OBJS)
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) -shared -o $@ $^
+
+$(BIN_DIR)/%: $(BUILD_DIR)/%.o $(LIB_TARGET)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)

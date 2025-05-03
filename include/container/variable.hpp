@@ -120,8 +120,20 @@ public:
 		return pow(*this,rhs); }; 
 
 public:
+// impl functions
+	std::string name() const {
+		return impl->name; };
+	const Tensor<>& data() const {return impl->data;};
+	const Tensor<>& grad() const {return impl->grad;};
+	std::string dtype_string() const {return "float";};
+	std::uintptr_t id() const {
+		return reinterpret_cast<std::uintptr_t>(impl.get());};
+
+public:
 // override functions
 	std::vector<size_t> shape() { 
+		return impl->data.get_shape(); };
+	std::vector<size_t> shape() const { 
 		return impl->data.get_shape(); };
 	bool empty() { 
 		return impl->data.empty(); };

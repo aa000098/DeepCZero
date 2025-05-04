@@ -25,3 +25,6 @@ Variable div(const Variable &a, const float &b);
 Variable div(const float &a, const Variable &b);
 
 Variable pow(const Variable &a, const float &b);
+
+Variable sin(const Variable &x);
+Variable cos(const Variable &x);

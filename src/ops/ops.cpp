@@ -82,3 +82,13 @@ Variable pow(const Variable &a, const float &b) {
 	std::shared_ptr<Function> f = std::make_shared<Pow>();
 	return (*f)({a, b_var});
 }
+
+Variable sin(const Variable &x) {
+	std::shared_ptr<Function> f = std::make_shared<Sin>();
+	return (*f)({x});
+}
+Variable cos(const Variable &x) {
+	std::shared_ptr<Function> f = std::make_shared<Cos>();
+	return (*f)({x});
+}
+

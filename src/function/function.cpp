@@ -208,11 +208,17 @@ std::vector<Tensor<>> Div::backward(Tensor<>& gy) {
 Tensor<> Pow::forward(std::vector<Tensor<>>& xs) {
 	Tensor a = xs[0];
 	Tensor b = xs[1];
-
-	Tensor result({a.get_shape()}, 0.0f);
-	for (size_t i = 0; i < a.size(); ++i)
-		result.raw_data()[i] = pow(a.raw_data()[i], b.raw_data()[i]);
-
+	
+	Tensor result(a.get_shape(), 0.0f);
+	
+	if (b.size() == 1) {
+		float exponent = b.raw_data()[0];
+		for (size_t i = 0; i < a.size(); ++i)
+			result.raw_data()[i] = pow(a.raw_data()[i], exponent);
+	} else {
+		for (size_t i = 0; i < a.size(); ++i)
+			result.raw_data()[i] = pow(a.raw_data()[i], b.raw_data()[i]);
+	}
 	return result;
 }
 
@@ -226,5 +232,42 @@ std::vector<Tensor<>> Pow::backward(Tensor<>& gy) {
 	return {result};
 }
 
+Tensor<> Sin::forward(std::vector<Tensor<>>& xs) {
+	Tensor a = xs[0];
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = sin(a.raw_data()[i]);
+
+	return result;
+}
+
+std::vector<Tensor<>> Sin::backward(Tensor<>& gy) {
+	Tensor a = inputs[0]->data;
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = gy.raw_data()[i] * cos(a.raw_data()[i]);
+	return {result};
+}
+
+Tensor<> Cos::forward(std::vector<Tensor<>>& xs) {
+	Tensor a = xs[0];
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = cos(a.raw_data()[i]);
+
+	return result;
+}
+
+std::vector<Tensor<>> Cos::backward(Tensor<>& gy) {
+	Tensor a = inputs[0]->data;
+
+	Tensor result({a.get_shape()}, 0.0f);
+	for (size_t i = 0; i < a.size(); ++i)
+		result.raw_data()[i] = -gy.raw_data()[i] * sin(a.raw_data()[i]);
+	return {result};
+}
 
 Function::~Function() {}

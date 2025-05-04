@@ -2,6 +2,7 @@
 #include "container/variable.hpp"
 
 #include <iostream>
+#include <cmath>
 
 int main() {
 	Variable x = Variable({8}); 
@@ -37,4 +38,15 @@ int main() {
 	std::cout << "[Pow(Div(Sub(Neg(Add(4, 2)), 4), 2), 2)] ";
 	x11.show();
 	
+	const double pi = std::acos(-1.0);
+	Variable x12 = Variable({pi/4});
+	Variable y6 = sin(x12);
+	y6.backward(true);
+	y6.show();
+	x12.show();
+	
+	Variable y7 = cos(y6);
+	y7.backward(true);
+	y7.show();
+	x12.show();
 }

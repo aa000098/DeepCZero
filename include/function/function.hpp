@@ -103,4 +103,16 @@ public:
 	~Pow() = default;
 };
 
+class Sin: public Function {
+public:
+	Tensor<> forward(std::vector<Tensor<>>& xs) override;
+	std::vector<Tensor<>> backward(Tensor<>& gy) override;
+	~Sin() = default;
+};
 
+class Cos: public Function {
+public:
+	Tensor<> forward(std::vector<Tensor<>>& xs) override;
+	std::vector<Tensor<>> backward(Tensor<>& gy) override;
+	~Cos() = default;
+};

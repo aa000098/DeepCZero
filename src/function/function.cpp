@@ -36,6 +36,15 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 	return Variable(out);
 }
 
+std::string Function::name() {
+	std::string mangled = typeid(*this).name();
+	size_t i = 0;
+	while (i < mangled.size() && std::isdigit(mangled[i])) {
+		i++;
+	}
+	return mangled.substr(i);
+}
+
 Tensor<> Square::forward(std::vector<Tensor<>>& xs) {
 	Tensor x = xs[0];
 	Tensor result({x.get_shape()}, 0.0f);

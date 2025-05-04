@@ -11,8 +11,7 @@ void Variable::backward(bool retain_grad) {
 	impl->grad = Tensor<>(impl->data.get_shape(), 1);
 	auto creator = impl->creator.get();
 	if (!creator) return;
-	Graph graph;
-	graph.build_from(creator);
+	Graph graph(creator);
 	std::vector<Function*> topo_order = graph.get_topo_order();
 
 	for (auto& f : topo_order) {

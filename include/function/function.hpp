@@ -18,6 +18,10 @@ public:
 
 	virtual Tensor<> forward(std::vector<Tensor<>>& xs) = 0;
 	virtual std::vector<Tensor<>> backward(Tensor<>& gy) = 0; 
+	virtual std::string name();
+	virtual std::uintptr_t id() {
+		return reinterpret_cast<std::uintptr_t>(this);
+	}
 
 
 public:

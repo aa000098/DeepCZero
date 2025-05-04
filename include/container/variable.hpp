@@ -42,6 +42,9 @@ public:
 		creator(), 
 		requires_grad(requires_grad) {};
 
+	std::uintptr_t id() const {
+		return reinterpret_cast<std::uintptr_t>(this);
+	};
 };
 
 
@@ -123,11 +126,14 @@ public:
 // impl functions
 	std::string name() const {
 		return impl->name; };
+	void set_name(std::string s) {
+		impl->name = s; };
 	const Tensor<>& data() const {return impl->data;};
 	const Tensor<>& grad() const {return impl->grad;};
 	std::string dtype_string() const {return "float";};
 	std::uintptr_t id() const {
-		return reinterpret_cast<std::uintptr_t>(impl.get());};
+		return reinterpret_cast<std::uintptr_t>(impl.get());
+	}
 
 public:
 // override functions

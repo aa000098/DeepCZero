@@ -12,6 +12,10 @@ private:
 	std::unordered_map<Function*, std::vector<Function*>> graph;
 	std::unordered_map<Function*, int> in_degree;
 	std::vector<Function*> topo_order;
+public:
+	Graph() = default;
+	Graph(Function* output) {
+		build_from(output); };
 
 public:
 	void build_from(Function* output);

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "container/tensor/tensor.hpp"
-#include "ops/ops.hpp"
 
 #include <memory>
 #include <vector>
@@ -86,41 +85,6 @@ public:
 	tensor::TensorView<float> operator[](
 			size_t idx) const { 
 		return impl->data[idx]; };
-
-public:
-	Variable operator+(const Variable& rhs) const {
-		return add(*this,rhs); }; 
-	Variable operator+(const float rhs) const {
-		return add(*this,rhs); }; 
-	friend Variable operator+(const float lhs, const Variable& rhs) {
-		return add(lhs,rhs); };
-
-	Variable operator*(const Variable& rhs) const {
-		return mul(*this,rhs); }; 
-	Variable operator*(const float rhs) const {
-		return mul(*this,rhs); }; 
-	friend Variable operator*(const float lhs, const Variable& rhs) {
-		return mul(lhs,rhs); };
-
-	friend Variable operator-(const Variable& rhs) {
-		return neg(rhs); };
-
-	Variable operator-(const Variable& rhs) const {
-		return sub(*this,rhs); };
-	Variable operator-(const float rhs) const {
-		return sub(*this,rhs); }; 
-	friend Variable operator-(const float lhs, const Variable& rhs) {
-		return sub(lhs,rhs); };
-
-	Variable operator/(const Variable& rhs) const {
-		return div(*this,rhs); };
-	Variable operator/(const float rhs) const {
-		return div(*this,rhs); }; 
-	friend Variable operator/(const float lhs, const Variable& rhs) {
-		return div(lhs,rhs); };
-
-	Variable operator^(const float rhs) const {
-		return pow(*this,rhs); }; 
 
 public:
 // impl functions

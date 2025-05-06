@@ -1,4 +1,4 @@
-#include "container/variable.hpp"
+#include "container/variable_all.hpp"
 #include "container/tensor/tensor.hpp"
 
 #include <iostream>

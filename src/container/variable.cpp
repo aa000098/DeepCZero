@@ -1,5 +1,5 @@
 #include "container/variable.hpp"
-#include "container/tensor/tensor.hpp"
+#include "container/tensor/tensor_all.hpp"
 #include "function/function.hpp"
 #include "graph/graph.hpp"
 
@@ -27,7 +27,7 @@ void Variable::backward(bool retain_grad) {
 				input->grad = gx;
 			else {
 				for (size_t j = 0; j < input->grad.size(); ++j)
-					input->grad.raw_data()[j] = input->grad.raw_data()[j] + gx.raw_data()[j];
+					input->grad += gx;
 			}
 		}
 		if (!retain_grad) output->grad = Tensor<>();

@@ -1,4 +1,4 @@
-#include "container/variable.hpp"
+#include "container/variable_all.hpp"
 #include "container/tensor/tensor_all.hpp"
 #include "function/function.hpp"
 #include "graph/graph.hpp"
@@ -20,16 +20,14 @@ void Variable::backward(bool retain_grad) {
 		std::shared_ptr<VariableImpl<>> output = f->get_output();
 
 		std::shared_ptr<Variable> gy = output->grad;
-		std::vector<Tensor<>> gxs = f->backward(gy->data());
+		std::vector<Variable> gxs = f->backward(*gy);
 		for (size_t i = 0; i < gxs.size(); ++i) {
 			std::shared_ptr<VariableImpl<>> input = inputs[i];
-			const Tensor<>& gx = gxs[i];
+			const Variable& gx = gxs[i];
 			if (!input->grad)
 				input->grad = std::make_shared<Variable>(gx);
-			else {
-				Tensor<>& cur = input->grad->data();
-				cur += gx;
-			}
+			else 
+				(*input->grad) += gx;
 		}
 		if (!retain_grad) output->grad.reset();
 	}

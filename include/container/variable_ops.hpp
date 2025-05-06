@@ -3,8 +3,6 @@
 #include "container/variable.hpp"
 #include "ops/ops.hpp"
 
-namespace tensor {
-
 // Variable + Variable
 inline Variable operator+(const Variable& lhs, const Variable& rhs) {
     return add(lhs, rhs);
@@ -52,7 +50,7 @@ inline Variable operator*(const Variable& lhs, float rhs) {
 
 // scalar * Variable
 inline Variable operator*(float lhs, const Variable& rhs) {
-    return mul(lhs, rhs);
+	return mul(lhs, rhs);
 }
 
 // Variable / Variable
@@ -70,10 +68,49 @@ inline Variable operator/(float lhs, const Variable& rhs) {
     return div(lhs, rhs);
 }
 
-// Variable ^ scalar (power)
+// Variable ^ scalar (거듭제곱)
 inline Variable operator^(const Variable& lhs, float rhs) {
     return pow(lhs, rhs);
 }
 
+inline Variable& operator+=(Variable& lhs, const Variable& rhs) {
+    lhs = add(lhs, rhs);
+    return lhs;
 }
+
+inline Variable& operator-=(Variable& lhs, const Variable& rhs) {
+    lhs = sub(lhs, rhs);
+    return lhs;
+}
+
+inline Variable& operator/=(Variable& lhs, const Variable& rhs) {
+    lhs = div(lhs, rhs);
+    return lhs;
+}
+
+inline Variable& operator+=(Variable& lhs, float rhs) {
+    lhs = add(lhs, rhs);
+    return lhs;
+}
+
+inline Variable& operator-=(Variable& lhs, float rhs) {
+    lhs = sub(lhs, rhs);
+    return lhs;
+}
+
+inline Variable& operator*=(Variable& lhs, float rhs) {
+    lhs = mul(lhs, rhs);
+    return lhs;
+}
+
+inline Variable& operator/=(Variable& lhs, float rhs) {
+    lhs = div(lhs, rhs);
+    return lhs;
+}
+
+inline Variable& operator^=(Variable& lhs, float rhs) {
+    lhs = pow(lhs, rhs);
+    return lhs;
+}
+
 

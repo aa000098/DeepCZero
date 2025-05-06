@@ -1,12 +1,11 @@
 #pragma once
 
-#include "container/variable.hpp"
+#include "container/variable_all.hpp"
 #include "container/tensor/tensor.hpp"
 
 #include <vector>
 #include <memory>
 
-class Variable;
 
 class Function : public std::enable_shared_from_this<Function> {
 protected:
@@ -16,103 +15,90 @@ protected:
 public:
 	virtual Variable operator()(const std::vector<Variable>& inputs);
 
-	virtual Tensor<> forward(std::vector<Tensor<>>& xs) = 0;
-	virtual std::vector<Tensor<>> backward(Tensor<>& gy) = 0; 
+	virtual Variable forward(const std::vector<Variable>& xs) = 0;
+	virtual std::vector<Variable> backward(const Variable& gy) = 0; 
 	virtual std::string name();
 	virtual std::uintptr_t id() {
 		return reinterpret_cast<std::uintptr_t>(this);
 	}
+
+	virtual ~Function() = default;
 
 
 public:
 	std::vector<std::shared_ptr<VariableImpl<>>> get_inputs() { return inputs; };
 	std::shared_ptr<VariableImpl<>> get_output() { return output.lock(); };
 
-	virtual ~Function();
 };
 
 class Square: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
+	Variable forward(const std::vector<Variable>& xs) override;
+	std::vector<Variable> backward(const Variable& gy) override;
 	~Square() = default;
 };
 
 class Exp: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
-	~Exp() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Exp() = default;
 };
 
 class Add: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
-	~Add() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Add() = default;
 };
 
 class Mul: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
-	~Mul() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Mul() = default;
 };
 
 class Neg: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
-	~Neg() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Neg() = default;
 };
 
 class Sub: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
-	~Sub() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Sub() = default;
 };
 
 class Div: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
-	~Div() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Div() = default;
 };
 
 class Pow: public Function {
-
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-
-	~Pow() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Pow() = default;
 };
 
 class Sin: public Function {
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-	~Sin() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Sin() = default;
 };
 
 class Cos: public Function {
 public:
-	Tensor<> forward(std::vector<Tensor<>>& xs) override;
-	std::vector<Tensor<>> backward(Tensor<>& gy) override;
-	~Cos() = default;
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Cos() = default;
 };
+
+

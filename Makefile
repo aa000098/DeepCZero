@@ -17,13 +17,13 @@ OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(TESTS))
 
 TEST_BINS = $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(TESTS))
-DEPS := $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
+DEPS := $(OBJS:.o=.d)
 
 LIB_NAME = libdeepczero.so
 LIB_TARGET = $(BIN_DIR)/$(LIB_NAME)
 
 # default rules
-all: $(LIB_TARGET) $(TEST_BINS)
+all: $(LIB_TARGET)
 
 $(LIB_TARGET): $(OBJS)
 	@mkdir -p $(dir $@)

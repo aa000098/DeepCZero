@@ -8,7 +8,8 @@
 #include <iostream>
 
 void Variable::backward(bool retain_grad) {
-	impl->grad = Tensor<>(impl->data.get_shape(), 1);
+	std::shared_ptr<Variable> grad = std::make_shared<Variable>(Tensor<>(impl->data.get_shape(), 1));
+	impl->grad = grad;
 	auto creator = impl->creator.get();
 	if (!creator) return;
 	Graph graph(creator);
@@ -18,28 +19,45 @@ void Variable::backward(bool retain_grad) {
 		std::vector<std::shared_ptr<VariableImpl<>>> inputs = f->get_inputs();
 		std::shared_ptr<VariableImpl<>> output = f->get_output();
 
-		Tensor gy = output->grad;
-		std::vector<Tensor<>> gxs = f->backward(gy);
+		std::shared_ptr<Variable> gy = output->grad;
+		std::vector<Tensor<>> gxs = f->backward(gy->data());
 		for (size_t i = 0; i < gxs.size(); ++i) {
 			std::shared_ptr<VariableImpl<>> input = inputs[i];
 			const Tensor<>& gx = gxs[i];
-			if (input->grad.empty())
-				input->grad = gx;
+			if (!input->grad)
+				input->grad = std::make_shared<Variable>(gx);
 			else {
-				for (size_t j = 0; j < input->grad.size(); ++j)
-					input->grad += gx;
+				Tensor<>& cur = input->grad->data();
+				cur += gx;
 			}
 		}
-		if (!retain_grad) output->grad = Tensor<>();
+		if (!retain_grad) output->grad.reset();
 	}
 }
 
 void Variable::show() const {
 	std::cout << "Variable {\n";
-	std::cout << "  data: \n";
-	impl->data.show();
-	std::cout << "  name: " << impl->name << std::endl;
-	std::cout << "  grad: \n";
-	impl->grad.show();
+
+	const auto& data = impl->data;
+	auto shape = data.get_shape();
+	std::cout << "  data: ";
+	if (shape.size() == 1) data.show();
+	else {
+		std::cout << "\n";
+		data.show();
+	}
+	std::cout << "  name: " << (impl->name.empty() ? "(unnamed)" : impl->name) << std::endl;
+	
+	std::cout << "  grad: ";
+	if (impl->grad) {
+		auto gshape = impl->grad->data().get_shape();
+		if (gshape.size() == 1) impl->grad->data().show();
+		else {
+			std::cout << "\n";
+			impl->grad->data().show();
+		}
+	} else
+		std::cout << "(no grad)\n";
+	
 	std::cout << "}\n";
 }

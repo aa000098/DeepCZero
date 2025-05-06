@@ -13,13 +13,15 @@ class Function; // forward declaration
 
 using namespace tensor;
 
+class Variable;
+
 template<typename T = float>
 class VariableImpl {
 public:
 	//TODO: extend to tensor
     Tensor<T> data;
 	std::string name;
-    Tensor<T> grad;
+	std::shared_ptr<Variable> grad;
     std::shared_ptr<Function> creator;
     bool requires_grad;
 
@@ -94,8 +96,8 @@ public:
 		impl->name = s; };
 	Tensor<>& data() {return impl->data;};
 	const Tensor<>& data() const {return impl->data;};
-	const Tensor<>& grad() const {return impl->grad;};
-	void cleargrad() {impl->grad = Tensor();};
+	const std::shared_ptr<Variable> grad() const {return impl->grad;};
+	void cleargrad() {impl->grad.reset();};
 	std::string dtype_string() const {return "float";};
 	std::uintptr_t id() const {
 		return reinterpret_cast<std::uintptr_t>(impl.get());

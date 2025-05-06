@@ -22,9 +22,9 @@ int main() {
 		x1.cleargrad();
 		y.backward();
 
-		float g0 = x0.grad().raw_data()[0];
-		float g1 = x1.grad().raw_data()[0];
-		x0 = Variable({x0.data().raw_data()[0] - lr * g0});
-		x1 = Variable({x1.data().raw_data()[0] - lr * g1});
+		Tensor g0 = x0.grad()->data();
+		Tensor g1 = x1.grad()->data();
+		x0 = Variable(x0.data() - (lr * g0));
+		x1 = Variable(x1.data() - (lr * g1));
 	}
 }

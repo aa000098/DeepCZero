@@ -43,9 +43,9 @@ int main() {
 
 	x11.backward();
 	x11.show();
-	std::cout << "[b auto backward]: ({, })" << std::endl;
+	std::cout << "[b auto backward]: (4)" << std::endl;
 	x10.show();
-	std::cout << "[a auto backward]: ({, })" << std::endl;
+	std::cout << "[a auto backward]: (-2)" << std::endl;
 	x9.show();
 
 }

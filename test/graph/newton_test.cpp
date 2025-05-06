@@ -25,7 +25,7 @@ int main() {
 		x.cleargrad();
 		y.backward();
 
-		float g = x.grad().raw_data()[0];
-		x = Variable({x.data().raw_data()[0] - g/gx2(x.data().raw_data()[0])});
+		Tensor g = x.grad()->data();
+		x = Variable(x.data() - g/gx2(x.data().raw_data()[0]));
 	}
 }

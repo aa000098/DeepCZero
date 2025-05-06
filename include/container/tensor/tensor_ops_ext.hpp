@@ -22,6 +22,11 @@ Tensor<T> operator*(const Tensor<T>& a, const Tensor<T>& b) {
 	return mul(a, b);
 }
 
+template<typename T>
+Tensor<T> operator/(const Tensor<T>& a, const Tensor<T>& b) {
+	return div(a, b);
+}
+
 // Tensor ⊕ Scalar
 
 template<typename T>
@@ -75,6 +80,12 @@ Tensor<T> operator*(T scalar, const Tensor<T>& a) {
     Tensor<T> result = a.clone();
     mul_scalar_inplace(result, scalar);
     return result;
+}
+
+// Unary minus: -Tensor
+template<typename T>
+Tensor<T> operator-(const Tensor<T>& a) {
+	return neg(a);	
 }
 
 }

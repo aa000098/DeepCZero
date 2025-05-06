@@ -10,12 +10,9 @@ int main() {
 	Variable x1({2});
 
 	float lr = 0.001;
-	int iters = 5000;
+	int iters = 50000;
 
 	for (int i = 0; i < iters; i++) {
-		x0.show();
-		x1.show();
-
 		Variable y = rosenbrock(x0, x1);
 
 		x0.cleargrad();
@@ -27,4 +24,6 @@ int main() {
 		x0 = Variable(x0.data() - (lr * g0));
 		x1 = Variable(x1.data() - (lr * g1));
 	}
+	x0.show();
+	x1.show();
 }

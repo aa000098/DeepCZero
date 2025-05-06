@@ -15,6 +15,12 @@ Variable goldstein(Variable x, Variable y) {
 	return z;
 }
 
+Variable rosenbrock(Variable x0, Variable x1) {
+	Variable y = (100 * ((x1 - (x0^2))^2)) + ((1 - x0)^2);
+	return y;
+}
+
+
 int main() {
 // sphere function
 	Variable x1({1});
@@ -42,4 +48,14 @@ int main() {
 	z3.show();
 	y3.show();
 	x3.show();
+
+// rosenbrock function
+	Variable x4({0});
+	Variable x5({2});
+
+	Variable y4 = rosenbrock(x4, x5);
+	y4.backward();
+	y4.show();
+	x4.show();
+	x5.show();
 }

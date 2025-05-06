@@ -3,7 +3,7 @@
 #include <cmath>
 #include <iostream>
 
-Variable my_sin(Variable x, float threshold=0.0001) {
+Variable my_sin(Variable x, float threshold=1e-45) {
 	Variable y({0});
 	
 	for (size_t i = 0; i < 100000; ++i) {

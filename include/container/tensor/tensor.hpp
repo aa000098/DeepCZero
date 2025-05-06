@@ -42,6 +42,7 @@ namespace tensor {
 				impl = std::make_shared<TensorND<T>>(shape, init);
 		};
 
+// slicing operators
 		TensorView<T> operator[](size_t idx) {
 			auto* ptr = dynamic_cast<TensorND<T>*>(impl.get());
 			if(!ptr) throw std::runtime_error("Only TensorND supports slicing");
@@ -51,6 +52,44 @@ namespace tensor {
 		const T& operator()(const std::vector<size_t>& indices) const {
 			return (*impl)(indices); };
 
+// arithmetic operators
+		Tensor<T>& operator+=(const Tensor<T>& other) {
+			add_inplace(*this, other);
+			return *this;
+		}
+
+		Tensor<T>& operator-=(const Tensor<T>& other) {
+			sub_inplace(*this, other);
+			return *this;
+		}
+
+		Tensor<T>& operator*=(const Tensor<T>& other) {
+			mul_inplace(*this, other);
+			return *this;
+		}
+
+		Tensor<T> operator+=(T scalar) {
+			add_scalar_inplace(*this, scalar);
+			return *this;
+		}
+
+		Tensor<T> operator-=(T scalar) {
+			sub_scalar_inplace(*this, scalar);
+			return *this;
+		}
+
+		Tensor<T>& operator*=(T scalar) {
+			mul_scalar_inplace(*this, scalar);
+			return *this;
+		}
+
+		Tensor<T>& operator/=(T scalar) {
+			div_scalar_inplace(*this, scalar);
+			return *this;
+		}
+
+
+// common functions
 		std::vector<size_t> get_shape() const { 
 			return impl->get_shape(); };
 		std::vector<size_t> get_strides() const {
@@ -71,6 +110,9 @@ namespace tensor {
 		void show() const {
 			if (!impl) std::cout << "[  ]" << std::endl;
 			else impl->show(); };
+
+		Tensor<T> clone() const {
+			return Tensor<T>(this->get_shape(), this->raw_data()); };
 
 	};
 }

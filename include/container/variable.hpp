@@ -128,8 +128,10 @@ public:
 		return impl->name; };
 	void set_name(std::string s) {
 		impl->name = s; };
+	Tensor<>& data() {return impl->data;};
 	const Tensor<>& data() const {return impl->data;};
 	const Tensor<>& grad() const {return impl->grad;};
+	void cleargrad() {impl->grad = Tensor();};
 	std::string dtype_string() const {return "float";};
 	std::uintptr_t id() const {
 		return reinterpret_cast<std::uintptr_t>(impl.get());

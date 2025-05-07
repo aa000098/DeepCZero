@@ -18,13 +18,15 @@ Variable add(const Variable &a, const Variable &b) {
 	return (*f)({a, b});
 }
 Variable add(const Variable &a, const float& b) {
-	Variable b_var({b});
+	Tensor b_tensor(a.shape(), b);
+	Variable b_var(b_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Add>();
 	return (*f)({a, b_var});
 }
 
 Variable add(const float& a, const Variable &b) {
-	Variable a_var({a});
+	Tensor a_tensor(b.shape(), a);
+	Variable a_var(a_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Add>();
 	return (*f)({a_var, b});
 }
@@ -34,13 +36,15 @@ Variable mul(const Variable &a, const Variable &b) {
 }
 
 Variable mul(const Variable &a, const float& b) {
-	Variable b_var({b});
+	Tensor b_tensor(a.shape(), b);
+	Variable b_var(b_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Mul>();
 	return (*f)({a, b_var});
 }
 
 Variable mul(const float& a, const Variable &b) {
-	Variable a_var({a});
+	Tensor a_tensor(b.shape(), a);
+	Variable a_var(a_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Mul>();
 	return (*f)({a_var, b});
 }
@@ -54,12 +58,14 @@ Variable sub(const Variable &a, const Variable &b) {
 	return (*f)({a, b});
 }
 Variable sub(const Variable &a, const float &b) {
-	Variable b_var({b});
+	Tensor b_tensor(a.shape(), b);
+	Variable b_var(b_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Sub>();
 	return (*f)({a, b_var});
 }
 Variable sub(const float &a, const Variable &b) {
-	Variable a_var({a});
+	Tensor a_tensor(b.shape(), a);
+	Variable a_var(a_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Sub>();
 	return (*f)({a_var, b});
 }

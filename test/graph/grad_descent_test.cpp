@@ -19,8 +19,8 @@ int main() {
 		x1.cleargrad();
 		y.backward();
 
-		Tensor g0 = x0.grad()->data();
-		Tensor g1 = x1.grad()->data();
+		Tensor g0 = x0.grad().data();
+		Tensor g1 = x1.grad().data();
 		x0 = Variable(x0.data() - (lr * g0));
 		x1 = Variable(x1.data() - (lr * g1));
 	}

@@ -18,7 +18,7 @@ void test_function_forward_backward() {
         assert(out.data().raw_data()[0] == 4.0f);
 
         f->operator()({x}).backward();
-        float grad = x.grad()->data().raw_data()[0];
+        float grad = x.grad().data().raw_data()[0];
         assert(grad == 4.0f);  // 2 * x = 4
         x.cleargrad();
     }
@@ -31,7 +31,7 @@ void test_function_forward_backward() {
         assert(std::abs(out.data().raw_data()[0] - expected) < 1e-5f);
 
         f->operator()({x}).backward();
-        float grad = x.grad()->data().raw_data()[0];
+        float grad = x.grad().data().raw_data()[0];
         assert(std::abs(grad - expected) < 1e-5f);
         x.cleargrad();
     }
@@ -43,8 +43,8 @@ void test_function_forward_backward() {
         assert(out.data().raw_data()[0] == 5.0f);
 
         f->operator()({x, y}).backward();
-        float gx = x.grad()->data().raw_data()[0];
-        float gy = y.grad()->data().raw_data()[0];
+        float gx = x.grad().data().raw_data()[0];
+        float gy = y.grad().data().raw_data()[0];
         assert(gx == 1.0f && gy == 1.0f);
         x.cleargrad(); y.cleargrad();
     }
@@ -56,8 +56,8 @@ void test_function_forward_backward() {
         assert(out.data().raw_data()[0] == 6.0f);
 
         f->operator()({x, y}).backward();
-        float gx = x.grad()->data().raw_data()[0];
-        float gy = y.grad()->data().raw_data()[0];
+        float gx = x.grad().data().raw_data()[0];
+        float gy = y.grad().data().raw_data()[0];
         assert(gx == 3.0f && gy == 2.0f);
         x.cleargrad(); y.cleargrad();
     }
@@ -69,7 +69,7 @@ void test_function_forward_backward() {
         assert(out.data().raw_data()[0] == -2.0f);
 
         f->operator()({x}).backward();
-        float gx = x.grad()->data().raw_data()[0];
+        float gx = x.grad().data().raw_data()[0];
         assert(gx == -1.0f);
         x.cleargrad();
     }
@@ -81,8 +81,8 @@ void test_function_forward_backward() {
         assert(out.data().raw_data()[0] == -1.0f);
 
         f->operator()({x, y}).backward();
-        float gx = x.grad()->data().raw_data()[0];
-        float gy = y.grad()->data().raw_data()[0];
+        float gx = x.grad().data().raw_data()[0];
+        float gy = y.grad().data().raw_data()[0];
         assert(gx == 1.0f && gy == -1.0f);
         x.cleargrad(); y.cleargrad();
     }
@@ -94,8 +94,8 @@ void test_function_forward_backward() {
         assert(out.data().raw_data()[0] == 1.5f);  // 3 / 2
 
         f->operator()({y, x}).backward();
-        float gx = y.grad()->data().raw_data()[0];  // ∂L/∂y = 1/2
-        float gy = x.grad()->data().raw_data()[0];  // ∂L/∂x = -3/4
+        float gx = y.grad().data().raw_data()[0];  // ∂L/∂y = 1/2
+        float gy = x.grad().data().raw_data()[0];  // ∂L/∂x = -3/4
         assert(std::abs(gx - 0.5f) < 1e-5f);
         assert(std::abs(gy + 0.75f) < 1e-5f);
         x.cleargrad(); y.cleargrad();
@@ -108,7 +108,7 @@ void test_function_forward_backward() {
         assert(out.data().raw_data()[0] == 16.0f);
 
         f->operator()({x, s}).backward();
-        float gx = x.grad()->data().raw_data()[0];  // 4 * 2^3 = 32
+        float gx = x.grad().data().raw_data()[0];  // 4 * 2^3 = 32
 		std::cout << gx << std::endl;
         assert(std::abs(gx - 32.0f) < 1e-5f);
         x.cleargrad(); s.cleargrad();
@@ -122,7 +122,7 @@ void test_function_forward_backward() {
         assert(std::abs(out.data().raw_data()[0] - expected) < 1e-5f);
 
         f->operator()({x}).backward();
-        float gx = x.grad()->data().raw_data()[0];
+        float gx = x.grad().data().raw_data()[0];
         float expected_grad = std::cos(2.0f);
         assert(std::abs(gx - expected_grad) < 1e-5f);
         x.cleargrad();
@@ -136,7 +136,7 @@ void test_function_forward_backward() {
         assert(std::abs(out.data().raw_data()[0] - expected) < 1e-5f);
 
         f->operator()({x}).backward();
-        float gx = x.grad()->data().raw_data()[0];
+        float gx = x.grad().data().raw_data()[0];
         float expected_grad = -std::sin(2.0f);
         assert(std::abs(gx - expected_grad) < 1e-5f);
         x.cleargrad();

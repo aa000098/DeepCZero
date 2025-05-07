@@ -33,7 +33,7 @@ Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
 template<typename T>
 Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
 	if (a.get_shape() != b.get_shape())
-		throw std::runtime_error("Shape mismatch in tensor subtract");
+		throw std::runtime_error("Shape mismatch in tensor multiply");
 
 	std::vector<T> result_data(a.raw_data());
 	const std::vector<T>& b_data = b.raw_data();

@@ -77,7 +77,10 @@ public:
 	std::shared_ptr<Function> get_creator() const { 
 		return impl->creator; };
 
-    void backward(bool retain_grad=false);
+// retain_grad : for Learning
+// create_graph : for Higher order differential
+    void backward(bool retain_grad, bool create_graph=false);
+	inline void backward() { backward(false, false); };
 
 public:
 // operator functions
@@ -96,7 +99,7 @@ public:
 		impl->name = s; };
 	Tensor<>& data() {return impl->data;};
 	const Tensor<>& data() const {return impl->data;};
-	const std::shared_ptr<Variable> grad() const {return impl->grad;};
+	const Variable grad() const {return *(impl->grad);};
 	void cleargrad() {impl->grad.reset();};
 	std::string dtype_string() const {return "float";};
 	std::uintptr_t id() const {

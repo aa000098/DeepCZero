@@ -49,10 +49,8 @@ Variable Square::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Square::backward(const Variable& gy) {
-	const Tensor<>& x_data = inputs[0]->data;
-	const Tensor<>& gy_data = gy.data();
-	Tensor<> result = 2.0f * x_data * gy_data;
-	return {Variable(result)};
+	const Variable& x = inputs[0];
+	return { 2.0f * x * gy};
 }
 
 Variable Add::forward(const std::vector<Variable>& xs) {
@@ -74,13 +72,10 @@ Variable Mul::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Mul::backward(const Variable& gy) {
-	const Tensor<>& a = inputs[0]->data;
-	const Tensor<>& b = inputs[1]->data;
-	const Tensor<>& gy_data = gy.data();
+	const Variable& a = inputs[0];
+	const Variable& b = inputs[1];
 
-	Tensor<> grad0 = b * gy_data;
-	Tensor<> grad1 = a * gy_data;
-	return {Variable(grad0), Variable(grad1)};
+	return {b*gy, a*gy};
 }
 
 Variable Neg::forward(const std::vector<Variable>& xs) {
@@ -90,9 +85,7 @@ Variable Neg::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Neg::backward(const Variable& gy) {
-	const Tensor<>& gy_data = gy.data();
-	Tensor<> result = -gy_data;
-	return {Variable(result)};
+	return {-gy};
 }
 
 Variable Sub::forward(const std::vector<Variable>& xs) {
@@ -103,10 +96,7 @@ Variable Sub::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Sub::backward(const Variable& gy) {
-	const Tensor<>& gy_data = gy.data();
-	Tensor<> grad0 = gy_data;
-	Tensor<> grad1 = -gy_data;
-	return {Variable(grad0), Variable(grad1)};
+	return {gy, -gy};
 }
 
 Variable Div::forward(const std::vector<Variable>& xs) {
@@ -118,14 +108,13 @@ Variable Div::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Div::backward(const Variable& gy) {
-	const Tensor<>& a = inputs[0]->data;
-	const Tensor<>& b = inputs[1]->data;
-	float scalar = b.raw_data()[0];
-	const Tensor<>& gy_data = gy.data();
+	const Variable& a = inputs[0];
+	const Variable& b = inputs[1];
+	float scalar = b.data().raw_data()[0];
  
-	Tensor<> grad0 = gy_data / scalar;
-	Tensor<> grad1 = -gy_data * a / (scalar * scalar);
-	return {Variable(grad0), Variable(grad1)};
+	Variable grad0 = gy / scalar;
+	Variable grad1 = -gy * a / (scalar * scalar);
+	return {grad0, grad1};
 }
 
 Variable Pow::forward(const std::vector<Variable>& xs) {
@@ -139,14 +128,12 @@ Variable Pow::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Pow::backward(const Variable& gy) {
-    const Tensor<>& x_data = inputs[0]->data;
-    float scalar = inputs[1]->data.raw_data()[0];
-    const Tensor<>& gy_data = gy.data();
+	const Variable& a = inputs[0];
+	const Variable& b = inputs[1];
+    float scalar = b.data().raw_data()[0];
 
-    Tensor<> result(x_data.get_shape(), 0.0f);
-    for (size_t i = 0; i < x_data.size(); ++i) 
-        result.raw_data()[i] = gy_data.raw_data()[i] * scalar * std::pow(x_data.raw_data()[i], scalar-1);
-    return {Variable(result)};
+	Variable result = gy * scalar * (a^(scalar-1));
+    return {result};
 }
 
 Variable Exp::forward(const std::vector<Variable>& xs) {
@@ -159,13 +146,8 @@ Variable Exp::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Exp::backward(const Variable& gy) {
-    Variable x(inputs[0]);
-    const Tensor<>& x_data = x.data();
-    const Tensor<>& gy_data = gy.data();
-    Tensor<> result(x_data.get_shape(), 0.0f);
-    for (size_t i = 0; i < x_data.size(); ++i) 
-        result.raw_data()[i] = gy_data.raw_data()[i] * std::exp(x_data.raw_data()[i]);
-    return {Variable(result)};
+	const Variable& x = inputs[0];
+	return {gy * exp(x)};
 }
 
 Variable Sin::forward(const std::vector<Variable>& xs) {

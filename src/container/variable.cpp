@@ -2,12 +2,13 @@
 #include "container/tensor/tensor_all.hpp"
 #include "function/function.hpp"
 #include "graph/graph.hpp"
+#include "config/config.hpp"
 
 #include <unordered_set>
 #include <string>
 #include <iostream>
 
-void Variable::backward(bool retain_grad) {
+void Variable::backward(bool retain_grad, bool create_graph) {
 	std::shared_ptr<Variable> grad = std::make_shared<Variable>(Tensor<>(impl->data.get_shape(), 1));
 	impl->grad = grad;
 	auto creator = impl->creator.get();
@@ -18,18 +19,21 @@ void Variable::backward(bool retain_grad) {
 	for (auto& f : topo_order) {
 		std::vector<std::shared_ptr<VariableImpl<>>> inputs = f->get_inputs();
 		std::shared_ptr<VariableImpl<>> output = f->get_output();
-
 		std::shared_ptr<Variable> gy = output->grad;
-		std::vector<Variable> gxs = f->backward(*gy);
-		for (size_t i = 0; i < gxs.size(); ++i) {
-			std::shared_ptr<VariableImpl<>> input = inputs[i];
-			const Variable& gx = gxs[i];
-			if (!input->grad)
-				input->grad = std::make_shared<Variable>(gx);
-			else 
-				(*input->grad) += gx;
+
+		{
+			dcz::UsingConfig is_higher_order_diff(create_graph);
+			std::vector<Variable> gxs = f->backward(*gy);
+			for (size_t i = 0; i < gxs.size(); ++i) {
+				std::shared_ptr<VariableImpl<>> input = inputs[i];
+				const Variable& gx = gxs[i];
+				if (!input->grad)
+					input->grad = std::make_shared<Variable>(gx);
+				else 
+					(*input->grad) += gx;
+			}
+			if (!retain_grad) output->grad.reset();
 		}
-		if (!retain_grad) output->grad.reset();
 	}
 }
 

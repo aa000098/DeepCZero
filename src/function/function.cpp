@@ -103,7 +103,7 @@ Variable Div::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
 	float scalar = b.raw_data()[0];
-	Tensor<> result = a / scalar;
+	Tensor result = a / scalar;
 	return Variable(result);
 }
 
@@ -121,9 +121,7 @@ Variable Pow::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& base = xs[0].data();
 	float scalar = xs[1].data().raw_data()[0];
 
-    Tensor<> result(base.get_shape(), 0.0f);
-    for (size_t i = 0; i < base.size(); ++i) 
-		result.raw_data()[i] = std::pow(base.raw_data()[i], scalar);
+	Tensor result = pow(base, scalar);
 	return Variable(result);
 }
 
@@ -137,11 +135,8 @@ std::vector<Variable> Pow::backward(const Variable& gy) {
 }
 
 Variable Exp::forward(const std::vector<Variable>& xs) {
-    Variable x = xs[0];
-	const Tensor<>& data = x.data();
-    Tensor<> result(data.get_shape(), 0.0f);
-    for (size_t i = 0; i < data.size(); ++i) 
-        result.raw_data()[i] = std::exp(data.raw_data()[i]);
+    const Tensor<>& x = xs[0].data();
+    Tensor result = exp(x);
     return Variable(result);
 }
 
@@ -151,40 +146,24 @@ std::vector<Variable> Exp::backward(const Variable& gy) {
 }
 
 Variable Sin::forward(const std::vector<Variable>& xs) {
-    Variable x = xs[0];
-    const Tensor<>& data = x.data();
-    Tensor<> result(data.get_shape(), 0.0f);
-    for (size_t i = 0; i < data.size(); ++i) 
-        result.raw_data()[i] = std::sin(data.raw_data()[i]);
+    const Tensor<>& x = xs[0].data();
+    Tensor result = sin(x);
     return Variable(result);
 }
 
 std::vector<Variable> Sin::backward(const Variable& gy) {
-    const Tensor<>& gy_data = gy.data();
-    Variable x(inputs[0]);
-    const Tensor<>& x_data = x.data();
-    Tensor<> result(gy_data.get_shape(), 0.0f);
-    for (size_t i = 0; i < gy_data.size(); ++i) 
-        result.raw_data()[i] = gy_data.raw_data()[i] * std::cos(x_data.raw_data()[i]);
-    return {Variable(result)};
+	const Variable& x = inputs[0];
+	return {gy * cos(x)};
 }
 
 Variable Cos::forward(const std::vector<Variable>& xs) {
-    Variable x = xs[0];
-    const Tensor<>& data = x.data();
-    Tensor<> result(data.get_shape(), 0.0f);
-    for (size_t i = 0; i < data.size(); ++i) 
-        result.raw_data()[i] = std::cos(data.raw_data()[i]);
+    const Tensor<>& x = xs[0].data();
+    Tensor result = cos(x);
     return Variable(result);
 }
 
 std::vector<Variable> Cos::backward(const Variable& gy) {
-    const Tensor<>& gy_data = gy.data();
-    Variable x(inputs[0]);
-    const Tensor<>& x_data = x.data();
-    Tensor<> result(gy_data.get_shape(), 0.0f);
-    for (size_t i = 0; i < gy_data.size(); ++i) 
-        result.raw_data()[i] = -gy_data.raw_data()[i] * std::sin(x_data.raw_data()[i]);
-    return {Variable(result)};
+	const Variable& x = inputs[0];
+	return {gy * -sin(x)};
 }
 

@@ -44,6 +44,24 @@ Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
 }
 
 template<typename T>
+Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
+    if (b.size() != 1)
+        throw std::runtime_error("Expected scalar tensor as divisor");
+
+    T scalar = b.raw_data()[0];
+
+    if (scalar == T(0))
+        throw std::runtime_error("Division by zero");
+
+    std::vector<T> result_data(a.raw_data());
+    for (auto& val : result_data) {
+        val /= scalar;
+    }
+
+    return Tensor<T>(a.get_shape(), result_data);
+}
+
+template<typename T>
 Tensor<T> neg(const Tensor<T>& a) {
 	std::vector<T> result_data(a.raw_data());
 	for (auto& val : result_data)

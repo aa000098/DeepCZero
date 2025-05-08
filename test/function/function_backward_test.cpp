@@ -109,7 +109,6 @@ void test_function_forward_backward() {
 
         f->operator()({x, s}).backward();
         float gx = x.grad().data().raw_data()[0];  // 4 * 2^3 = 32
-		std::cout << gx << std::endl;
         assert(std::abs(gx - 32.0f) < 1e-5f);
         x.cleargrad(); s.cleargrad();
     }
@@ -141,6 +140,20 @@ void test_function_forward_backward() {
         assert(std::abs(gx - expected_grad) < 1e-5f);
         x.cleargrad();
     }
+
+// Tanh
+	{
+		auto f = std::make_shared<Tanh>();
+		Variable out = f->forward({x});
+		float expected = std::tanh(2.0f);
+		assert(std::abs(out.data().raw_data()[0] - expected) < 1e-5f);
+
+		f->operator()({x}).backward();
+		float gx = x.grad().data().raw_data()[0];
+		float expected_grad = 1 - std::pow(std::tanh(2.0f), 2);
+		assert(std::abs(gx - expected_grad) < 1e-5f);
+		x.cleargrad();
+}
 
     std::cout << "[✓] All Function forward/backward tests passed." << std::endl;
 }

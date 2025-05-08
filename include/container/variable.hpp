@@ -6,8 +6,8 @@
 #include <vector>
 #include <string>
 #include <type_traits>
+#include <unordered_set>
 
-#include <iostream>
 
 class Function; // forward declaration
 
@@ -21,7 +21,7 @@ public:
 	//TODO: extend to tensor
     Tensor<T> data;
 	std::string name;
-	std::shared_ptr<Variable> grad;
+	std::unique_ptr<Variable> grad;
     std::shared_ptr<Function> creator;
     bool requires_grad;
 
@@ -42,6 +42,8 @@ public:
 		grad(), 
 		creator(), 
 		requires_grad(requires_grad) {};
+
+	VariableImpl() = default;
 
 	std::uintptr_t id() const {
 		return reinterpret_cast<std::uintptr_t>(this);
@@ -77,6 +79,8 @@ public:
 	std::shared_ptr<Function> get_creator() const { 
 		return impl->creator; };
 
+	Variable() : impl(std::make_shared<VariableImpl<>>()) {};
+
 // retain_grad : for Learning
 // create_graph : for Higher order differential
     void backward(bool retain_grad, bool create_graph=false);
@@ -101,6 +105,9 @@ public:
 	const Tensor<>& data() const {return impl->data;};
 	const Variable grad() const {return *(impl->grad);};
 	void cleargrad() {impl->grad.reset();};
+	void detach() {impl->creator.reset();};
+	void clear_graph();
+	void clear_graph(std::unordered_set<std::uintptr_t>& visited);
 	std::string dtype_string() const {return "float";};
 	std::uintptr_t id() const {
 		return reinterpret_cast<std::uintptr_t>(impl.get());
@@ -112,7 +119,7 @@ public:
 		return impl->data.get_shape(); };
 	std::vector<size_t> shape() const { 
 		return impl->data.get_shape(); };
-	bool empty() { 
+	bool empty() const { 
 		return impl->data.empty(); };
 	size_t size() const {
 		return impl->data.size(); };

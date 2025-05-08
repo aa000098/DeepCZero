@@ -10,7 +10,7 @@ int main() {
 	Variable x1({2});
 
 	float lr = 0.001;
-	int iters = 50000;
+	int iters = 500;
 
 	for (int i = 0; i < iters; i++) {
 		Variable y = rosenbrock(x0, x1);

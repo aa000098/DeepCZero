@@ -167,3 +167,15 @@ std::vector<Variable> Cos::backward(const Variable& gy) {
 	return {gy * -sin(x)};
 }
 
+Variable Tanh::forward(const std::vector<Variable>& xs) {
+    const Tensor<>& x = xs[0].data();
+    Tensor result = tanh(x);
+    return Variable(result);
+}
+
+std::vector<Variable> Tanh::backward(const Variable& gy) {
+	const Variable& y = output.lock();
+	if (y.empty()) 
+		throw std::runtime_error("Tanh::backweard(): output expired");
+	return {gy * (1 - y * y)};
+}

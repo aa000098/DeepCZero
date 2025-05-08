@@ -9,8 +9,7 @@
 #include <iostream>
 
 void Variable::backward(bool retain_grad, bool create_graph) {
-	std::shared_ptr<Variable> grad = std::make_shared<Variable>(Tensor<>(impl->data.get_shape(), 1));
-	impl->grad = grad;
+	impl->grad = std::make_unique<Variable>(Tensor<>(impl->data.get_shape(), 1));
 	auto creator = impl->creator.get();
 	if (!creator) return;
 	Graph graph(creator);
@@ -19,7 +18,7 @@ void Variable::backward(bool retain_grad, bool create_graph) {
 	for (auto& f : topo_order) {
 		std::vector<std::shared_ptr<VariableImpl<>>> inputs = f->get_inputs();
 		std::shared_ptr<VariableImpl<>> output = f->get_output();
-		std::shared_ptr<Variable> gy = output->grad;
+		Variable* gy = output->grad.get();
 
 		{
 			dcz::UsingConfig is_higher_order_diff(create_graph);
@@ -28,13 +27,42 @@ void Variable::backward(bool retain_grad, bool create_graph) {
 				std::shared_ptr<VariableImpl<>> input = inputs[i];
 				const Variable& gx = gxs[i];
 				if (!input->grad)
-					input->grad = std::make_shared<Variable>(gx);
+					input->grad = std::make_unique<Variable>(gx);
 				else 
 					(*input->grad) += gx;
 			}
 			if (!retain_grad) output->grad.reset();
 		}
 	}
+}
+
+void Variable::clear_graph() {
+    std::unordered_set<std::uintptr_t> visited;
+    clear_graph(visited);
+}
+
+void Variable::clear_graph(std::unordered_set<std::uintptr_t>& visited) {
+    std::uintptr_t vid = impl->id();
+    if (visited.count(vid)) return;     
+	visited.insert(vid);
+
+	this->show();
+    if (impl->grad) {
+        impl->grad->clear_graph(visited);
+        impl->grad.reset();
+    }
+
+    if (impl->creator) {
+        std::shared_ptr<Function> f = impl->creator;
+
+        for (auto& input_impl : f->get_inputs()) {
+			if (!input_impl) continue;
+            Variable input(input_impl);
+            input.clear_graph(visited);
+        }
+    }
+
+    impl->creator.reset(); 
 }
 
 void Variable::show() const {

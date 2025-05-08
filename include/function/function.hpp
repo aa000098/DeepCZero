@@ -26,7 +26,7 @@ public:
 
 
 public:
-	std::vector<std::shared_ptr<VariableImpl<>>> get_inputs() { return inputs; };
+	std::vector<std::shared_ptr<VariableImpl<>>> get_inputs() { return inputs; }
 	std::shared_ptr<VariableImpl<>> get_output() { return output.lock(); };
 
 };
@@ -101,4 +101,9 @@ public:
     ~Cos() = default;
 };
 
-
+class Tanh: public Function {
+public:
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Tanh() = default;
+};

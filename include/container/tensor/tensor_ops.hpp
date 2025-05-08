@@ -172,4 +172,14 @@ Tensor<T> cos(const Tensor<T>& x) {
 	return Tensor<T>(x.get_shape(), result_data);
 }
 
+template<typename T>
+Tensor<T> tanh(const Tensor<T>& x) {
+	std::vector<T> result_data(x.raw_data());
+	const std::vector<T>& x_data = x.raw_data();
+	for (size_t i = 0; i < result_data.size(); i++)
+		result_data[i] = std::tanh(x_data[i]);
+
+	return Tensor<T>(x.get_shape(), result_data);
+}
+
 }

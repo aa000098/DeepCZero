@@ -132,4 +132,44 @@ void div_scalar_inplace(Tensor<T>& a, T scalar) {
 }
 
 
+template<typename T>
+Tensor<T> pow(const Tensor<T>& x, const T scalar) {
+	std::vector<T> result_data(x.raw_data());
+	const std::vector<T>& x_data = x.raw_data();
+	for (size_t i = 0; i < result_data.size(); i++)
+		result_data[i] = std::pow(x_data[i], scalar);
+
+	return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> exp(const Tensor<T>& x) {
+	std::vector<T> result_data(x.raw_data());
+	const std::vector<T>& x_data = x.raw_data();
+	for (size_t i = 0; i < result_data.size(); i++)
+		result_data[i] = std::exp(x_data[i]);
+
+	return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> sin(const Tensor<T>& x) {
+	std::vector<T> result_data(x.raw_data());
+	const std::vector<T>& x_data = x.raw_data();
+	for (size_t i = 0; i < result_data.size(); i++)
+		result_data[i] = std::sin(x_data[i]);
+
+	return Tensor<T>(x.get_shape(), result_data);
+}
+
+template<typename T>
+Tensor<T> cos(const Tensor<T>& x) {
+	std::vector<T> result_data(x.raw_data());
+	const std::vector<T>& x_data = x.raw_data();
+	for (size_t i = 0; i < result_data.size(); i++)
+		result_data[i] = std::cos(x_data[i]);
+
+	return Tensor<T>(x.get_shape(), result_data);
+}
+
 }

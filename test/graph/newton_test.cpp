@@ -32,18 +32,21 @@ int main() {
 
 // auto differential
 	Variable x2({2});
-	Variable y2 = f(x2);
-	y2.backward(true, true);
 	x2.set_name("x2");
-	y2.set_name("y2");
-	y2.show();
-	x2.show();
 
-	Variable gx = x2.grad();
-	gx.set_name("gx");
-	x2.cleargrad();
-	gx.backward();
-	x2.show();
-	gx.show();
-	plot_dot_graph(gx, false, "auto_higher_diff");
+	for (int i = 0; i < iters; i++) {
+		std::cout << "[" << i << "]: " << std::endl;
+		x2.show();
+
+		Variable y2 = f(x2);
+		y2.set_name("y2");
+		y2.backward(true, true);
+
+		Variable gx = x2.grad();
+		gx.set_name("gx");
+		x2.cleargrad();
+		gx.backward();
+		Variable gx2 = x2.grad();
+		x2 = Variable(x2.data() - (gx.data()/gx2.data()));
+	}
 }

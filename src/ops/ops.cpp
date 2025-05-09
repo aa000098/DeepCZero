@@ -97,4 +97,8 @@ Variable cos(const Variable &x) {
 	std::shared_ptr<Function> f = std::make_shared<Cos>();
 	return (*f)({x});
 }
+Variable tanh(const Variable &x) {
+	std::shared_ptr<Function> f = std::make_shared<Tanh>();
+	return (*f)({x});
+}
 

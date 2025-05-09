@@ -28,3 +28,4 @@ Variable pow(const Variable &a, const float &b);
 
 Variable sin(const Variable &x);
 Variable cos(const Variable &x);
+Variable tanh(const Variable& x);

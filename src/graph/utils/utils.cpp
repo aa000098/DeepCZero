@@ -101,8 +101,11 @@ void plot_dot_graph(
 	
 	std::string cmd = "dot -Tpng " + dot_path + " -o " + img_path;
 	int ret = std::system(cmd.c_str());
-	if(ret != 0)
+	if(ret != 0) {
 		std::cerr << "Graphviz exec failed: " << cmd << std::endl;
+		std::cerr << "You can install Graphviz using one of the following methods:\n";
+		std::cerr << "  - Ubuntu/Debian: sudo apt install graphviz\n";
+	}
 	else 
 		std::cout << "Graphviz generated success: " << img_path << std::endl;
 }

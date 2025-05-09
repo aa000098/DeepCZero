@@ -22,5 +22,8 @@ int main() {
 	std::string name = std::string("gx") + std::to_string(iters+1);
 	Variable gx = x.grad();
 	gx.set_name(name);
+	
+	gx.clear_graph();
+
 	plot_dot_graph(gx, false, "tanh");
 }

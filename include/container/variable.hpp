@@ -112,6 +112,7 @@ public:
 	std::uintptr_t id() const {
 		return reinterpret_cast<std::uintptr_t>(impl.get());
 	}
+	void debug_refs();
 
 public:
 // override functions

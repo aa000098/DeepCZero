@@ -110,3 +110,39 @@ void plot_dot_graph(
 		std::cout << "Graphviz generated success: " << img_path << std::endl;
 }
 
+void trace_variable_refs(const Variable v, std::unordered_set<std::uintptr_t>* visited) {
+    std::unordered_set<std::uintptr_t> default_set;
+
+    if (!visited) visited = &default_set;
+
+    auto vid = v.get_impl()->id();
+    if (visited->count(vid)) return;
+    visited->insert(vid);
+
+    std::cout << "Variable: " << (v.get_impl()->name.empty() ? "(unnamed)" : v.get_impl()->name)
+              << ", id: " << vid
+              << ", use_count: " << v.get_impl().use_count() << std::endl;
+
+    auto f = v.get_creator();
+    if (f) {
+        std::cout << "  Creator Function: " << f->name()
+                  << ", id: " << f->id()
+                  << ", shared_ptr use_count: " << f.use_count() << std::endl;
+
+        auto inputs = f->get_inputs();
+        for (size_t i = 0; i < inputs.size(); ++i) {
+            auto inp = inputs[i];
+            std::cout << "    Input[" << i << "] id: " << inp->id()
+                      << ", use_count: " << inp.use_count() << std::endl;
+
+            Variable vi(inp);
+            trace_variable_refs(vi, visited);  // 재귀 호출
+        }
+
+        auto out = f->get_output();
+        if (out) {
+            std::cout << "    Output id: " << out->id()
+                      << ", use_count: " << out.use_count() << std::endl;
+        }
+    }
+}

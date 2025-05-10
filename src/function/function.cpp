@@ -42,6 +42,21 @@ std::string Function::name() {
 	return mangled.substr(i);
 }
 
+void Function::debug_function_refs(std::shared_ptr<Function> f) {
+	std::cout << "Function: " << f->name() << std::endl; 
+
+	auto inputs = f->get_inputs();
+	for (size_t i = 0; i < inputs.size(); ++i) {
+        auto ptr = inputs[i];
+        std::cout << "  Input[" << i << "] use_count: " << ptr.use_count() << " id: " << ptr->id() << std::endl;
+    }
+
+    auto out = f->get_output();
+    if (out) {
+        std::cout << "  Output use_count: " << out.use_count() << " id: " << out->id() << std::endl;
+    }
+}
+
 Variable Square::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x_data = xs[0].data();
 	Tensor<> result = x_data * x_data;

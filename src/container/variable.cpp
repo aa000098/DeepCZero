@@ -10,6 +10,7 @@
 
 void Variable::backward(bool retain_grad, bool create_graph) {
 	impl->grad = std::make_unique<Variable>(Tensor<>(impl->data.get_shape(), 1));
+	impl->grad->set_name("gy");
 	auto creator = impl->creator.get();
 	if (!creator) return;
 	Graph graph(creator);
@@ -46,7 +47,6 @@ void Variable::clear_graph(std::unordered_set<std::uintptr_t>& visited) {
     if (visited.count(vid)) return;     
 	visited.insert(vid);
 
-	this->show();
     if (impl->grad) {
         impl->grad->clear_graph(visited);
         impl->grad.reset();
@@ -63,6 +63,13 @@ void Variable::clear_graph(std::unordered_set<std::uintptr_t>& visited) {
     }
 
     impl->creator.reset(); 
+}
+
+void Variable::debug_refs() {
+    std::cout << "[Variable] name: " << impl->name 
+              << ", use_count: " << impl.use_count()
+              << ", creator: " << (impl->creator ? impl->creator->name() : "null") 
+              << std::endl;
 }
 
 void Variable::show() const {

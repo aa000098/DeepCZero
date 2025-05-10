@@ -14,7 +14,7 @@ int main() {
 	logs.push_back(y.data());
 
 	Variable gx;
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		logs.push_back(x.grad().data());
 
 		gx = x.grad();
@@ -23,8 +23,14 @@ int main() {
 		gx.backward(false, true);
 		x.show();
 	}
-	// sin graph visualization should use matplotlib
 
+	gx = x.grad();
+	gx.set_name("gx");
+
+	plot_dot_graph(gx, false, "sin_higher_order_diff");
+	trace_variable_refs(gx);
 	gx.clear_graph();
 
+
+	// sin graph visualization should use matplotlib
 }

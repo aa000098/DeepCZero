@@ -29,6 +29,9 @@ public:
 	std::vector<std::shared_ptr<VariableImpl<>>> get_inputs() { return inputs; }
 	std::shared_ptr<VariableImpl<>> get_output() { return output.lock(); };
 
+public:
+	void debug_function_refs(std::shared_ptr<Function> f);
+
 };
 
 class Square: public Function {

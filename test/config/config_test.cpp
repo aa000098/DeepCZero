@@ -16,11 +16,11 @@ int main() {
 		x.show();
 	}
 
-	Variable x = Variable({100, 101, 102});
-	Variable y = square(x);
+	Variable x2 = Variable({100, 101, 102});
+	Variable y2 = square(x2);
 	std::cout << "Config::enable_backprop = true" << std::endl;
-	y.backward();
-	y.show();
-	x.show();
+	y2.backward();
+	y2.show();
+	x2.show();
 
 }

@@ -30,6 +30,10 @@ make
 ```bash
 make test
 ```   
+### 전체 메모리 누수 테스트
+```bash
+make memory
+```   
   
 ## 주요 구현 목록
 - Variable: Tensor 기반 값 및 gradient 저장, weak_ptr 기반 creator 추적

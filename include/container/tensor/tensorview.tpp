@@ -8,8 +8,7 @@
 
 namespace tensor {
 	template<typename T>
-	TensorView<T> TensorView<T>::operator[](size_t idx) const
-	{
+	TensorView<T> TensorView<T>::operator[](size_t idx) const {
 		if (shape.empty())
 			throw std::out_of_range("TensorView index out of bounds");
 		if (idx >= shape[0])
@@ -106,7 +105,7 @@ namespace tensor {
 	}
 	*/
 	template<typename T>
-	void TensorView<T>::show() {
+	void TensorView<T>::show() const {
 		std::cout << "Data: \n";	
 		print_tensor(*this, 0, offset);
 		std::cout << std::endl;

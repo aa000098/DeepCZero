@@ -25,7 +25,7 @@ namespace tensor {
 		TensorND() = default;
 
 		TensorView<T> operator[](size_t idx);
-		const tensor::TensorView<T> operator[](size_t idx) const;
+		const TensorView<T> operator[](size_t idx) const;
 		
 		T& operator()(	
 				const std::vector<size_t>& indices) {
@@ -39,7 +39,7 @@ namespace tensor {
 		std::vector<size_t> get_strides() const {
 			return strides; };
 
-		std::shared_ptr<std::vector<T>>& shared_data() {
+		std::shared_ptr<std::vector<T>> shared_data() const {
 			return data_ptr; };
 
 		// TensorBase override
@@ -49,6 +49,8 @@ namespace tensor {
 			return (*data_ptr).size(); };
 		size_t ndim() const override {
 			return shape.size(); };
+		size_t get_offset() const override {
+			return offset; };
 		bool empty() const override { 
 			return (*data_ptr).empty(); };
 		std::vector<T>& raw_data() override {

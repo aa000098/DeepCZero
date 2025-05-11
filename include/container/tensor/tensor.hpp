@@ -115,6 +115,7 @@ namespace tensor {
 		Tensor<T> clone() const {
 			return Tensor<T>(this->get_shape(), this->raw_data()); };
 		Tensor<T> reshape_like(const Tensor<T>& other) const;
+		Tensor<T> reshape(const std::vector<size_t> shape);
 
 	};
 }

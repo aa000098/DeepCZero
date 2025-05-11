@@ -1,4 +1,5 @@
-#include "container/tensor/tensor.hpp"  // Tensor<T> and TensorND<T>
+#include "container/tensor/tensor_all.hpp" 
+
 #include <iostream>
 #include <cassert>
 
@@ -28,11 +29,40 @@ void test_tensor_reshape() {
     b.raw_data()[0] = 10.0f;
     assert(a.raw_data()[0] == 10.0f);
 
+	a.show();
+	b.show();
     std::cout << "✅ reshape test passed.\n" << std::endl;
+}
+
+void test_tensor_transpose() {
+    std::cout << "[Test] Tensor transpose" << std::endl;
+
+    // 1. Create a 2x3 Tensor
+    Tensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6});
+    assert(a.get_shape() == std::vector<size_t>({2, 3}));
+
+    // 2. Default transpose → reverse axes = [1, 0]
+    Tensor<float> b = a.transpose();
+    assert(b.get_shape() == std::vector<size_t>({3, 2}));
+    assert(b.raw_data()[0] == 1);  // view test: same data
+    assert(&a.raw_data()[0] == &b.raw_data()[0]);
+
+    // 3. Specified axes transpose = {1, 0}
+    Tensor<float> c = a.transpose({1, 0});
+    assert(c.get_shape() == std::vector<size_t>({3, 2}));
+    assert(&a.raw_data()[0] == &c.raw_data()[0]);
+
+    // 4. Value check: check indices if indexing supported (optional)
+
+    a.show();
+    b.show();
+    c.show();
+    std::cout << "✅ transpose test passed.\n" << std::endl;
 }
 
 int main() {
     test_tensor_reshape();
+    test_tensor_transpose();
     return 0;
 }
 

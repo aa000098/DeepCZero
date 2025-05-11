@@ -18,6 +18,8 @@ namespace tensor {
 		};
 
 		std::vector<size_t> get_shape() const override { return {data_ptr->size()}; };
+		std::vector<size_t> get_strides() const override {
+			return {1}; };
 		size_t size() const override { return data_ptr->size(); };
 		size_t ndim() const override { return 1; };
 		size_t get_offset() const override { return 0; };

@@ -16,6 +16,7 @@ namespace tensor {
 		virtual size_t get_offset() const = 0;
 		virtual bool empty() const = 0;
 		virtual std::vector<size_t> get_shape() const = 0;
+		virtual std::vector<size_t> get_strides() const = 0;
 		virtual std::vector<T>& raw_data() = 0;
 		virtual const std::vector<T>& raw_data() const = 0;
 		virtual std::shared_ptr<std::vector<T>> shared_data() const = 0;

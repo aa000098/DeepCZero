@@ -39,17 +39,9 @@ namespace tensor {
 			return const_cast<TensorView*> (this)->operator()(indices); };
 
 		TensorView<T> operator[](size_t idx) const;
-/*
-		friend TensorView<T>& operator+=(TensorView<T>& lhs, const TensorView<T>& rhs);
 		
-		friend T operator*(TensorView<T>& a, size_t n);
-		friend TensorView<T>& operator+(TensorView<T>& a, const TensorView<T>& b);
-*/
-		TensorView<T>& exp();
-		TensorView<T>& pow(size_t mul);
-
 //		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);
-//
+
 		void show() const override;
 	};
 }

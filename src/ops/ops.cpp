@@ -1,5 +1,5 @@
 #include "ops/ops.hpp"
-#include "function/function.hpp"
+#include "function/function_all.hpp"
 
 #include <memory>
 
@@ -102,3 +102,9 @@ Variable tanh(const Variable &x) {
 	return (*f)({x});
 }
 
+Variable reshape(const Variable &x, const std::vector<size_t> shape) {
+	if (x.shape() == shape) 
+		return Variable(x);
+	std::shared_ptr<Function> f = std::make_shared<Reshape>(shape);
+	return (*f)({x});
+}

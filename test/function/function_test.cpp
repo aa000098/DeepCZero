@@ -1,6 +1,4 @@
-#include "function/function.hpp"
-#include "container/variable.hpp"
-#include "container/tensor/tensor.hpp"
+#include "deepczero.hpp"
 
 #include <iostream>
 

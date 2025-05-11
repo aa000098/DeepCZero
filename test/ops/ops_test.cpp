@@ -49,4 +49,11 @@ int main() {
 	y7.backward(true);
 	y7.show();
 	x12.show();
+
+	Tensor t1 = Tensor({3,2}, 1.0f);
+	Variable x13(t1);
+	Variable y8 = reshape(x13, {6});
+	y8.backward(true);
+	y8.show();
+	x13.show();
 }

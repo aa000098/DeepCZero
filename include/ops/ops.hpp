@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <cstddef>
+
 class Variable;
 
 Variable square(const Variable &x);
@@ -29,3 +32,5 @@ Variable pow(const Variable &a, const float &b);
 Variable sin(const Variable &x);
 Variable cos(const Variable &x);
 Variable tanh(const Variable& x);
+
+Variable reshape(const Variable& x, std::vector<size_t> shape);

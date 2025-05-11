@@ -1,6 +1,7 @@
 #pragma once
 
 #include "container/tensor/tensor.hpp"
+#include "ops/ops.hpp"
 
 #include <memory>
 #include <vector>
@@ -113,6 +114,10 @@ public:
 		return reinterpret_cast<std::uintptr_t>(impl.get());
 	}
 	void debug_refs();
+
+// shape functions
+	Variable reshape(std::vector<size_t> shape) { 
+		return ::reshape(*this, shape); };
 
 public:
 // override functions

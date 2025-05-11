@@ -66,6 +66,11 @@ int main() {
 	Variable test_12 = test_11^2;
 	test_12.show();
 	
-
+	std::cout << "[x.reshape({3,2})]: " << std::endl;
+	Tensor t1({6}, 1.0f);
+	Variable test13(t1);
+	Variable test14 = test13.reshape({3,2});
+	test13.show();
+	test14.show();
 
 }

@@ -153,7 +153,59 @@ void test_function_forward_backward() {
 		float expected_grad = 1 - std::pow(std::tanh(2.0f), 2);
 		assert(std::abs(gx - expected_grad) < 1e-5f);
 		x.cleargrad();
-}
+	}
+
+    // Reshape
+    {
+        Tensor t({2, 3});
+        for (int i = 0; i < 6; ++i)
+            t.raw_data()[i] = static_cast<float>(i + 1);  // [[1,2,3],[4,5,6]]
+        Variable x_reshape(t);
+
+        auto f = std::make_shared<Reshape>(std::vector<size_t>{3, 2});
+        Variable out = f->forward({x_reshape});
+
+        // Check shape
+        std::vector<size_t> expected_shape = {3, 2};
+        assert(out.data().get_shape() == expected_shape);
+
+        // Check values: reshape preserves order
+        std::vector<float> expected_data = {1, 2, 3, 4, 5, 6};
+        for (size_t i = 0; i < expected_data.size(); ++i)
+            assert(std::abs(out.data().raw_data()[i] - expected_data[i]) < 1e-5f);
+
+        f->operator()({x_reshape}).backward();
+
+        // Gradient should be all ones (reshaped back to original)
+        std::vector<float> expected_grad(6, 1.0f);
+        for (size_t i = 0; i < expected_grad.size(); ++i)
+            assert(std::abs(x_reshape.grad().data().raw_data()[i] - expected_grad[i]) < 1e-5f);
+
+        x_reshape.cleargrad();
+    }
+
+    // Transpose
+    {
+        Tensor t({2, 3, 4, 5});
+        for (size_t i = 0; i < t.size(); ++i)
+            t.raw_data()[i] = static_cast<float>(i + 1);  // [[1,2,3],[4,5,6]]
+        Variable x_trans(t);
+
+        auto f = std::make_shared<Transpose>(std::vector<size_t>{1, 0, 3, 2});
+        Variable out = f->forward({x_trans});
+        
+        // Check shape
+        std::vector<size_t> expected_shape = {3, 2, 5, 4};
+        assert(out.data().get_shape() == expected_shape);
+
+        f->operator()({x_trans}).backward();
+
+        // Gradient should be all ones (transposed back)
+        std::vector<size_t> expected_grad_shape = {2, 3, 4, 5};
+        assert(x_trans.grad().shape() == expected_grad_shape);
+
+        x_trans.cleargrad();
+    }
 
     std::cout << "[✓] All Function forward/backward tests passed." << std::endl;
 }

@@ -118,6 +118,8 @@ public:
 // shape functions
 	Variable reshape(std::vector<size_t> shape) { 
 		return ::reshape(*this, shape); };
+	Variable trans(std::vector<size_t> axes = {}) {
+		return ::transpose(*this, axes); };
 
 public:
 // override functions

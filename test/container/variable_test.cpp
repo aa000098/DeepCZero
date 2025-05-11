@@ -73,4 +73,16 @@ int main() {
 	test13.show();
 	test14.show();
 
+	std::cout << "[x.transpose({2,3,4,5})]: " << std::endl;
+	Tensor t2({2,3,4,5}, 1.0f);
+	Variable test15(t2);
+	Variable test16 = test15.trans({1,0,3,2});
+	std::cout << "original shape: ";
+	for (size_t i = 0; i < test15.ndim(); i++) 
+		std::cout << test15.shape()[i] << " ";
+	std::cout << std::endl;
+	std::cout << "transposed shape: ";
+	for (size_t i = 0; i < test16.ndim(); i++) 
+		std::cout << test16.shape()[i] << " ";
+	std::cout << std::endl;
 }

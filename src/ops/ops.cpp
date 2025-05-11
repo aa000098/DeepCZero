@@ -108,3 +108,8 @@ Variable reshape(const Variable &x, const std::vector<size_t> shape) {
 	std::shared_ptr<Function> f = std::make_shared<Reshape>(shape);
 	return (*f)({x});
 }
+
+Variable transpose(const Variable &x, const std::vector<size_t> axes) {
+	std::shared_ptr<Function> f = std::make_shared<Transpose>(axes);
+	return (*f)({x});
+}

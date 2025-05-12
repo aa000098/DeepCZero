@@ -2,6 +2,8 @@
 
 #include "container/tensor/tensor.hpp"
 
+#include <set>
+
 namespace tensor {
 
 template<typename T>
@@ -87,6 +89,22 @@ Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
     Tensor<T> result;
     result.impl = view_impl;
     return result;
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::sum(const std::vector<size_t>& axis, bool keepdims) const {
+
+	std::set<size_t> sum_axis(axis.begin(), axis.end());
+
+	auto old_shape = impl->get_shape();
+	auto old_data = impl->raw_data();
+
+	std::vector<size_t> new_shape;
+
+	Tensor<T> result(new_shape, T{});
+
+	return result;
+
 }
 
 }

@@ -117,6 +117,7 @@ namespace tensor {
 		Tensor<T> reshape_like(const Tensor<T>& other) const;
 		Tensor<T> reshape(const std::vector<size_t>& new_shape) const;
 		Tensor<T> transpose(const std::vector<size_t>& axes={}) const;
+		Tensor<T> sum(const std::vector<size_t>& axis = {}, bool keepdims = false) const;
 
 	};
 }

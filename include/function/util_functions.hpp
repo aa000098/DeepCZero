@@ -2,31 +2,31 @@
 
 #include "function/function.hpp"
 
-class Reshape: public Function {
+class Sum: public Function {
 private:
-	std::vector<size_t> shape;
-	std::vector<size_t> x_shape;
+	std::vector<size_t> axis;
+	bool keepdims;
 
 public:
-	Reshape(std::vector<size_t> shape) : shape(shape) {};
+	Sum(const std::vector<size_t> axis = {}, const bool keepdims = false) : axis(axis), keepdims(keepdims) {};
 
 public:
 	Variable forward(const std::vector<Variable>& xs) override;
 	std::vector<Variable> backward(const Variable& gy) override;
-	~Reshape() = default;
+	~Sum() = default;
 };
 
-class Transpose : public Function {
+class Sum_To : public Function {
 private:
     std::vector<size_t> axes;
 
 public:
-    Transpose(const std::vector<size_t>& axes = {}) : axes(axes) {};
+    Sum_To(const std::vector<size_t>& axes = {}) : axes(axes) {};
 
 public:
 	Variable forward(const std::vector<Variable>& xs) override;
 	std::vector<Variable> backward(const Variable& gy) override;
-	~Transpose() = default;
+	~Sum_To() = default;
 
 };
 

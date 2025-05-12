@@ -33,6 +33,4 @@ Variable sin(const Variable &x);
 Variable cos(const Variable &x);
 Variable tanh(const Variable& x);
 
-Variable reshape(const Variable& x, std::vector<size_t> shape);
-Variable transpose(const Variable& x, std::vector<size_t> axes={});
 

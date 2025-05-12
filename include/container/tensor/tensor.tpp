@@ -94,16 +94,63 @@ Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
 template<typename T>
 Tensor<T> Tensor<T>::sum(const std::vector<size_t>& axis, bool keepdims) const {
 
-	std::set<size_t> sum_axis(axis.begin(), axis.end());
+    const auto& src_shape = impl->get_shape();
+    const auto& src_strides = impl->get_strides();
+    const auto& src_data = impl->raw_data();
 
-	auto old_shape = impl->get_shape();
-	auto old_data = impl->raw_data();
+    std::set<size_t> reduce_axis(axis.begin(), axis.end());
 
-	std::vector<size_t> new_shape;
+	if (reduce_axis.empty()) {
+    	for (size_t i = 0; i < src_shape.size(); ++i)
+        	reduce_axis.insert(i);
+	}
 
-	Tensor<T> result(new_shape, T{});
+    // 1. 결과 shape 계산
+    std::vector<size_t> result_shape;
+    for (size_t i = 0; i < src_shape.size(); ++i) {
+        if (reduce_axis.count(i)) {
+            if (keepdims) result_shape.push_back(1);
+        } else {
+            result_shape.push_back(src_shape[i]);
+        }
+    }
 
-	return result;
+    Tensor<T> result(result_shape, T{});
+    auto& result_data = result.raw_data();
+    auto result_strides = compute_contiguous_strides(result_shape);
+
+    // 2. 모든 인덱스를 순회하여 값을 더함
+    size_t total = src_data.size();
+    size_t ndim = src_shape.size();
+
+    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
+		// 다차원 인덱스 계산
+        std::vector<size_t> idx(ndim);
+        size_t remaining = flat_idx;
+        for (size_t i = ndim; i-- > 0;) {
+            idx[i] = remaining % src_shape[i];
+            remaining /= src_shape[i];
+        }
+
+        // 결과 텐서 인덱스 계산 (축 제외)
+        std::vector<size_t> dst_idx;
+        for (size_t i = 0; i < ndim; ++i) {
+            if (!reduce_axis.count(i)) {
+                dst_idx.push_back(idx[i]);
+            } else if (keepdims) {
+                dst_idx.push_back(0);
+            }
+        }
+
+        // flatten index 계산
+        size_t dst_flat = 0;
+        for (size_t i = 0; i < dst_idx.size(); ++i)
+            dst_flat += dst_idx[i] * result_strides[i];
+
+        result_data[dst_flat] += src_data[flat_idx];
+    }
+
+    return result;
 
 }
 

@@ -23,7 +23,9 @@ namespace tensor {
 
 		Tensor(	const std::vector<size_t>& shape, 
 				T init = T{}) {
-			if (shape.size() == 1)
+			if (shape.size() == 0)
+				impl = std::make_shared<Tensor1D<T>>(std::vector<T>{init});
+			else if(shape.size() == 1)
 				impl = std::make_shared<Tensor1D<T>>(shape[0], init);
 			else
 				impl = std::make_shared<TensorND<T>>(shape, init);
@@ -36,7 +38,9 @@ namespace tensor {
 
 		Tensor(	const std::vector<size_t>& shape,
 				const std::vector<T>& init) {
-			if (shape.size() == 1)
+			if (shape.size() == 0)
+				impl = std::make_shared<Tensor1D<T>>(std::vector<T>{init});
+			else if (shape.size() == 1)
 				impl = std::make_shared<Tensor1D<T>>(init);
 			else
 				impl = std::make_shared<TensorND<T>>(shape, init);

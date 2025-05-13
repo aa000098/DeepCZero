@@ -97,7 +97,9 @@ namespace tensor {
 		std::vector<size_t> get_shape() const { 
 			return impl->get_shape(); };
 		std::vector<size_t> get_strides() const {
-			return impl->get_strides; };
+			return impl->get_strides(); };
+		size_t get_offset() const {
+			return impl->get_offset(); };
 		size_t size() const {
 			return impl->size(); };
 		size_t ndim() const {
@@ -106,6 +108,8 @@ namespace tensor {
 			if (!impl) return true;
 			else return impl->empty(); };
 
+		std::shared_ptr<std::vector<T>> shared_data() const {
+			return impl->shared_data(); };
 		std::vector<T>& raw_data() {
 			return impl->raw_data(); };
 		const std::vector<T>& raw_data() const {

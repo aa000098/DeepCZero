@@ -5,11 +5,11 @@
 class Sum: public Function {
 private:
 	std::vector<size_t> x_shape;
-	std::vector<size_t> axis;
+	std::vector<int> axis;
 	bool keepdims;
 
 public:
-	Sum(const std::vector<size_t> axis = {}, const bool keepdims = false) : axis(axis), keepdims(keepdims) {};
+	Sum(const std::vector<int> axis = {}, const bool keepdims = false) : axis(axis), keepdims(keepdims) {};
 
 public:
 	Variable forward(const std::vector<Variable>& xs) override;

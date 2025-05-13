@@ -92,13 +92,20 @@ Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
 }
 
 template<typename T>
-Tensor<T> Tensor<T>::sum(const std::vector<size_t>& axis, bool keepdims) const {
+Tensor<T> Tensor<T>::sum(const std::vector<int>& axis, bool keepdims) const {
 
     const auto& src_shape = impl->get_shape();
     const auto& src_strides = impl->get_strides();
     const auto& src_data = impl->raw_data();
 
-    std::set<size_t> reduce_axis(axis.begin(), axis.end());
+    std::set<size_t> reduce_axis;
+
+	for (int a : axis) {
+		if (a < 0) 
+			reduce_axis.insert(static_cast<size_t>(a + static_cast<int>(src_shape.size())));
+		else
+			reduce_axis.insert(static_cast<size_t>(a));
+	}
 
 	if (reduce_axis.empty()) {
     	for (size_t i = 0; i < src_shape.size(); ++i)

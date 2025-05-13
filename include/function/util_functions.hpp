@@ -4,6 +4,7 @@
 
 class Sum: public Function {
 private:
+	std::vector<size_t> x_shape;
 	std::vector<size_t> axis;
 	bool keepdims;
 

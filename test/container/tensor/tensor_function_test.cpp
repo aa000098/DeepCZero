@@ -4,6 +4,7 @@
 #include <iostream>
 
 void test_tensor_sum() {
+    std::cout << "[Test] Sum" << std::endl;
     Tensor<float> x({2, 2, 3}, {
         1, 2, 3,
         4, 5, 6,
@@ -56,7 +57,7 @@ void test_tensor_sum() {
     assert(s_all.get_shape() == std::vector<size_t>{1});  // scalar
     assert(std::abs(s_all.raw_data()[0] - expected_all[0]) < 1e-5);
 
-    std::cout << "✅ tensor sum tests passed." << std::endl;
+    std::cout << "✅ tensor sum tests passed.\n" << std::endl;
 }
 
 void test_broadcast_to() {
@@ -103,7 +104,61 @@ void test_broadcast_to() {
     std::cout << "✅ broadcast_to test passed.\n" << std::endl;
 }
 
+void test_sum_to() {
+	std::cout << "[Test] sum_to\n";
+
+    // 1. [2, 3, 4] → [2, 1, 4]
+    Tensor<float> x({2, 3, 4}, {
+         1,  2,  3,  4,
+         5,  6,  7,  8,
+         9, 10, 11, 12,
+
+        13, 14, 15, 16,
+        17, 18, 19, 20,
+        21, 22, 23, 24
+    });
+
+    Tensor<float> y = sum_to(x, {2, 1, 4});
+    assert(y.get_shape() == std::vector<size_t>({2, 1, 4}));
+
+    // 각 행마다 3개의 row를 합친 결과 확인
+    std::vector<float> expected = {
+        15, 18, 21, 24,   // 1+5+9, 2+6+10, ...
+        51, 54, 57, 60    // 13+17+21, ...
+    };
+
+    const auto& y_data = y.raw_data();
+    for (size_t i = 0; i < expected.size(); ++i) {
+        assert(std::abs(y_data[i] - expected[i]) < 1e-5);
+    }
+
+    // 2. [2, 3, 4] → [1, 3, 1]
+    Tensor<float> z = sum_to(x, {1, 3, 1});
+    assert(z.get_shape() == std::vector<size_t>({1, 3, 1}));
+
+    std::vector<float> expected_z = {
+        68,  100, 132  // column-wise sum across dim 0 and dim 2
+    };
+
+    const auto& z_data = z.raw_data();
+    for (size_t i = 0; i < 3; ++i) {
+        assert(std::abs(z_data[i] - expected_z[i]) < 1e-5);
+    }
+
+    // 3. 예외 케이스: 호환되지 않는 target shape
+    bool caught = false;
+    try {
+        sum_to(x, {3, 2});  // ❌ invalid shape
+    } catch (std::runtime_error&) {
+        caught = true;
+    }
+    assert(caught == true);
+
+    std::cout << "✅ sum_to test passed.\n" << std::endl;
+}
+
 int main() {
 	test_tensor_sum();
 	test_broadcast_to();
+	test_sum_to();
 }

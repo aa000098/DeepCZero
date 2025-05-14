@@ -55,10 +55,39 @@ Tensor<T> broadcast_to(const Tensor<T>& src, const std::vector<size_t>& target_s
 template<typename T>
 Tensor<T> sum_to(const Tensor<T>& src, const std::vector<size_t>& target_shape) {
 
-	//TODO: implemet sum_to function
+	const auto& src_shape = src.get_shape();
+
+	size_t ndim_src = src_shape.size();
+	size_t ndim_target = target_shape.size();
+
+	if (ndim_src < ndim_target)
+		std::runtime_error("sum_to: target shape has more dimensions than source.");
+
+	std::vector<int> reduce_axes;
+	size_t leading = ndim_src - ndim_target;
+
+	for (size_t i = 0; i < leading; i++)
+		reduce_axes.push_back(static_cast<int>(i));
+
+	for (size_t i = 0; i < ndim_target; i++) {
+		size_t src_dim = src_shape[leading + i];
+		size_t tgt_dim = target_shape[i];
+		if (tgt_dim == 1 && src_dim != 1) 
+			reduce_axes.push_back(static_cast<int>(leading + i));
+		else if (tgt_dim != src_dim && tgt_dim != 1)
+			throw std::runtime_error("sum_to: shapes are not broadcast-compatible.");
+	}
 	
-	Tensor<T> result();
-	return result;
+	if (reduce_axes.empty()) 
+		return src;
+
+	Tensor<T> summed = src.sum(reduce_axes, true);
+
+	if (summed.get_shape() != target_shape)
+		summed = summed.reshape(target_shape);
+
+	return summed;
+
 }
 
 }

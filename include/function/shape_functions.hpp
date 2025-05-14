@@ -8,7 +8,7 @@ private:
 	std::vector<size_t> x_shape;
 
 public:
-	Reshape(std::vector<size_t> shape) : shape(shape) {};
+	Reshape(const std::vector<size_t>& shape) : shape(shape) {};
 
 public:
 	Variable forward(const std::vector<Variable>& xs) override;

@@ -116,9 +116,9 @@ public:
 	void debug_refs();
 
 // shape functions
-	Variable reshape(std::vector<size_t> shape) { 
+	Variable reshape(std::vector<size_t> shape) const { 
 		return ::reshape(*this, shape); };
-	Variable trans(std::vector<size_t> axes = {}) {
+	Variable trans(std::vector<size_t> axes = {}) const {
 		return ::transpose(*this, axes); };
 
 public:

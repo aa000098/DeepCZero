@@ -17,6 +17,23 @@ public:
 	~Sum() = default;
 };
 
+
+class Broadcast_To : public Function {
+private:
+    std::vector<size_t> shape;
+    std::vector<size_t> x_shape;
+
+public:
+    Broadcast_To(const std::vector<size_t>& shape) : shape(shape) {};
+
+public:
+	Variable forward(const std::vector<Variable>& xs) override;
+	std::vector<Variable> backward(const Variable& gy) override;
+	~Broadcast_To() = default;
+
+};
+
+
 class Sum_To : public Function {
 private:
     std::vector<size_t> axes;

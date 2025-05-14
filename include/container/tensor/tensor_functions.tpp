@@ -52,4 +52,13 @@ Tensor<T> broadcast_to(const Tensor<T>& src, const std::vector<size_t>& target_s
 }
 
 
+template<typename T>
+Tensor<T> sum_to(const Tensor<T>& src, const std::vector<size_t>& target_shape) {
+
+	//TODO: implemet sum_to function
+	
+	Tensor<T> result();
+	return result;
+}
+
 }

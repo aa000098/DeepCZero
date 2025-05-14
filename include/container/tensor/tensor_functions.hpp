@@ -7,6 +7,9 @@ namespace tensor {
 template<typename T>
 Tensor<T> broadcast_to(const Tensor<T>& src, const std::vector<size_t>& target_shape);
 
+
+template<typename T>
+Tensor<T> sum_to(const Tensor<T>& src, const std::vector<size_t>& target_shape);
 }
 
 #include "container/tensor/tensor_functions.tpp"

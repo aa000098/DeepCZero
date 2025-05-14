@@ -56,3 +56,19 @@ std::vector<Variable> Broadcast_To::backward(const Variable& gy) {
 }
 
 
+Variable Sum_To::forward(const std::vector<Variable>& xs) {
+	const Tensor<>& x_data = xs[0].data();
+	x_shape = x_data.get_shape();
+
+	Tensor<> result = broadcast_to(x_data, shape);
+	return Variable(result);
+}
+
+std::vector<Variable> Sum_To::backward(const Variable& gy) {
+	Variable gx = broadcast_to(gy, x_shape);
+
+	return { gx };
+}
+
+
+

@@ -36,10 +36,11 @@ public:
 
 class Sum_To : public Function {
 private:
-    std::vector<size_t> axes;
+	std::vector<size_t> shape;
+	std::vector<size_t> x_shape;
 
 public:
-    Sum_To(const std::vector<size_t>& axes = {}) : axes(axes) {};
+    Sum_To(const std::vector<size_t>& shape = {}) : shape(shape) {};
 
 public:
 	Variable forward(const std::vector<Variable>& xs) override;

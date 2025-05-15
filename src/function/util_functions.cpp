@@ -47,10 +47,8 @@ Variable Broadcast_To::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Broadcast_To::backward(const Variable& gy) {
-	
-	// sum to
-	Variable gx = broadcast_to(gy, x_shape);
+std::vector<Variable> Broadcast_To::backward(const Variable& gy) {	
+	Variable gx = sum_to(gy, x_shape);
 
 	return { gx };
 }
@@ -60,14 +58,26 @@ Variable Sum_To::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x_data = xs[0].data();
 	x_shape = x_data.get_shape();
 
-	Tensor<> result = broadcast_to(x_data, shape);
+	Tensor<> result = sum_to(x_data, shape);
 	return Variable(result);
 }
 
 std::vector<Variable> Sum_To::backward(const Variable& gy) {
-	Variable gx = broadcast_to(gy, x_shape);
 
-	return { gx };
+	Variable reshaped = gy;
+
+	if (gy.shape() != x_shape) {
+		std::vector<size_t> new_shape = gy.shape();
+
+		while (new_shape.size() < x_shape.size())
+			new_shape.push_back(1);
+
+		reshaped = gy.reshape(new_shape);
+	} 
+
+	Variable gx = broadcast_to(reshaped, x_shape);
+
+	return { gx } ;
 }
 
 

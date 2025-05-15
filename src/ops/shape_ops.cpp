@@ -5,7 +5,7 @@
 
 Variable reshape(const Variable &x, const std::vector<size_t> shape) {
 	if (x.shape() == shape) 
-		return Variable(x);
+		return x;
 	std::shared_ptr<Function> f = std::make_shared<Reshape>(shape);
 	return (*f)({x});
 }

@@ -15,6 +15,10 @@ std::vector<Variable> Square::backward(const Variable& gy) {
 Variable Add::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
+	
+	x0_shape = a.get_shape();
+	x1_shape = b.get_shape();
+
 	Tensor<> result = a + b;
 	return Variable(result);
 }

@@ -17,6 +17,10 @@ public:
 };
 
 class Add: public Function {
+private:
+	std::vector<size_t> x0_shape;
+	std::vector<size_t> x1_shape;
+
 public:
     Variable forward(const std::vector<Variable>& xs) override;
     std::vector<Variable> backward(const Variable& gy) override;

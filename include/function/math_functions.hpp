@@ -28,6 +28,10 @@ public:
 };
 
 class Mul: public Function {
+private:
+	std::vector<size_t> x0_shape;
+	std::vector<size_t> x1_shape;
+
 public:
     Variable forward(const std::vector<Variable>& xs) override;
     std::vector<Variable> backward(const Variable& gy) override;
@@ -42,6 +46,10 @@ public:
 };
 
 class Sub: public Function {
+private:
+	std::vector<size_t> x0_shape;
+	std::vector<size_t> x1_shape;
+
 public:
     Variable forward(const std::vector<Variable>& xs) override;
     std::vector<Variable> backward(const Variable& gy) override;
@@ -49,6 +57,10 @@ public:
 };
 
 class Div: public Function {
+private:
+	std::vector<size_t> x0_shape;
+	std::vector<size_t> x1_shape;
+
 public:
     Variable forward(const std::vector<Variable>& xs) override;
     std::vector<Variable> backward(const Variable& gy) override;

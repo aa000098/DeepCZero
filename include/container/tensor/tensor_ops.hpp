@@ -30,11 +30,24 @@ Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
 	Tensor<T> a_bc = broadcast_to(a, broadcast_shape);
 	Tensor<T> b_bc = broadcast_to(b, broadcast_shape);
 
-	std::vector<T> result_data(a_bc.size());
-	for (size_t i = 0; i < result_data.size(); i++)
-		result_data[i] += a_bc.raw_data()[i] + b_bc.raw_data()[i];
+	// TODO: SIMD optimization needed
+    Tensor<T> result(broadcast_shape, T{});
+    size_t total = result.size();
+    size_t ndim_result = broadcast_shape.size();
 
-	return Tensor<T>(broadcast_shape, result_data);
+    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
+        std::vector<size_t> idx(ndim_result);
+        size_t rem = flat_idx;
+        for (size_t i = ndim_result; i-- > 0;) {
+            idx[i] = rem % broadcast_shape[i];
+            rem /= broadcast_shape[i];
+        }
+
+        result(idx) = a_bc(idx) + b_bc(idx);
+    }
+
+	return result;
+
 }
 
 template<typename T>
@@ -65,12 +78,23 @@ Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
 	Tensor<T> a_bc = broadcast_to(a, broadcast_shape);
 	Tensor<T> b_bc = broadcast_to(b, broadcast_shape);
 
-	// ④ element-wise 연산
-	std::vector<T> result_data(a_bc.size());
-	for (size_t i = 0; i < result_data.size(); ++i)
-		result_data[i] = a_bc.raw_data()[i] - b_bc.raw_data()[i];
+	// TODO: SIMD optimization needed
+    Tensor<T> result(broadcast_shape, T{});
+    size_t total = result.size();
+    size_t ndim_result = broadcast_shape.size();
 
-	return Tensor<T>(broadcast_shape, result_data);
+    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
+        std::vector<size_t> idx(ndim_result);
+        size_t rem = flat_idx;
+        for (size_t i = ndim_result; i-- > 0;) {
+            idx[i] = rem % broadcast_shape[i];
+            rem /= broadcast_shape[i];
+        }
+
+        result(idx) = a_bc(idx) - b_bc(idx);
+    }
+
+	return result;
 }
 
 template<typename T>
@@ -101,12 +125,23 @@ Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
 	Tensor<T> a_bc = broadcast_to(a, broadcast_shape);
 	Tensor<T> b_bc = broadcast_to(b, broadcast_shape);
 
-	// ④ element-wise 연산
-	std::vector<T> result_data(a_bc.size());
-	for (size_t i = 0; i < result_data.size(); i++)
-		result_data[i] = a_bc.raw_data()[i] * b_bc.raw_data()[i];
+	// TODO: SIMD optimization needed
+    Tensor<T> result(broadcast_shape, T{});
+    size_t total = result.size();
+    size_t ndim_result = broadcast_shape.size();
 
-	return Tensor<T>(broadcast_shape, result_data);
+    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
+        std::vector<size_t> idx(ndim_result);
+        size_t rem = flat_idx;
+        for (size_t i = ndim_result; i-- > 0;) {
+            idx[i] = rem % broadcast_shape[i];
+            rem /= broadcast_shape[i];
+        }
+
+        result(idx) = a_bc(idx) * b_bc(idx);
+    }
+
+	return result;
 
 }
 
@@ -138,15 +173,25 @@ Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
 	Tensor<T> a_bc = broadcast_to(a, broadcast_shape);
 	Tensor<T> b_bc = broadcast_to(b, broadcast_shape);
 
-	// ④ element-wise 연산
-	std::vector<T> result_data(a_bc.size());
-	for (size_t i = 0; i < result_data.size(); i++) {
-		if (b_bc.raw_data()[i] == T(0))
-			throw std::runtime_error("Tensor Div: Division by zero in tensor divide");		
-		result_data[i] = a_bc.raw_data()[i] / b_bc.raw_data()[i];
-	}
+	// TODO: SIMD optimization needed
+    Tensor<T> result(broadcast_shape, T{});
+    size_t total = result.size();
+    size_t ndim_result = broadcast_shape.size();
 
-	return Tensor<T>(broadcast_shape, result_data);
+    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
+        std::vector<size_t> idx(ndim_result);
+        size_t rem = flat_idx;
+        for (size_t i = ndim_result; i-- > 0;) {
+            idx[i] = rem % broadcast_shape[i];
+            rem /= broadcast_shape[i];
+        }
+
+		if (b_bc(idx) == 0)
+			throw std::runtime_error("Tensor Div: Division by zero");	
+        result(idx) = a_bc(idx) / b_bc(idx);
+    }
+
+	return result;
 
 }
 

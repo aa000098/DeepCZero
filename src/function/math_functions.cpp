@@ -24,12 +24,23 @@ Variable Add::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> Add::backward(const Variable& gy) {
-	return {gy, gy};
+	Variable gx0 = gy;
+	Variable gx1 = gy;
+
+	if (x0_shape != x1_shape) {
+		gx0 = sum_to(gx0, x0_shape);
+		gx1 = sum_to(gx1, x1_shape);
+	}
+	return {gx0, gx1};
 }
 
 Variable Mul::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
+
+	x0_shape = a.get_shape();
+	x1_shape = b.get_shape();
+	
 	Tensor<> result = a * b;
 	return Variable(result);
 }
@@ -38,7 +49,13 @@ std::vector<Variable> Mul::backward(const Variable& gy) {
 	const Variable& a = inputs[0];
 	const Variable& b = inputs[1];
 
-	return {b*gy, a*gy};
+	Variable gx0 = b*gy;
+	Variable gx1 = a*gy;
+	if (x0_shape != x1_shape) {
+		gx0 = sum_to(gx0, x0_shape);
+		gx1 = sum_to(gx1, x1_shape);
+	}
+	return {gx0, gx1};
 }
 
 Variable Neg::forward(const std::vector<Variable>& xs) {
@@ -54,30 +71,47 @@ std::vector<Variable> Neg::backward(const Variable& gy) {
 Variable Sub::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
+
+	x0_shape = a.get_shape();
+	x1_shape = b.get_shape();
+
 	Tensor<> result = a - b;
 	return Variable(result);
 }
 
 std::vector<Variable> Sub::backward(const Variable& gy) {
-	return {gy, -gy};
+	Variable gx0 = gy;
+	Variable gx1 = -gy;
+
+	if (x0_shape != x1_shape) {
+		gx0 = sum_to(gx0, x0_shape);
+		gx1 = sum_to(gx1, x1_shape);
+	}
+	return {gx0, gx1};
 }
 
 Variable Div::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
-	float scalar = b.raw_data()[0];
-	Tensor result = a / scalar;
+
+	x0_shape = a.get_shape();
+	x1_shape = b.get_shape();
+
+	Tensor result = a / b;
 	return Variable(result);
 }
 
 std::vector<Variable> Div::backward(const Variable& gy) {
 	const Variable& a = inputs[0];
 	const Variable& b = inputs[1];
-	float scalar = b.data().raw_data()[0];
  
-	Variable grad0 = gy / scalar;
-	Variable grad1 = -gy * a / (scalar * scalar);
-	return {grad0, grad1};
+	Variable gx0 = gy / b;
+	Variable gx1 = -gy * a / (b * b);
+	if (x0_shape != x1_shape) {
+		gx0 = sum_to(gx0, x0_shape);
+		gx1 = sum_to(gx1, x1_shape);
+	}
+	return {gx0, gx1};
 }
 
 Variable Pow::forward(const std::vector<Variable>& xs) {

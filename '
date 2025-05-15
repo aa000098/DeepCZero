@@ -96,8 +96,8 @@ void test_function_forward_backward() {
     // Div
     {
         auto f = std::make_shared<Div>();
-		std::cout << "X: " << x.data().raw_data()[0] << ", " << x.data().raw_data()[1] << std::endl;
-		std::cout << "S: " << s.data().raw_data()[0] << std::endl;
+		std::cout << "X: " << x.data().raw_data()[0] << std::endl;
+		std::cout << "S: " << x.data().raw_data()[0] << std::endl;
         Variable out = f->forward({x, s});
    		float scalar = s.data().raw_data()[0];
         for (int i = 0; i < 2; ++i)

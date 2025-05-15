@@ -21,6 +21,9 @@ void test_variable_broadcast_ops() {
     // ADD
     Variable z_add = x + y;  // shape (3, 4)
     z_add.backward();
+	//z_add.show();
+	//x.grad().show();
+	//y.grad().show();
 
     // check grad of x
     for (float g : x.grad().data().raw_data())
@@ -46,9 +49,9 @@ void test_variable_broadcast_ops() {
     // MUL
     Variable z_mul = x * y;
     z_mul.backward();
-	z_mul.show();
-	x.grad().show();
-	y.grad().show();
+//	z_mul.show();
+//	x.grad().show();
+//	y.grad().show();
     for (size_t i = 0; i < x.grad().size(); ++i)
         assert(std::abs(x.grad().data().raw_data()[i] - 1.0f) < eps);  // y = 1, so grad = x * 1
     for (size_t i = 0; i < y.grad().size(); i++)

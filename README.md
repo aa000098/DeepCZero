@@ -35,7 +35,8 @@ make test
 make memory
 ```   
   
-## 주요 구현 목록
+## 주요 구현 클래스 목록
+- Tensor: 행렬 저장 및 행렬 연산 지원 클래스
 - Variable: Tensor 기반 값 및 gradient 저장, weak_ptr 기반 creator 추적
 - Function: 다입력/다출력 지원, 자동 그래프 연결 및 shared_from_this 연동
 - Graph: 계산 그래프 자동 구성 및 Topological 정렬 기반 backward 연산

@@ -316,4 +316,15 @@ Tensor<T> tanh(const Tensor<T>& x) {
 	return Tensor<T>(x.get_shape(), result_data);
 }
 
+template<typename T>
+Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
+	std::vector<T> result_data(a.raw_data());
+	
+	const std::vector<T>& x_data = a.raw_data(); 
+
+    Tensor<T> result(result_data);
+
+	return result;
+}
+
 }

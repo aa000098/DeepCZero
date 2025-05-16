@@ -92,7 +92,6 @@ namespace tensor {
 			return *this;
 		}
 
-
 // common functions
 		std::vector<size_t> get_shape() const { 
 			return impl->get_shape(); };
@@ -127,6 +126,10 @@ namespace tensor {
 		Tensor<T> transpose(const std::vector<size_t>& axes={}) const;
 		Tensor<T> sum(const std::vector<int>& axis = {}, bool keepdims = false) const;
 
+// gemm functions
+		Tensor<T>& dot(const Tensor<T>& other) {
+			return dot(*this, other);
+		}
 	};
 }
 

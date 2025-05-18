@@ -318,6 +318,13 @@ Tensor<T> tanh(const Tensor<T>& x) {
 
 template<typename T>
 Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
+
+	const std::vector<size_t>& shape_a = a.get_shape();
+	const std::vector<size_t>& shape_b = b.get_shape();
+
+	// TODO: check dot condition
+
+
 	std::vector<T> result_data(a.raw_data());
 	
 	const std::vector<T>& x_data = a.raw_data(); 

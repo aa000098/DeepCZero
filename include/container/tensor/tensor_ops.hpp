@@ -325,6 +325,7 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 	// TODO: check dot condition
 
 
+	
 	std::vector<T> result_data(a.raw_data());
 	
 	const std::vector<T>& x_data = a.raw_data(); 

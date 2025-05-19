@@ -2,6 +2,7 @@
 
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensor_functions.hpp"
+#include "container/tensor/tensor_utils.hpp"
 
 namespace tensor {
 
@@ -319,20 +320,76 @@ Tensor<T> tanh(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 
-	const std::vector<size_t>& shape_a = a.get_shape();
-	const std::vector<size_t>& shape_b = b.get_shape();
+	std::vector<size_t>& a_shape = a.get_shape();
+	std::vector<size_t>& b_shape = b.get_shape();
 
 	// TODO: check dot condition
+	if (a_shape.size() < 2 || b_shape.size() < 2)
+		std::runtime_error("dot: tensors must be at least 2D");
 
 
-	
-	std::vector<T> result_data(a.raw_data());
-	
-	const std::vector<T>& x_data = a.raw_data(); 
+    size_t ndim = std::max(a_shape.size(), b_shape.size());
+    while (a_shape.size() < ndim) a_shape.insert(a_shape.begin(), static_cast<size_t>(1));
+    while (b_shape.size() < ndim) b_shape.insert(b_shape.begin(), static_cast<size_t>(1));
 
-    Tensor<T> result(result_data);
+    // 2. check inner dim compatibility
+    size_t M = a_shape[ndim - 2];
+    size_t K1 = a_shape[ndim - 1];
+    size_t K2 = b_shape[ndim - 2];
+    size_t N = b_shape[ndim - 1];
 
-	return result;
+    if (K1 != K2)
+        throw std::runtime_error("dot: inner dimensions mismatch");
+
+    // 3. determine broadcasted batch shape
+    std::vector<size_t> batch_shape;
+    for (size_t i = 0; i < ndim - 2; ++i) {
+        if (a_shape[i] == b_shape[i]) batch_shape.push_back(a_shape[i]);
+        else if (a_shape[i] == 1)     batch_shape.push_back(b_shape[i]);
+        else if (b_shape[i] == 1)     batch_shape.push_back(a_shape[i]);
+        else throw std::runtime_error("dot: batch dimension mismatch");
+    }
+
+    // 4. final result shape = batch_shape + [M, N]
+    std::vector<size_t> result_shape = batch_shape;
+	std::vector<size_t> a_bc_shape = batch_shape;
+	a_bc_shape.push_back(M);
+	a_bc_shape.push_back(K1);
+
+	std::vector<size_t> b_bc_shape = batch_shape;
+	b_bc_shape.push_back(K2);
+	b_bc_shape.push_back(N);
+
+    // 5. broadcast input tensors
+	Tensor<T> a_bc = broadcast_to(a, a_bc_shape);
+	Tensor<T> b_bc = broadcast_to(b, b_bc_shape);
+    result_shape.push_back(M);
+    result_shape.push_back(N);
+
+    std::vector<T> result_data(product(result_shape), T{});
+
+    // 6. flatten loop over batches
+    size_t batch_size = product(batch_shape);
+    for (size_t batch_idx = 0; batch_idx < batch_size; ++batch_idx) {
+        auto batch_idx_vec = unflatten_index(batch_idx, batch_shape);
+
+        for (size_t i = 0; i < M; ++i) {
+            for (size_t j = 0; j < N; ++j) {
+                T sum = T{};
+                for (size_t k = 0; k < K1; ++k) {
+                    auto idx_a = batch_idx_vec; idx_a.push_back(i); idx_a.push_back(k);
+                    auto idx_b = batch_idx_vec; idx_b.push_back(k); idx_b.push_back(j);
+                    sum += a_bc(idx_a) * b_bc(idx_b);
+                }
+                auto idx_res = batch_idx_vec; idx_res.push_back(i); idx_res.push_back(j);
+                size_t flat = flatten_index(idx_res, result_shape);
+                result_data(flat) = sum;
+            }
+        }
+    }
+
+    return Tensor<T>(result_shape, result_data);
+
 }
 
 }

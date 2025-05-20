@@ -320,8 +320,8 @@ Tensor<T> tanh(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 
-	std::vector<size_t>& a_shape = a.get_shape();
-	std::vector<size_t>& b_shape = b.get_shape();
+	std::vector<size_t> a_shape = a.get_shape();
+	std::vector<size_t> b_shape = b.get_shape();
 
 	// TODO: check dot condition
 	if (a_shape.size() < 2 || b_shape.size() < 2)
@@ -383,7 +383,7 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
                 }
                 auto idx_res = batch_idx_vec; idx_res.push_back(i); idx_res.push_back(j);
                 size_t flat = flatten_index(idx_res, result_shape);
-                result_data(flat) = sum;
+                result_data[flat] = sum;
             }
         }
     }

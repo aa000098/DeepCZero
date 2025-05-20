@@ -3,7 +3,6 @@
 #include <cassert>
 #include <iostream>
 
-using tensor::Tensor;
 using namespace tensor;
 
 void test_tensor_arithmetic() {
@@ -49,7 +48,100 @@ void test_tensor_arithmetic() {
     std::cout << "✅ Tensor arithmetic test passed!" << std::endl;
 }
 
+void test_tensor_dot_batched() {
+    std::cout << "[Test] Tensor dot (batched)" << std::endl;
+
+    using tensor::Tensor;
+
+    // A: shape [2, 2, 2]
+    Tensor<float> A({2, 2, 2}, {
+        1, 2,
+        3, 4,
+        5, 6,
+        7, 8
+    });
+
+    // B: shape [2, 2, 2]
+    Tensor<float> B({2, 2, 2}, {
+        1, 0,
+        0, 1,
+        2, 0,
+        0, 2
+    });
+
+    // Expected result: shape [2, 2, 2]
+    Tensor<float> expected({2, 2, 2}, {
+        1, 2,
+        3, 4,
+        10, 12,
+        14, 16
+    });
+
+    Tensor<float> C = dot(A, B);
+    C.show();
+
+    const auto& c_data = C.raw_data();
+    const auto& e_data = expected.raw_data();
+    float eps = 1e-5;
+    assert(C.get_shape() == expected.get_shape());
+    for (size_t i = 0; i < c_data.size(); ++i)
+        assert(std::abs(c_data[i] - e_data[i]) < eps);
+
+    std::cout << "✅ dot (batched) test passed.\n" << std::endl;
+}
+
+void test_tensor_dot_4d() {
+    std::cout << "[Test] Tensor dot (4D)" << std::endl;
+
+    using tensor::Tensor;
+
+    // A: shape [2, 1, 2, 3]
+    Tensor<float> A({2, 1, 2, 3}, {
+        // batch 0
+        1, 2, 3,
+        4, 5, 6,
+        // batch 1
+        7, 8, 9,
+        10,11,12
+    });
+
+    // B: shape [2, 1, 3, 2]
+    Tensor<float> B({2, 1, 3, 2}, {
+        // batch 0
+        1, 2,
+        3, 4,
+        5, 6,
+        // batch 1
+        6, 5,
+        4, 3,
+        2, 1
+    });
+
+    // Expected result: shape [2, 1, 2, 2]
+    Tensor<float> expected({2, 1, 2, 2}, {
+        // batch 0
+        22, 28, 49, 64,
+        // batch 1
+        100, 82, 136, 112
+    });
+
+    Tensor<float> C = dot(A, B);
+
+    const auto& c_data = C.raw_data();
+    const auto& e_data = expected.raw_data();
+
+    assert(C.get_shape() == expected.get_shape());
+    float eps = 1e-5;
+    for (size_t i = 0; i < c_data.size(); ++i) {
+        assert(std::abs(c_data[i] - e_data[i]) < eps);
+    }
+
+    std::cout << "✅ dot (4D) test passed.\n" << std::endl;
+}
+
 int main() {
     test_tensor_arithmetic();
+	test_tensor_dot_batched();
+	test_tensor_dot_4d();
     return 0;
 }

@@ -33,4 +33,4 @@ Variable sin(const Variable &x);
 Variable cos(const Variable &x);
 Variable tanh(const Variable& x);
 
-
+Variable matmul(const Variable& x, const Variable& w);

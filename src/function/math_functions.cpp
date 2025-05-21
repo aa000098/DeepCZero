@@ -176,3 +176,21 @@ std::vector<Variable> Tanh::backward(const Variable& gy) {
 		throw std::runtime_error("Tanh::backweard(): output expired");
 	return {gy * (1 - y * y)};
 }
+
+Variable MatMul::forward(const std::vector<Variable>& xs) {
+	const Tensor<>& x = xs[0].data();
+	const Tensor<>& w = xs[1].data();
+
+    Tensor result = dot(x, w);
+    return Variable(result);
+}
+
+std::vector<Variable> MatMul::backward(const Variable& gy) {
+	const Variable& x = inputs[0];
+	const Variable& w = inputs[1];
+
+	const Variable& gx = matmul(gy, w.trans());
+	const Variable& gw = matmul(x.trans(), gy);
+
+	return {gx, gw};
+}

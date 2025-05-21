@@ -102,3 +102,7 @@ Variable tanh(const Variable &x) {
 	return (*f)({x});
 }
 
+Variable matmul(const Variable &x, const Variable& w) {
+	std::shared_ptr<Function> f = std::make_shared<MatMul>();
+	return (*f)({x, w});
+}

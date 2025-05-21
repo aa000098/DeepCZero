@@ -94,3 +94,10 @@ public:
     std::vector<Variable> backward(const Variable& gy) override;
     ~Tanh() = default;
 };
+
+class MatMul: public Function {
+public:
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~MatMul() = default;
+};

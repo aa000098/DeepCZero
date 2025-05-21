@@ -382,7 +382,8 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
                     sum += a_bc(idx_a) * b_bc(idx_b);
                 }
                 auto idx_res = batch_idx_vec; idx_res.push_back(i); idx_res.push_back(j);
-                size_t flat = flatten_index(idx_res, result_shape);
+				auto result_strides = compute_contiguous_strides(result_shape); 
+                size_t flat = flatten_index(idx_res, result_strides);
                 result_data[flat] = sum;
             }
         }

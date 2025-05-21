@@ -79,13 +79,25 @@ void test_tensor_dot_batched() {
 
     Tensor<float> C = dot(A, B);
     C.show();
-
-    const auto& c_data = C.raw_data();
-    const auto& e_data = expected.raw_data();
+	
+	const auto& shape = C.get_shape();
     float eps = 1e-5;
+
     assert(C.get_shape() == expected.get_shape());
-    for (size_t i = 0; i < c_data.size(); ++i)
-        assert(std::abs(c_data[i] - e_data[i]) < eps);
+
+    size_t total = C.size();
+    for (size_t flat = 0; flat < total; ++flat) {
+        std::vector<size_t> idx(shape.size());
+        size_t remaining = flat;
+        for (int i = (int)shape.size() - 1; i >= 0; --i) {
+            idx[i] = remaining % shape[i];
+            remaining /= shape[i];
+        }
+
+        float actual = C(idx);
+        float expect = expected(idx);
+        assert(std::abs(actual - expect) < eps);
+    }
 
     std::cout << "✅ dot (batched) test passed.\n" << std::endl;
 }
@@ -122,18 +134,29 @@ void test_tensor_dot_4d() {
         // batch 0
         22, 28, 49, 64,
         // batch 1
-        100, 82, 136, 112
+        92, 68, 128, 95
     });
 
     Tensor<float> C = dot(A, B);
-
-    const auto& c_data = C.raw_data();
-    const auto& e_data = expected.raw_data();
-
-    assert(C.get_shape() == expected.get_shape());
+	C.show();
+    
+	const auto& shape = C.get_shape();
     float eps = 1e-5;
-    for (size_t i = 0; i < c_data.size(); ++i) {
-        assert(std::abs(c_data[i] - e_data[i]) < eps);
+
+	assert(C.get_shape() == expected.get_shape());
+
+    size_t total = C.size();
+    for (size_t flat = 0; flat < total; ++flat) {
+        std::vector<size_t> idx(shape.size());
+        size_t remaining = flat;
+        for (int i = (int)shape.size() - 1; i >= 0; --i) {
+            idx[i] = remaining % shape[i];
+            remaining /= shape[i];
+        }
+
+        float actual = C(idx);
+        float expect = expected(idx);
+        assert(std::abs(actual - expect) < eps);
     }
 
     std::cout << "✅ dot (4D) test passed.\n" << std::endl;

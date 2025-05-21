@@ -14,7 +14,6 @@ inline std::vector<size_t> unflatten_index(size_t flat_index, const std::vector<
     return indices;
 }
 
-// 범용 flatten_index (전역 함수, tensor/utils.hpp)
 inline size_t flatten_index(const std::vector<size_t>& indices, const std::vector<size_t>& strides) {
 	size_t flat = 0;
 	for (size_t i = 0; i < indices.size(); ++i) {

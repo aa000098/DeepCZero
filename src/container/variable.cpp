@@ -9,7 +9,8 @@
 #include <iostream>
 
 void Variable::backward(bool retain_grad, bool create_graph) {
-	impl->grad = std::make_unique<Variable>(Tensor<>(impl->data.get_shape(), 1));
+	if (!impl->grad)
+		impl->grad = std::make_unique<Variable>(Tensor<>(impl->data.get_shape(), 1));
 	impl->grad->set_name("gy");
 	auto creator = impl->creator.get();
 	if (!creator) return;

@@ -180,8 +180,89 @@ void test_function_forward_backward() {
     std::cout << "[✓] All Function forward/backward (all elements) tests passed." << std::endl;
 }
 
+void test_matmul_forward_backward() {
+    // 준비: 입력 변수 정의
+    Tensor<float> A({2, 3}, {
+        1, 2, 3,
+        4, 5, 6
+    });
+
+    Tensor<float> B({3, 2}, {
+        7, 8,
+        9, 10,
+        11, 12
+    });
+
+    Variable x(A);
+    Variable w(B);
+    float eps = 1e-4;
+
+    // 1. Forward 테스트
+    auto f = std::make_shared<MatMul>();
+    Variable out = (*f)({x, w});
+
+    std::vector<float> expected = {
+        // A * B = [ [58, 64],
+        //           [139, 154] ]
+        58, 64,
+        139, 154
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        assert(std::abs(out.data().raw_data()[i] - expected[i]) < eps);
+    }
+
+    // 2. Backward 테스트
+    // upstream grad gy: Identity matrix [2×2] in flattened form
+    Tensor<float> gy_tensor({2, 2}, {
+        1, 0,
+        0, 1
+    });
+
+    Variable gy(gy_tensor);
+	out.set_grad(gy);
+	out.backward();
+    Variable gx = x.grad();
+    Variable gw = w.grad();
+
+
+    std::vector<float> expected_gx = {
+        7, 9, 11,
+        8, 10, 12
+    };
+
+    std::vector<float> expected_gw = {
+        1, 4,
+        2, 5,
+        3, 6
+    };
+	gx.show();
+	gw.show();
+
+	// gx: shape [2, 3], expected_gx: {7, 9, 11, 8, 10, 12}
+	for (size_t i = 0; i < 2; ++i) {
+    	for (size_t j = 0; j < 3; ++j) {
+    	    float val = gx({i, j});
+    	    float expected_val = expected_gx[i * 3 + j];
+    	    assert(std::abs(val - expected_val) < eps);
+    	}
+	}
+
+	// gw: shape [3, 2], expected_gw: {1, 4, 2, 5, 3, 6}
+	for (size_t i = 0; i < 3; ++i) {
+    	for (size_t j = 0; j < 2; ++j) {
+    	    float val = gw({i, j});
+    	    float expected_val = expected_gw[i * 2 + j];
+    	    assert(std::abs(val - expected_val) < eps);
+    	}
+	}
+
+    std::cout << "✅ MatMul forward & backward test passed\n";
+}
+
 int main() {
     test_function_forward_backward();
+	test_matmul_forward_backward();
     return 0;
 }
 

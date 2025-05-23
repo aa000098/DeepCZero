@@ -104,7 +104,8 @@ public:
 		impl->name = s; };
 	Tensor<>& data() {return impl->data;};
 	const Tensor<>& data() const {return impl->data;};
-	const Variable grad() const {return *(impl->grad);};
+	Variable& grad() {return *(impl->grad);};
+	const Variable& grad() const {return *(impl->grad);};
 	void set_grad(Variable& grad) const {impl->grad = std::make_unique<Variable>(grad);};
 	void cleargrad() {impl->grad.reset();};
 	void detach() {impl->creator.reset();};

@@ -7,7 +7,7 @@ Tensor<> rand_tensor(size_t rows, size_t cols, size_t seed = 42) {
 	//std::mt19937 gen(rd());
 	std::mt19937 gen(seed);
 
-	std::uniform_real_distribution<> dist(-10, 10);
+	std::uniform_real_distribution<> dist(-1, 1);
 
 	std::vector<float> data;
 	data.reserve(rows * cols);
@@ -44,8 +44,8 @@ int main() {
 	W.set_name("W");
 	b.set_name("b");
 
-	float lr = 0.01;
-	size_t iters = 1000;
+	float lr = 0.1;
+	size_t iters = 100;
 
 	Variable loss;
 	

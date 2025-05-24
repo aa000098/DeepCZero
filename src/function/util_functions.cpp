@@ -35,7 +35,7 @@ std::vector<Variable> Sum::backward(const Variable& gy) {
 	// broadcast to
 	Variable gx = broadcast_to(reshaped, x_shape);
 
-	return { reshape(gx, new_shape) };
+	return { gx };
 }
 
 

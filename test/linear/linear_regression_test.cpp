@@ -1,22 +1,6 @@
 #include "deepczero.hpp"
 #include <random>
 
-
-Tensor<> rand_tensor(size_t rows, size_t cols, size_t seed = 42) {
-	//std::random_device rd;
-	//std::mt19937 gen(rd());
-	std::mt19937 gen(seed);
-
-	std::uniform_real_distribution<> dist(-1, 1);
-
-	std::vector<float> data;
-	data.reserve(rows * cols);
-	for (size_t i = 0; i < rows * cols; i++)
-		data.push_back(dist(gen));
-
-	return Tensor<>({rows, cols}, data);
-}
-
 Variable predict(Variable& x, Variable& W, Variable& b) {
 	return matmul(x, W) + b;
 }

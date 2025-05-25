@@ -57,6 +57,11 @@ Tensor<T> operator/(const Tensor<T>& a, T scalar) {
     return result;
 }
 
+template<typename T>
+Tensor<T> operator^(const Tensor<T>& a, T scalar) {
+	return pow(a, scalar);
+}
+
 // Scalar ⊕ Tensor
 
 template<typename T>

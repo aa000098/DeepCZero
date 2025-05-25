@@ -1,11 +1,14 @@
 #include "function/loss_functions.hpp"
-
+#include "container/tensor/tensor_all.hpp"
 
 Variable MeanSquaredError::forward(const std::vector<Variable>& xs) {
-	const 
-	Variable diff = xs[0] - xs[1];
-	Variable y = sum(diff^2) / diff.size();
-	return y;
+	const Tensor<>& a = xs[0].data();
+	const Tensor<>& b = xs[1].data();
+
+	const Tensor<> diff = a - b; 
+	float scale = static_cast<float>(diff.size());
+	const Tensor<> result = (diff^2.0f).sum() / scale;
+	return Variable(result);
 }
 
 std::vector<Variable> MeanSquaredError::backward(const Variable& gy) {

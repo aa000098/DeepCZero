@@ -10,7 +10,8 @@ void neural_network_test() {
 	Variable x = rand_tensor(	/* rows */	100, 
 								/* cols */	1, 
 								/* seed */	0);
-	
+ 	
+	y.show();	
 	Variable y = sin(2 * pi * x) + rand_tensor(100, 1);
 
 	size_t I = 1;

@@ -1,6 +1,8 @@
 #pragma once
 #include "container/tensor/tensor_all.hpp"
 
+#include <random>
+
 using namespace tensor;
 
 inline size_t product(const std::vector<size_t>& shape) {
@@ -51,4 +53,23 @@ inline std::tuple<Tensor<T>, Tensor<T>, std::vector<size_t>> broadcast_binary_op
 	Tensor<T> b_bc = broadcast_to(b, broadcast_shape);
 
 	return {a_bc, b_bc, broadcast_shape};
+}
+
+
+inline Tensor<> rand_tensor(size_t rows, size_t cols, size_t seed) {
+	std::mt19937 gen(seed);
+
+	std::uniform_real_distribution<> dist(-1, 1);
+
+	std::vector<float> data;
+	data.reserve(rows * cols);
+	for (size_t i = 0; i < rows * cols; i++)
+		data.push_back(dist(gen));
+
+	return Tensor<>({rows, cols}, data);
+}
+
+inline Tensor<> rand_tensor(size_t rows, size_t cols) {
+	std::random_device rd;
+	return rand_tensor(rows, cols, rd());
 }

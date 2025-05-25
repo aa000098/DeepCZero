@@ -106,3 +106,8 @@ Variable matmul(const Variable &x, const Variable& w) {
 	std::shared_ptr<Function> f = std::make_shared<MatMul>();
 	return (*f)({x, w});
 }
+
+Variable mean_squared_error(const Variable &x0, const Variable& x1) {
+	std::shared_ptr<Function> f = std::make_shared<MeanSquaredError>();
+	return (*f)({x0, x1});
+}

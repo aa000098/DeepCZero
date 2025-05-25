@@ -34,3 +34,5 @@ Variable cos(const Variable &x);
 Variable tanh(const Variable& x);
 
 Variable matmul(const Variable& x, const Variable& w);
+
+Variable mean_squared_error(const Variable& x0, const Variable& x1);

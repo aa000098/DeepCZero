@@ -111,3 +111,8 @@ Variable mean_squared_error(const Variable &x0, const Variable& x1) {
 	std::shared_ptr<Function> f = std::make_shared<MeanSquaredError>();
 	return (*f)({x0, x1});
 }
+
+Variable linear(const Variable& x, const Variable& w, const Variable& b) {
+	std::shared_ptr<Function> f = std::make_shared<Linear>();
+	return (*f)({x, w, b});
+}

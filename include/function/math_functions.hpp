@@ -101,3 +101,10 @@ public:
     std::vector<Variable> backward(const Variable& gy) override;
     ~MatMul() = default;
 };
+
+class Linear: public Function {
+public:
+    Variable forward(const std::vector<Variable>& xs) override;
+    std::vector<Variable> backward(const Variable& gy) override;
+    ~Linear() = default;
+};

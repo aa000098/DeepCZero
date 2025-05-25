@@ -194,3 +194,30 @@ std::vector<Variable> MatMul::backward(const Variable& gy) {
 
 	return {gx, gw};
 }
+
+Variable Linear::forward(const std::vector<Variable>& xs) {
+	const Tensor<>& x = xs[0].data();
+	const Tensor<>& w = xs[1].data();
+	const Tensor<>& b = xs[2].data();
+
+    Tensor y = dot(x, w);
+	if (!b.empty())
+		y += b;
+    return Variable(y);
+}
+
+std::vector<Variable> Linear::backward(const Variable& gy) {
+	const Variable x = inputs[0];
+	const Variable w = inputs[1];
+	const Variable b = inputs[2];
+
+	const Variable gx = matmul(gy, w.trans());
+	const Variable gw = matmul(x.trans(), gy);
+	Variable gb;
+	if (!b.empty())
+		gb = sum_to(gy, b.shape());
+	else
+		gb = Variable();
+
+	return {gx, gw, gb}; 
+}

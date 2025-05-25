@@ -116,3 +116,8 @@ Variable linear(const Variable& x, const Variable& w, const Variable& b) {
 	std::shared_ptr<Function> f = std::make_shared<Linear>();
 	return (*f)({x, w, b});
 }
+
+Variable sigmoid(const Variable& x) {
+	std::shared_ptr<Function> f = std::make_shared<Sigmoid>();
+	return (*f)({x});
+}

@@ -38,3 +38,6 @@ Variable matmul(const Variable& x, const Variable& w);
 Variable mean_squared_error(const Variable& x0, const Variable& x1);
 
 Variable linear(const Variable& x, const Variable& w, const Variable& b);
+
+Variable sigmoid(const Variable& x);
+

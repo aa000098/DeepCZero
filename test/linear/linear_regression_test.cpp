@@ -11,8 +11,8 @@ Variable mean_squared_error(Variable& x0, Variable& x1) {
 }
 
 int main() {
-	Tensor x_rand = rand_tensor(100, 1);
-	Tensor y_rand = 5.0f + 2.0f * x_rand + rand_tensor(100, 1, 23);
+	Tensor x_rand = rand(100, 1);
+	Tensor y_rand = 5.0f + 2.0f * x_rand + rand(100, 1, 23);
 
 //	Tensor x_rand({3,1}, {1,2,3});
 //	Tensor y_rand = 5.0f + 2.0f * x_rand + Tensor({3,1}, {1,2,3});

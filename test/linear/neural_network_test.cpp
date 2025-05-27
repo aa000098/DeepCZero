@@ -53,7 +53,7 @@ void neural_network_test() {
 		W2.cleargrad();
 		b2.cleargrad();
 		loss.backward();
-
+ 
 
 		W1.show();
 		b1.show();

@@ -40,7 +40,7 @@ void neural_network_test() {
 
 	float lr = 0.2;
 	size_t iters = 10000;
- 
+
 	for (size_t i = 0; i < iters; i++) {
 		Variable y_pred = predict(x, W1, b1, W2, b2);
 		y_pred.show();

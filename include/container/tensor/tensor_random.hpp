@@ -1,5 +1,7 @@
 #include "container/tensor/tensor_all.hpp"
 
+#include <random>
+
 inline Tensor<> rand(size_t rows, size_t cols, size_t seed) {
 	std::mt19937 gen(seed);
 

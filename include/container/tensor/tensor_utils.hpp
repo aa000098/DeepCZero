@@ -1,8 +1,6 @@
 #pragma once
 #include "container/tensor/tensor_all.hpp"
 
-#include <random>
-
 using namespace tensor;
 
 inline size_t product(const std::vector<size_t>& shape) {

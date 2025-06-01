@@ -30,9 +30,9 @@ void test_sigmoid_forward_backward() {
     }
 
     // 4. Backward (gy = [1, 1, 1])
-    Tensor<> gy_tensor({3}, {1.0f, 1.0f, 1.0f});
-    Variable gy(gy_tensor);
-    y.set_grad(gy);
+    //Tensor<> gy_tensor({3}, {1.0f, 1.0f, 1.0f});
+    //Variable gy(gy_tensor);
+    //y.set_grad(gy);
     y.backward();
 
     // 5. Backward 결과 검증

@@ -79,10 +79,14 @@ void Variable::show() const {
 	const auto& data = impl->data;
 	auto shape = data.get_shape();
 	std::cout << "  data: ";
-	if (shape.size() == 1) data.show();
+	if (data.empty()) 
+		std::cout << "(no data)\n";
 	else {
-		std::cout << "\n";
-		data.show();
+		if (shape.size() == 1) data.show();
+		else {
+			std::cout << "\n";
+			data.show();
+		}
 	}
 	std::cout << "  name: " << (impl->name.empty() ? "(unnamed)" : impl->name) << std::endl;
 	

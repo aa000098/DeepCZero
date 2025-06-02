@@ -20,7 +20,7 @@ public:
 
 	Parameter get_param(const std::string& name) const {
 		auto it = params.find(name);
-		if (it != params.end()) it->second;
+		if (it != params.end()) return it->second;
 		else throw std::runtime_error("Parameter not found: " + name);
 	}
 

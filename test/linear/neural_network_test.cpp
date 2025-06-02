@@ -20,7 +20,8 @@ Variable predict(Variable &x,
 void neural_network_test() {
     std::cout << "▶️ Running Neural Network test...\n";
 
-	const size_t N = 100;
+	// const size_t N = 100;
+	const size_t N = 10;
 	Variable x = rand(	/* rows */	N, 
 						/* cols */	1, 
 						/* seed */	0);
@@ -68,13 +69,13 @@ void neural_network_test() {
 		if (i % 1000 == 0) loss.show();
 
 	}
-	
+/*	
 	std::ofstream out("/home/user/.deepczero/data/linear_output.csv");
 	for (size_t i = 0; i < x.shape()[0]; ++i) {
     	out << x.data().raw_data()[i] << "," << y.data().raw_data()[i] << "," << y_pred.data().raw_data()[i] << "\n";
 	}
 	out.close();
-	
+*/	
 }
 
 int main() {

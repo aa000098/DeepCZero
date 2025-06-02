@@ -44,7 +44,7 @@ public:
 		creator(), 
 		requires_grad(requires_grad) {};
 
-	VariableImpl() = default;
+	VariableImpl() : data(Tensor<>()) {};
 
 	std::uintptr_t id() const {
 		return reinterpret_cast<std::uintptr_t>(this);

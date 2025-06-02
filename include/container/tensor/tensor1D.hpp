@@ -12,6 +12,7 @@ namespace tensor {
 	public:
 		Tensor1D(const std::vector<T>& vec) : data_ptr(std::make_shared<std::vector<T>>(vec)) {};
 		Tensor1D(size_t len, T init = T()) : data_ptr(std::make_shared<std::vector<T>>(len, init)) {};
+		Tensor1D() : data_ptr(std::make_shared<std::vector<T>>()) {};
 
 		T& operator()(const std::vector<size_t>& indices) override {
 			return (*data_ptr)[indices[0]];

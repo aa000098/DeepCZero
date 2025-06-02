@@ -13,7 +13,7 @@ namespace tensor {
 		std::shared_ptr<TensorBase<T>> impl;
 
 	public:
-		Tensor() = default;
+		Tensor() : impl(std::make_shared<TensorND<T>>()) {};
 
 		explicit Tensor(std::shared_ptr<TensorBase<T>> ptr) 
 			: impl(std::move(ptr)) {};

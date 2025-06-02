@@ -22,7 +22,7 @@ namespace tensor {
 		TensorND(	const std::vector<size_t>& shape, 
 					const std::vector<T>& init_data);
 
-		TensorND() = default;
+		TensorND() : data_ptr(std::make_shared<std::vector<T>>()) {};
 
 		TensorView<T> operator[](size_t idx);
 		const TensorView<T> operator[](size_t idx) const;

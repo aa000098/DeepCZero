@@ -3,7 +3,8 @@
 
 #include <algorithm>
 
-Variable Sum::forward(const std::vector<Variable>& xs) {
+
+Variable function::Sum::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x_data = xs[0].data();
 	x_shape = x_data.get_shape();
 
@@ -11,7 +12,7 @@ Variable Sum::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Sum::backward(const Variable& gy) {
+std::vector<Variable> function::Sum::backward(const Variable& gy) {
 	
 	// reshape_sum_backward
 	std::vector<size_t> new_shape;
@@ -39,7 +40,7 @@ std::vector<Variable> Sum::backward(const Variable& gy) {
 }
 
 
-Variable Broadcast_To::forward(const std::vector<Variable>& xs) {
+Variable function::Broadcast_To::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x_data = xs[0].data();
 	x_shape = x_data.get_shape();
 
@@ -47,14 +48,14 @@ Variable Broadcast_To::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Broadcast_To::backward(const Variable& gy) {	
+std::vector<Variable> function::Broadcast_To::backward(const Variable& gy) {	
 	Variable gx = sum_to(gy, x_shape);
 
 	return { gx };
 }
 
 
-Variable Sum_To::forward(const std::vector<Variable>& xs) {
+Variable function::Sum_To::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x_data = xs[0].data();
 	x_shape = x_data.get_shape();
 
@@ -62,7 +63,7 @@ Variable Sum_To::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Sum_To::backward(const Variable& gy) {
+std::vector<Variable> function::Sum_To::backward(const Variable& gy) {
 
 	Variable reshaped = gy;
 

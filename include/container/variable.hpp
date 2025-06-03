@@ -9,10 +9,12 @@
 #include <type_traits>
 #include <unordered_set>
 
-
+namespace function {
 class Function; // forward declaration
+}
 
 using namespace tensor;
+using function::Function;
 
 class Variable;
 

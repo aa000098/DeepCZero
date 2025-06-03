@@ -1,18 +1,18 @@
 #include "function/math_functions.hpp"
 #include "container/tensor/tensor_all.hpp"
 
-Variable Square::forward(const std::vector<Variable>& xs) {
+Variable function::Square::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x_data = xs[0].data();
 	Tensor<> result = x_data * x_data;
 	return Variable(result);
 }
 
-std::vector<Variable> Square::backward(const Variable& gy) {
+std::vector<Variable> function::Square::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
 	return { 2.0f * x * gy};
 }
 
-Variable Add::forward(const std::vector<Variable>& xs) {
+Variable function::Add::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
 	
@@ -23,7 +23,7 @@ Variable Add::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Add::backward(const Variable& gy) {
+std::vector<Variable> function::Add::backward(const Variable& gy) {
 	Variable gx0 = gy;
 	Variable gx1 = gy;
 
@@ -34,7 +34,7 @@ std::vector<Variable> Add::backward(const Variable& gy) {
 	return {gx0, gx1};
 }
 
-Variable Mul::forward(const std::vector<Variable>& xs) {
+Variable function::Mul::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
 
@@ -45,7 +45,7 @@ Variable Mul::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Mul::backward(const Variable& gy) {
+std::vector<Variable> function::Mul::backward(const Variable& gy) {
 	const Variable& a = inputs[0];
 	const Variable& b = inputs[1];
 
@@ -58,17 +58,17 @@ std::vector<Variable> Mul::backward(const Variable& gy) {
 	return {gx0, gx1};
 }
 
-Variable Neg::forward(const std::vector<Variable>& xs) {
+Variable function::Neg::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
 	Tensor<> result = -x;
 	return Variable(result);
 }
 
-std::vector<Variable> Neg::backward(const Variable& gy) {
+std::vector<Variable> function::Neg::backward(const Variable& gy) {
 	return {-gy};
 }
 
-Variable Sub::forward(const std::vector<Variable>& xs) {
+Variable function::Sub::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
 
@@ -79,7 +79,7 @@ Variable Sub::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Sub::backward(const Variable& gy) {
+std::vector<Variable> function::Sub::backward(const Variable& gy) {
 	Variable gx0 = gy;
 	Variable gx1 = -gy;
 
@@ -90,7 +90,7 @@ std::vector<Variable> Sub::backward(const Variable& gy) {
 	return {gx0, gx1};
 }
 
-Variable Div::forward(const std::vector<Variable>& xs) {
+Variable function::Div::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
 
@@ -101,7 +101,7 @@ Variable Div::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Div::backward(const Variable& gy) {
+std::vector<Variable> function::Div::backward(const Variable& gy) {
 	const Variable& a = inputs[0];
 	const Variable& b = inputs[1];
  
@@ -114,7 +114,7 @@ std::vector<Variable> Div::backward(const Variable& gy) {
 	return {gx0, gx1};
 }
 
-Variable Pow::forward(const std::vector<Variable>& xs) {
+Variable function::Pow::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& base = xs[0].data();
 	float scalar = xs[1].data().raw_data()[0];
 
@@ -122,7 +122,7 @@ Variable Pow::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> Pow::backward(const Variable& gy) {
+std::vector<Variable> function::Pow::backward(const Variable& gy) {
 	const Variable& a = inputs[0];
 	const Variable& b = inputs[1];
     float scalar = b.data().raw_data()[0];
@@ -131,53 +131,53 @@ std::vector<Variable> Pow::backward(const Variable& gy) {
     return {result};
 }
 
-Variable Exp::forward(const std::vector<Variable>& xs) {
+Variable function::Exp::forward(const std::vector<Variable>& xs) {
     const Tensor<>& x = xs[0].data();
     Tensor result = exp(x);
     return Variable(result);
 }
 
-std::vector<Variable> Exp::backward(const Variable& gy) {
+std::vector<Variable> function::Exp::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
 	return {gy * exp(x)};
 }
 
-Variable Sin::forward(const std::vector<Variable>& xs) {
+Variable function::Sin::forward(const std::vector<Variable>& xs) {
     const Tensor<>& x = xs[0].data();
     Tensor result = sin(x);
     return Variable(result);
 }
 
-std::vector<Variable> Sin::backward(const Variable& gy) {
+std::vector<Variable> function::Sin::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
 	return {gy * cos(x)};
 }
 
-Variable Cos::forward(const std::vector<Variable>& xs) {
+Variable function::Cos::forward(const std::vector<Variable>& xs) {
     const Tensor<>& x = xs[0].data();
     Tensor result = cos(x);
     return Variable(result);
 }
 
-std::vector<Variable> Cos::backward(const Variable& gy) {
+std::vector<Variable> function::Cos::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
 	return {gy * -sin(x)};
 }
 
-Variable Tanh::forward(const std::vector<Variable>& xs) {
+Variable function::Tanh::forward(const std::vector<Variable>& xs) {
     const Tensor<>& x = xs[0].data();
     Tensor result = tanh(x);
     return Variable(result);
 }
 
-std::vector<Variable> Tanh::backward(const Variable& gy) {
+std::vector<Variable> function::Tanh::backward(const Variable& gy) {
 	const Variable& y = output.lock();
 	if (y.empty()) 
 		throw std::runtime_error("Tanh::backweard(): output expired");
 	return {gy * (1 - y * y)};
 }
 
-Variable MatMul::forward(const std::vector<Variable>& xs) {
+Variable function::MatMul::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
 	const Tensor<>& w = xs[1].data();
 
@@ -185,7 +185,7 @@ Variable MatMul::forward(const std::vector<Variable>& xs) {
     return Variable(result);
 }
 
-std::vector<Variable> MatMul::backward(const Variable& gy) {
+std::vector<Variable> function::MatMul::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
 	const Variable& w = inputs[1];
 
@@ -195,7 +195,7 @@ std::vector<Variable> MatMul::backward(const Variable& gy) {
 	return {gx, gw};
 }
 
-Variable Linear::forward(const std::vector<Variable>& xs) {
+Variable function::Linear::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
 	const Tensor<>& w = xs[1].data();
 	const Tensor<>& b = xs[2].data();
@@ -206,7 +206,7 @@ Variable Linear::forward(const std::vector<Variable>& xs) {
     return Variable(y);
 }
 
-std::vector<Variable> Linear::backward(const Variable& gy) {
+std::vector<Variable> function::Linear::backward(const Variable& gy) {
 	const Variable x = inputs[0];
 	const Variable w = inputs[1];
 	const Variable b = inputs[2];

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cmath>
 
+using namespace function;
+
 void test_function_forward_backward() {
     // 기본 입력
     Variable x({2.0f});

@@ -2,6 +2,8 @@
 
 #include "function/function.hpp"
 
+namespace function {
+
 class Sum: public Function {
 private:
 	std::vector<size_t> x_shape;
@@ -49,3 +51,4 @@ public:
 
 };
 
+}

@@ -6,7 +6,6 @@
 #include <iostream>
 #include <filesystem>
 
-
 std::string shape_to_string(const std::vector<size_t>& shape) {
 	std::ostringstream oss;
 	oss << "(";
@@ -39,7 +38,7 @@ std::string _dot_var(Variable v, bool verbose) {
 	return oss.str();
 }
 
-std::string _dot_func(Function* f) {
+std::string _dot_func(function::Function* f) {
 	std::stringstream oss;
 	
 	std::string label = f->name();
@@ -58,9 +57,9 @@ std::string _dot_func(Function* f) {
 std::string get_dot_graph(Variable output, bool verbose) {
 	std::stringstream oss;
 
-	Function* out_func = output.get_creator().get();
+	function::Function* out_func = output.get_creator().get();
 	Graph graph(out_func);
-	std::vector<Function*> topo_order = graph.get_topo_order();
+	std::vector<function::Function*> topo_order = graph.get_topo_order();
 
 	oss << _dot_var(output, verbose);
 	for (auto& f : topo_order) {

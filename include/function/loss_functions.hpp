@@ -1,5 +1,6 @@
 #include "function/function.hpp"
 
+namespace function {
 class MeanSquaredError : public Function {
 
 public:
@@ -8,4 +9,4 @@ public:
 	~MeanSquaredError() = default;
 };
 
-
+}

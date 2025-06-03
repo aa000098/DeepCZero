@@ -2,6 +2,8 @@
 
 #include "function/function.hpp"
 
+namespace function {
+
 class Square: public Function {
 public:
 	Variable forward(const std::vector<Variable>& xs) override;
@@ -108,3 +110,5 @@ public:
     std::vector<Variable> backward(const Variable& gy) override;
     ~Linear() = default;
 };
+
+}

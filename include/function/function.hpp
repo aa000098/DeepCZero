@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 
+namespace function {
 
 class Function : public std::enable_shared_from_this<Function> {
 protected:
@@ -33,3 +34,4 @@ public:
 
 };
 
+}

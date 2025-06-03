@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+using function::Function;
 
 class Graph {
 private:

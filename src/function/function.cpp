@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <memory>
 
-
 Variable Function::operator()(const std::vector<Variable>& inputs) {
 	this->inputs.clear();
 

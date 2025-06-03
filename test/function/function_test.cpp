@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+using namespace function;
+
 int main() {
 	Variable x = Variable({8}); 
 	std::shared_ptr<Function> f1 = std::make_shared<Square>();

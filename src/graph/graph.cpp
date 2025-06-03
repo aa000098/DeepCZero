@@ -5,6 +5,8 @@
 #include <typeinfo>
 #include <iostream>
 
+using function::Function;
+
 void Graph::build_from(Function* output) {
 	graph.clear();
 	in_degree.clear();

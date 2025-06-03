@@ -1,7 +1,7 @@
 #include "function/loss_functions.hpp"
 #include "container/tensor/tensor_all.hpp"
 
-Variable MeanSquaredError::forward(const std::vector<Variable>& xs) {
+Variable function::MeanSquaredError::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& a = xs[0].data();
 	const Tensor<>& b = xs[1].data();
 
@@ -11,7 +11,7 @@ Variable MeanSquaredError::forward(const std::vector<Variable>& xs) {
 	return Variable(result);
 }
 
-std::vector<Variable> MeanSquaredError::backward(const Variable& gy) {
+std::vector<Variable> function::MeanSquaredError::backward(const Variable& gy) {
 	Variable x0 = inputs[0];
 	Variable x1 = inputs[1];
 	Variable diff = x0 - x1;

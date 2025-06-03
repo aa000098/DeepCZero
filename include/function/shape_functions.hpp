@@ -2,6 +2,8 @@
 
 #include "function/function.hpp"
 
+namespace function {
+
 class Reshape: public Function {
 private:
 	std::vector<size_t> shape;
@@ -30,3 +32,4 @@ public:
 
 };
 
+}

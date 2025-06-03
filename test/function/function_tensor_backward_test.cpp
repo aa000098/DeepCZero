@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+using namespace function;
+
 void test_function_forward_backward() {
     Variable x({2.0f, 3.0f});
     Variable y({3.0f, 4.0f});

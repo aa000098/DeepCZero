@@ -84,9 +84,9 @@ void test_linear_layer() {
 }
 
 Variable predict(Variable& x, Layer& l1, Layer& l2) {
-	Variable y = l1({x});
+	Variable y = l1(x);
 	y = sigmoid(y);
-	y = l2({y});
+	y = l2(y);
 	return y;
 }
 
@@ -112,13 +112,13 @@ void test_linear_regression() {
 	for (size_t i = 0; i < iters; i++) {
 		y_pred = predict(x, l1, l2);
 		loss = mean_squared_error(y, y_pred);
-
 		l1.cleargrad();
 		l2.cleargrad();
 		loss.backward();
 
-		for (auto l : {l1, l2}) {
-			for (auto p : l.get_params())
+		
+		for (auto* l : {&l1, &l2}) {
+			for (auto& p : l->get_params())
 				p.second.data() -= lr * p.second.grad().data();
 		} 
 

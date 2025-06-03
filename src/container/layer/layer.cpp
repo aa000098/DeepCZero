@@ -25,10 +25,23 @@ namespace layer {
 	}
 
 	void Layer::cleargrad() {
-		for (auto& pair : params)
-			pair.second.cleargrad();
+		for (auto& pair : get_params())
+			pair.cleargrad();
 	}
 
+	std::vector<Parameter> Layer::get_params() {
+		std::vector<Parameter> all_params;
+
+		for (auto& pair : params)
+			all_params.push_back(pair.second);
+
+		for (auto& pair : sublayers) {
+			std::vector<Parameter> child_params = pair.second->get_params();
+			all_params.insert(all_params.end(), child_params.begin(), child_params.end());
+		}
+
+		return all_params;
+	}
 
 	
 	Linear::Linear( size_t out_size, 

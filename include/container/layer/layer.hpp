@@ -15,6 +15,7 @@ namespace layer {
 	class Layer {
 	protected:
 		std::unordered_map<std::string, Parameter> params;
+		std::unordered_map<std::string, std::shared_ptr<Layer>> sublayers;
 		std::vector<Variable> inputs;
 		Variable output;
 
@@ -24,6 +25,12 @@ namespace layer {
 				const std::string& name, 
 				const Parameter& param) {
 			params[name] = param;
+		}
+
+		void register_submodules(
+				const std::string& name,
+				const std::shared_ptr<Layer>& layer) {
+			sublayers[name] = layer;
 		}
 
 		virtual Variable forward(const std::vector<Variable>& xs) = 0;
@@ -36,7 +43,7 @@ namespace layer {
 
 		void cleargrad();
 
-		std::unordered_map<std::string, Parameter>& get_params() { return params; }
+		std::vector<Parameter> get_params();
 		
 
 	};

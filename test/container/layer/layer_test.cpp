@@ -119,7 +119,7 @@ void test_linear_regression() {
 		
 		for (auto* l : {&l1, &l2}) {
 			for (auto& p : l->get_params())
-				p.second.data() -= lr * p.second.grad().data();
+				p.data() -= lr * p.grad().data();
 		} 
 
 		if (i % 1000 == 0) 

@@ -2,6 +2,9 @@
 
 #include <cassert>
 #include <iostream>
+#include <cmath>
+
+double pi = std::acos(-1.0f);
 
 using namespace layer;
 
@@ -80,9 +83,58 @@ void test_linear_layer() {
     std::cout << "✅ Linear layer test passed.\n";
 }
 
+Variable predict(Variable& x, Layer& l1, Layer& l2) {
+	Variable y = l1({x});
+	y = sigmoid(y);
+	y = l2({y});
+	return y;
+}
+
+void test_linear_regression() {
+
+    std::cout << "[Test] Linear Regression Forward\n";
+
+	Tensor x_data = rand(10, 1);
+	Variable x = Variable(x_data, "x");
+	Tensor noise_data = rand(10, 1);
+	Variable noise = Variable(noise_data, "noise");
+	Variable y = sin(2 * pi * x) + noise;
+
+	Linear l1 = Linear(10);
+	Linear l2 = Linear(1);
+
+	float lr = 0.2;
+	size_t iters = 10000;
+	
+	Variable y_pred;
+	Variable loss;
+
+	for (size_t i = 0; i < iters; i++) {
+		y_pred = predict(x, l1, l2);
+		loss = mean_squared_error(y, y_pred);
+
+		l1.cleargrad();
+		l2.cleargrad();
+		loss.backward();
+
+		for (auto l : {l1, l2}) {
+			for (auto p : l.get_params())
+				p.second.data() -= lr * p.second.grad().data();
+		} 
+
+		if (i % 1000 == 0) 
+			loss.show();
+	}
+
+
+    std::cout << "✅ Linear Regression test passed.\n";
+
+}
+
 int main() {
     test_layer_register_and_get_param();
 	test_linear_layer();
+	test_linear_regression();
     return 0;
 }
 

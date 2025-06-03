@@ -20,7 +20,9 @@ namespace layer {
 
 	public:
 
-		void register_params(const std::string& name, const Parameter& param) {
+		void register_params(
+				const std::string& name, 
+				const Parameter& param) {
 			params[name] = param;
 		}
 
@@ -32,17 +34,20 @@ namespace layer {
 			else throw std::runtime_error("Parameter not found: " + name);
 		}
 
-		Variable operator()(std::vector<Variable>& inputs) {
+		Variable operator()(const std::vector<Variable>& inputs) {
 			Variable output = forward(inputs);
 			this->inputs = inputs;
 			this->output = output;
 			return output;
 		}
 
-		void cleargrads() {
+		void cleargrad() {
 			for (auto& pair : params)
 				pair.second.cleargrad();
 		}
+
+		std::unordered_map<std::string, Parameter> get_params() { return params; }
+		
 
 	};
 
@@ -52,10 +57,10 @@ namespace layer {
 		size_t out_size;
 
 	public:
-		Linear(size_t in_size, 
-					size_t out_size, 
-					bool nobias = false
-					/*, dtype = float32 */) 
+		Linear( size_t out_size, 
+				bool nobias = false,
+				/*dtype = float32, */
+				size_t in_size = 0) 
 			: in_size(in_size), out_size(out_size) {
 			Parameter W({}, "W");
 			register_params("W", W);

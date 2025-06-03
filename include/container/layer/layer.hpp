@@ -28,25 +28,15 @@ namespace layer {
 
 		virtual Variable forward(const std::vector<Variable>& xs) = 0;
 	
-		Parameter get_param(const std::string& name) const {
-			auto it = params.find(name);
-			if (it != params.end()) return it->second;
-			else throw std::runtime_error("Parameter not found: " + name);
-		}
+		Parameter get_param(const std::string& name) const;
 
-		Variable operator()(const std::vector<Variable>& inputs) {
-			Variable output = forward(inputs);
-			this->inputs = inputs;
-			this->output = output;
-			return output;
-		}
+		Variable operator()(const std::vector<Variable>& inputs);
+		Variable operator()(const std::initializer_list<Variable>& inputs);
+		Variable operator()(const Variable& input);
 
-		void cleargrad() {
-			for (auto& pair : params)
-				pair.second.cleargrad();
-		}
+		void cleargrad();
 
-		std::unordered_map<std::string, Parameter> get_params() { return params; }
+		std::unordered_map<std::string, Parameter>& get_params() { return params; }
 		
 
 	};
@@ -60,41 +50,13 @@ namespace layer {
 		Linear( size_t out_size, 
 				bool nobias = false,
 				/*dtype = float32, */
-				size_t in_size = 0) 
-			: in_size(in_size), out_size(out_size) {
-			Parameter W({}, "W");
-			register_params("W", W);
-			if (nobias) {
-				Parameter b({}, "b");
-				register_params("b", b);
-			} else {
-				Tensor b_data(out_size);
-				Parameter b(b_data, "b");
-				register_params("b", b);
-			}
-		};
+				size_t in_size = 0);
 
 		Linear() = default;
 
-		void init_W() {
-			Tensor W_data = randn(in_size, out_size); 
-			W_data *= std::sqrt(1/in_size);
-			params["W"].data() = W_data;
-		}
+		void init_W();
 
-		Variable forward(const std::vector<Variable>& xs) {
-			const Variable& x = xs[0];
-			const Parameter& W = get_param("W");
-			const Parameter& b = get_param("b");
-
-			if (W.data().empty()) {
-				in_size = x.shape()[1];
-				init_W();
-			}
-			
-			Variable y = linear(x, W, b);
-			return y;
-		}
+		Variable forward(const std::vector<Variable>& xs);
 
 	};
 

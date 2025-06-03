@@ -20,7 +20,7 @@ namespace layer {
 
 	public:
 
-		void register_params(const std::string& name, Parameter& param) {
+		void register_params(const std::string& name, const Parameter& param) {
 			params[name] = param;
 		}
 
@@ -48,8 +48,6 @@ namespace layer {
 
 	class Linear : public Layer {
 	private:
-		Parameter W;
-		Parameter b;
 		size_t in_size;
 		size_t out_size;
 
@@ -59,17 +57,37 @@ namespace layer {
 					bool nobias = false
 					/*, dtype = float32 */) 
 			: in_size(in_size), out_size(out_size) {
-			if (nobias)
-				b = Parameter();
+			Parameter W({}, "W");
+			register_params("W", W);
+			if (nobias) {
+				Parameter b({}, "b");
+				register_params("b", b);
+			} else {
+				Tensor b_data(out_size);
+				Parameter b(b_data, "b");
+				register_params("b", b);
+			}
 		};
 
 		Linear() = default;
 
+		void init_W() {
+			Tensor W_data = randn(in_size, out_size); 
+			W_data *= std::sqrt(1/in_size);
+			params["W"].data() = W_data;
+		}
+
 		Variable forward(const std::vector<Variable>& xs) {
-			if (!W.data().empty()) {
-				in_size = xs[0].shape()[1];
+			const Variable& x = xs[0];
+			const Parameter& W = get_param("W");
+			const Parameter& b = get_param("b");
+
+			if (W.data().empty()) {
+				in_size = x.shape()[1];
+				init_W();
 			}
-			Variable y = linear(xs[0], W, b);
+			
+			Variable y = linear(x, W, b);
 			return y;
 		}
 

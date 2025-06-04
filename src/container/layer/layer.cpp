@@ -7,6 +7,11 @@ namespace layer {
 		else throw std::runtime_error("Parameter not found: " + name);
 	}
 
+	std::shared_ptr<Layer> Layer::get_sublayer(const std::string& name) const {
+		auto it = sublayers.find(name);
+		if (it != sublayers.end()) return it->second;
+		else throw std::runtime_error("Sublayer not found : " + name);
+	}
 
 	Variable Layer::operator()(const std::vector<Variable>& inputs) {
 		this->inputs = inputs;

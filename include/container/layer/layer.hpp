@@ -27,7 +27,7 @@ namespace layer {
 			params[name] = param;
 		}
 
-		void register_submodules(
+		void register_sublayers(
 				const std::string& name,
 				const std::shared_ptr<Layer>& layer) {
 			sublayers[name] = layer;
@@ -36,6 +36,7 @@ namespace layer {
 		virtual Variable forward(const std::vector<Variable>& xs) = 0;
 	
 		Parameter get_param(const std::string& name) const;
+		std::shared_ptr<Layer> get_sublayer(const std::string& name) const;
 
 		Variable operator()(const std::vector<Variable>& inputs);
 		Variable operator()(const std::initializer_list<Variable>& inputs);
@@ -63,7 +64,7 @@ namespace layer {
 
 		void init_W();
 
-		Variable forward(const std::vector<Variable>& xs);
+		Variable forward(const std::vector<Variable>& xs) override;
 
 	};
 

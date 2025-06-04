@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <filesystem>
+#include <cxxabi.h>
 
 std::string shape_to_string(const std::vector<size_t>& shape) {
 	std::ostringstream oss;
@@ -144,4 +145,20 @@ void trace_variable_refs(const Variable v, std::unordered_set<std::uintptr_t>* v
                       << ", use_count: " << out.use_count() << std::endl;
         }
     }
+}
+
+std::string demangle(const char* name) {
+	int status = 0;
+	char* demangled = abi::__cxa_demangle(name, nullptr, nullptr, &status);
+	std::string result = (status == 0 && demangled) ? demangled : name;
+	std::free(demangled);
+	return result;
+}
+
+
+std::string remove_namespace(const std::string& name) {
+	size_t pos = name.rfind("::");
+	if (pos != std::string::npos) 
+		return name.substr(pos + 2);
+	return name;
 }

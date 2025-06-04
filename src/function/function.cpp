@@ -1,6 +1,7 @@
 #include "function/function.hpp"
 #include "config/config.hpp"
 #include "container/tensor/tensor_all.hpp"
+#include "graph/utils/utils.hpp"
 
 #include <cmath>
 #include <algorithm>
@@ -33,12 +34,8 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 }
 
 std::string Function::name() {
-	std::string mangled = typeid(*this).name();
-	size_t i = 0;
-	while (i < mangled.size() && std::isdigit(mangled[i])) {
-		i++;
-	}
-	return mangled.substr(i);
+	std::string demangled = demangle(typeid(*this).name());
+	return remove_namespace(demangled);
 }
 
 void Function::debug_function_refs(std::shared_ptr<Function> f) {

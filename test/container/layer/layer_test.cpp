@@ -112,8 +112,8 @@ void test_linear_regression() {
 	for (size_t i = 0; i < iters; i++) {
 		y_pred = predict(x, l1, l2);
 		loss = mean_squared_error(y, y_pred);
-		l1.cleargrad();
-		l2.cleargrad();
+		l1.cleargrads();
+		l2.cleargrads();
 		loss.backward();
 
 		

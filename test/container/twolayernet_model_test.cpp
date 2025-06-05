@@ -1,5 +1,9 @@
 #include "deepczero.hpp"
 
+#include <cmath>
+
+double pi = std::acos(-1.0f);
+
 using layer::Linear;
 
 class TwoLayerNet : public Model {
@@ -31,6 +35,36 @@ void test_twolayernet_forward_and_plot() {
 
 }
 
+void test_twolayernet_learning() {
+	Variable x(rand(100, 1), "x");
+	Variable y = sin(2 * pi * x) + rand(100, 1);
+
+	float lr = 0.2;
+	size_t max_iter = 10000;
+	size_t hidden_size = 10;
+
+	TwoLayerNet model(hidden_size, 1);
+
+	Variable y_pred;
+	Variable loss;
+
+	for (size_t i = 0; i < max_iter; i++) {
+		y_pred = model(x);
+		loss = mean_squared_error(y, y_pred);
+
+		model.cleargrads();
+		loss.backward();
+
+		for (auto& p : model.get_params()) 
+			p.data() -= lr * p.grad().data();
+
+		if (i % 1000 == 0)
+			loss.show();
+
+	}
+}
+
 int main() {
 	test_twolayernet_forward_and_plot();
+	test_twolayernet_learning();
 }

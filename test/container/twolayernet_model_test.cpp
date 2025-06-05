@@ -5,6 +5,7 @@
 double pi = std::acos(-1.0f);
 
 using layer::Linear;
+using layer::MLP;
 
 class TwoLayerNet : public Model {
 
@@ -36,11 +37,11 @@ void test_twolayernet_forward_and_plot() {
 }
 
 void test_twolayernet_learning() {
-	Variable x(rand(100, 1), "x");
-	Variable y = sin(2 * pi * x) + rand(100, 1);
+	Variable x(rand(10, 1), "x");
+	Variable y = sin(2 * pi * x) + rand(10, 1);
 
 	float lr = 0.2;
-	size_t max_iter = 10000;
+	size_t max_iter = 1000;
 	size_t hidden_size = 10;
 
 	TwoLayerNet model(hidden_size, 1);
@@ -62,6 +63,11 @@ void test_twolayernet_learning() {
 			loss.show();
 
 	}
+}
+
+void test_mlp_declaration() {
+	MLP model1({10, 1}); 
+	MLP model2({10, 20, 30, 40, 1});
 }
 
 int main() {

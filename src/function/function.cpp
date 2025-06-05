@@ -33,6 +33,15 @@ Variable Function::operator()(const std::vector<Variable>& inputs) {
 	return ys;
 }
 
+Variable Function::operator()(const std::initializer_list<Variable>& inputs) {
+		std::vector<Variable> input_vec(inputs);
+		return (*this)(input_vec);
+}
+
+Variable Function::operator()(const Variable& input) {
+	return (*this)({input});
+}
+
 std::string Function::name() {
 	std::string demangled = demangle(typeid(*this).name());
 	return remove_namespace(demangled);

@@ -7,7 +7,7 @@
 Variable square(const Variable &x) {
 	using namespace function;
 	std::shared_ptr<Function> f = std::make_shared<Square>();
-	return (*f)({x});
+	return (*f)(x);
 }
 
 Variable exp(const Variable &x) {

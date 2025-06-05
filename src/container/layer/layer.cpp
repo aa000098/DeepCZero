@@ -1,4 +1,8 @@
 #include "container/layer/layer.hpp"
+#include "function/function.hpp"
+#include "function/activation_functions.hpp"
+
+using function::Sigmoid;
 
 namespace layer {
 	Parameter Layer::get_param(const std::string& name) const {
@@ -50,9 +54,9 @@ namespace layer {
 
 	
 	Linear::Linear( size_t out_size, 
-			bool nobias,
-			/*dtype = float32, */
-			size_t in_size) 
+					bool nobias,
+					/*dtype = float32, */
+					size_t in_size) 
 		: in_size(in_size), out_size(out_size) {
 		Parameter W({}, "W");
 		register_params("W", W);
@@ -87,5 +91,14 @@ namespace layer {
 	}
 
 		
+	Variable MLP::forward(const std::vector<Variable>& xs) {
+		Variable x = xs[0];
+
+		for (size_t i = 0; i < layers.size() - 1; i++) {
+			x = (*layers[i])(x);
+			x = (*activation)(x);
+		}
+		return (*layers.back())(x);
+	}
 
 }

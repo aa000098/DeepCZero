@@ -1,4 +1,4 @@
-#include "container/model.hpp"
+#include "container/layer/model.hpp"
 #include "graph/utils/utils.hpp"
 
 void Model::plot(std::vector<Variable> inputs,

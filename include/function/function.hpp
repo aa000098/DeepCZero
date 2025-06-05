@@ -14,6 +14,8 @@ protected:
 	
 public:
 	virtual Variable operator()(const std::vector<Variable>& inputs);
+	virtual Variable operator()(const std::initializer_list<Variable>& inputs);
+	virtual Variable operator()(const Variable& input);
 
 	virtual Variable forward(const std::vector<Variable>& xs) = 0;
 	virtual std::vector<Variable> backward(const Variable& gy) = 0; 

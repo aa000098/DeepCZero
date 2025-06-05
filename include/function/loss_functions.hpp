@@ -1,3 +1,5 @@
+#pragma once
+
 #include "function/function.hpp"
 
 namespace function {

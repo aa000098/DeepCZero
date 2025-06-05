@@ -5,7 +5,6 @@
 double pi = std::acos(-1.0f);
 
 using layer::Linear;
-using layer::MLP;
 
 class TwoLayerNet : public Model {
 

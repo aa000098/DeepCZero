@@ -42,7 +42,7 @@ namespace layer {
 		Variable operator()(const std::initializer_list<Variable>& inputs);
 		Variable operator()(const Variable& input);
 
-		void cleargrad();
+		void cleargrads();
 
 		std::vector<Parameter> get_params();
 		

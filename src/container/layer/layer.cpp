@@ -29,7 +29,7 @@ namespace layer {
 		return (*this)({input});
 	}
 
-	void Layer::cleargrad() {
+	void Layer::cleargrads() {
 		for (auto& pair : get_params())
 			pair.cleargrad();
 	}

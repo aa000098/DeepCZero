@@ -15,7 +15,7 @@ Variable function::GetItem::forward(const std::vector<Variable>& xs) {
 
 std::vector<Variable> function::GetItem::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
-	return { x };
+	return { get_item_grad(x, slices, x.shape()) };
 }
 
 

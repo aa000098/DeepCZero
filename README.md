@@ -34,14 +34,18 @@ make test
 ```bash
 make memory
 ```   
+- 메모리 안정성 확보: Valgrind를 통한 누수 점검 완료 (cyclic reference 제거)
   
 ## 주요 구현 클래스 목록
 - Tensor: 행렬 저장 및 행렬 연산 지원 클래스
-- Variable: Tensor 기반 값 및 gradient 저장, weak_ptr 기반 creator 추적
+- Variable: Tensor 기반 값 및 gradient 저장, weak_ptr 기반 연산그래프 creator 추적
+- Parameter: 학습 가능한 모델 파라미터를 표현하며, Variable을 상속하여 gradient 추적 기능 포함 
 - Function: 다입력/다출력 지원, 자동 그래프 연결 및 shared_from_this 연동
 - Graph: 계산 그래프 자동 구성 및 Topological 정렬 기반 backward 연산
-- 연산자: Square, Exp, Add 등 기본 Function 구현
-- 메모리 안정성 확보: Valgrind를 통한 누수 점검 완료 (cyclic reference 제거)
+- Ops: Square, Exp, Add 등 기본 Function 구현
+- Layer: Linear 등 가중치를 포함한 모듈 구성 단위로, 순전파와 파라미터 관리 기능 제공
+- Model: 여러 Layer를 조합한 학습 가능한 구조(예: MLP)로, Layer를 상속하여 재귀적 sublayer 관리
+- Optimizer: SGD 등 최적화 알고리즘 클래스 구현, 등록된 Parameter의 gradient를 활용해 파라미터 갱신 수행
 
   
  ## 향후 계획

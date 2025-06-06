@@ -4,7 +4,8 @@
 #include <iostream>
 #include <memory>
 
-int main() {
+void test_variable_declaration_and_simple_operations() {
+	std::cout << "[Test Variable Declaration and Simple Operations]" << std::endl;
 	Variable my_var =	Variable({8}, "test", true);
 	std::cout << "[Variable({8}, \"test\", true)]: " << std::endl;
 	my_var.show();
@@ -85,4 +86,22 @@ int main() {
 	for (size_t i = 0; i < test16.ndim(); i++) 
 		std::cout << test16.shape()[i] << " ";
 	std::cout << std::endl;
+}
+
+void test_variable_operations_memory_check() {
+	std::cout << "[Test Variable Operations Memory Check]" << std::endl;
+	Variable x({1});
+	std::cout << "x id: " << x.id() << std::endl;
+
+	x += x;
+	std::cout << "x += x id: " << x.id() << std::endl;
+
+	x = x + x;
+	std::cout << "x  = x + x id: " << x.id() << std::endl;
+}
+
+int main() {
+	test_variable_declaration_and_simple_operations();
+	test_variable_operations_memory_check();
+
 }

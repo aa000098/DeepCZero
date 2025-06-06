@@ -31,7 +31,7 @@ void Variable::backward(bool retain_grad, bool create_graph) {
 				if (!input->grad)
 					input->grad = std::make_unique<Variable>(gx);
 				else 
-					(*input->grad) += gx;
+					(*input->grad) = (*input->grad) + gx;
 			}
 			if (!retain_grad) output->grad.reset();
 		}

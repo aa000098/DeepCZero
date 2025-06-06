@@ -1,11 +1,11 @@
 #include "optimizer/optimizer.hpp"
 
-void Optimizer::setup(const std::shared_ptr<Layer> target) {
+void Optimizer::setup(const Model target) {
 	this->target = target;
 }
 
 void Optimizer::update() {
-	std::vector<Parameter> params = target->get_params();
+	std::vector<Parameter> params = target.get_params();
 
 	// TODO: preprocessing with hooks
 	/*

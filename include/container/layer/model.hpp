@@ -27,7 +27,7 @@ public:
 
 
 
-class MLP : public Layer {
+class MLP : public Model {
 private:
 	std::shared_ptr<Function> activation;
 	std::vector<std::shared_ptr<Layer>> layers;

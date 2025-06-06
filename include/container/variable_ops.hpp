@@ -73,6 +73,7 @@ inline Variable operator^(const Variable& lhs, float rhs) {
     return pow(lhs, rhs);
 }
 
+// TODO: inplace operation need to be have same memory space  
 inline Variable& operator+=(Variable& lhs, const Variable& rhs) {
     lhs = add(lhs, rhs);
     return lhs;

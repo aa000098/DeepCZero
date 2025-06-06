@@ -20,7 +20,19 @@ DeepCZero/
 ├── bin/  # (자동 생성) 테스트 실행 파일  
 ├── Makefile  # 빌드 및 테스트 자동화  
 └── README.md   
+ 
+## 추천 도구 설치
+### 메모리 누수 점검
+```bash
+sudo apt install valgrind
+```
   
+### 연산 그래프 시각화
+```bash
+sudo apt install graphviz
+```
+  
+
 ## 빌드 및 실행 방법
 ### 전체 빌드
 ```bash

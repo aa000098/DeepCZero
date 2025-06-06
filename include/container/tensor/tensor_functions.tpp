@@ -90,4 +90,23 @@ Tensor<T> sum_to(const Tensor<T>& src, const std::vector<size_t>& target_shape) 
 
 }
 
+template <typename T>
+void add_at(Tensor<T>& gx, 
+			const std::vector<size_t>& slices, 
+			const Tensor<T>& gy) {
+
+	TensorView<T> view = gx.view();
+	for (size_t idx : slices)
+		view = view[idx];
+
+	auto& gx_data = view.raw_data();
+	const auto& gy_data = gy.raw_data();
+	size_t offset = view.get_offset();
+
+	for (size_t i = 0; i < gy.size(); ++i)
+		gx_data[offset + i] += gy_data[i]; 
+
+}
+
+
 }

@@ -40,6 +40,7 @@ namespace tensor {
 		return total;
 	}
 
+
 	/*
 	template<typename T>
 	std::ostream& operator<<(std::ostream& os, const TensorView<T>& view) {

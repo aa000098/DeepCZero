@@ -51,10 +51,17 @@ namespace tensor {
 			auto* ptr = dynamic_cast<TensorND<T>*>(impl.get());
 			if(!ptr) throw std::runtime_error("Only TensorND supports slicing");
 			return (*ptr)[idx]; };
+		
 		T& operator()(const std::vector<size_t>& indices) {
 			return (*impl)(indices); };
+
 		const T& operator()(const std::vector<size_t>& indices) const {
 			return (*impl)(indices); };
+
+		Tensor<T>& operator=(const TensorView<T>& view) {
+			this->impl = std::make_shared<TensorView<T>>(view);
+			return *this;
+		}
 
 // arithmetic operators
 		Tensor<T>& operator+=(const Tensor<T>& other) {
@@ -93,6 +100,7 @@ namespace tensor {
 		}
 
 // common functions
+		TensorView<T> view() const;
 		std::vector<size_t> get_shape() const { 
 			return impl->get_shape(); };
 		std::vector<size_t> get_strides() const {

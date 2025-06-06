@@ -7,6 +7,20 @@
 namespace tensor {
 
 template<typename T>
+TensorView<T> Tensor<T>::view() const {
+	auto* ptr = dynamic_cast<TensorND<T>*>(impl.get());
+	if (!ptr)
+		throw std::runtime_error("Only TensorND supports view()");
+
+	return TensorView<T>(
+			ptr->get_shape(),
+			ptr->shared_data(),
+			ptr->get_strides(),
+			ptr->get_offset()
+			);
+}
+
+template<typename T>
 Tensor<T> Tensor<T>::reshape_like(const Tensor<T>& other) const {
 	const auto& target_shape = other.get_shape();
 	size_t target_size = other.size();

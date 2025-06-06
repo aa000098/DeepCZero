@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 namespace tensor {
+
 	template<typename T>
 	class TensorView : public TensorBase<T> {
 	private:
@@ -39,7 +40,7 @@ namespace tensor {
 			return const_cast<TensorView*> (this)->operator()(indices); };
 
 		TensorView<T> operator[](size_t idx) const;
-		
+
 //		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);
 
 		void show() const override;

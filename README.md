@@ -22,12 +22,12 @@ DeepCZero/
 └── README.md   
  
 ## 추천 도구 설치
-### 메모리 누수 점검
+### 메모리 누수 점검 도구
 ```bash
 sudo apt install valgrind
 ```
   
-### 연산 그래프 시각화
+### 연산 그래프 시각화 도구
 ```bash
 sudo apt install graphviz
 ```

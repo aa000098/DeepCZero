@@ -157,8 +157,42 @@ void test_sum_to() {
     std::cout << "✅ sum_to test passed.\n" << std::endl;
 }
 
+void test_add_at() {
+	Tensor<float> gx({3, 4}, 0.0f);  // 3x4 zero
+	std::vector<size_t> slices = {1};
+	Tensor<float> gy({4}, {1.0f, 2.0f, 3.0f, 4.0f});
+
+	std::cout << "[Before add_at]\n";
+	gx.show();
+
+	add_at(gx, slices, gy);
+
+	std::cout << "\n[After add_at(gx[1] += gy)]\n";
+	gx.show();
+
+	// ✅ 검증
+	auto& result = gx.raw_data();
+	assert(result[4] == 1.0f);  // gx[1][0]
+	assert(result[5] == 2.0f);  // gx[1][1]
+	assert(result[6] == 3.0f);  // gx[1][2]
+	assert(result[7] == 4.0f);  // gx[1][3]
+
+	// 나머지는 여전히 0이어야 함
+	assert(result[0] == 0.0f);
+	assert(result[1] == 0.0f);
+	assert(result[2] == 0.0f);
+	assert(result[3] == 0.0f);
+	assert(result[8] == 0.0f);
+	assert(result[9] == 0.0f);
+	assert(result[10] == 0.0f);
+	assert(result[11] == 0.0f);
+
+	std::cout << "\n✅ test_add_at passed.\n";
+}
+
 int main() {
 	test_tensor_sum();
 	test_broadcast_to();
 	test_sum_to();
+	test_add_at();
 }

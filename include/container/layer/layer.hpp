@@ -51,8 +51,8 @@ namespace layer {
 
 	class Linear : public Layer {
 	private:
-		size_t in_size;
 		size_t out_size;
+		size_t in_size;
 
 	public:
 		Linear( size_t out_size, 

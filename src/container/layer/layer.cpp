@@ -57,7 +57,7 @@ namespace layer {
 					bool nobias,
 					/*dtype = float32, */
 					size_t in_size) 
-			: in_size(in_size), out_size(out_size) {
+			: out_size(out_size), in_size(in_size) {
 		Parameter W({}, "W");
 		register_params("W", W);
 		if (nobias) {

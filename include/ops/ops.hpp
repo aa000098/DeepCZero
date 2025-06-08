@@ -5,6 +5,7 @@
 
 class Variable;
 
+// arithmetics
 Variable square(const Variable &x);
 
 Variable exp(const Variable &x);
@@ -35,9 +36,13 @@ Variable tanh(const Variable& x);
 
 Variable matmul(const Variable& x, const Variable& w);
 
+// loss
 Variable mean_squared_error(const Variable& x0, const Variable& x1);
 
+// layers
 Variable linear(const Variable& x, const Variable& w, const Variable& b);
 
+// activations
 Variable sigmoid(const Variable& x);
+Variable softmax(const Variable& x, const std::vector<int> axes);
 

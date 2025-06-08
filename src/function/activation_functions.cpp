@@ -17,9 +17,9 @@ std::vector<Variable> function::Sigmoid::backward(const Variable& gy) {
 Variable function::Softmax::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
 
-	Tensor y = x.max(axis, true);
+	Tensor y = x - x.max(axes, true);
 	y = exp(y);
-	Tensor<> sum_y = y.sum(axis, true);
+	Tensor<> sum_y = y.sum(axes, true);
 	return y / sum_y;
 }
 
@@ -27,7 +27,7 @@ std::vector<Variable> function::Softmax::backward(const Variable& gy) {
 	Variable y = output.lock();
 
 	Variable gx = y * gy;
-	Variable sumdx = sum(gx, axis, true);
+	Variable sumdx = sum(gx, axes, true);
 	gx -= y * sumdx;
 	return { gx };
 

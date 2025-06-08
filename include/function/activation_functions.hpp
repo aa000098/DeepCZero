@@ -13,10 +13,10 @@ public:
 
 class Softmax : public Function {
 private:
-	std::vector<int> axis;
+	std::vector<int> axes;
 
 public:
-	Softmax(std::vector<int> axis) : axis(axis) {};
+	Softmax(std::vector<int> axes) : axes(axes) {};
 	Variable forward(const std::vector<Variable>& xs) override;
 	std::vector<Variable> backward(const Variable& gy) override;
 	~Softmax() = default;

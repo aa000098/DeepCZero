@@ -46,9 +46,58 @@ void test_sigmoid_forward_backward() {
     std::cout << "✅ Sigmoid forward/backward test passed.\n";
 }
 
+void test_softmax_forward_backward() {
+    std::cout << "▶️ Running Softmax forward/backward test...\n";
+
+	using T = float;
+
+
+	// 입력: 2x3 행렬
+	Tensor<T> x_data({2, 3}, {
+		1.0, 2.0, 3.0,
+		0.0, 0.0, 0.0
+	});
+	Variable x(x_data);
+
+	// softmax(axis=1)
+	Variable y = softmax(x, {1});
+
+	// expected 결과: 행마다 softmax 수행
+	std::vector<T> expected_y(6);
+	{
+		// 첫 번째 행: [1.0, 2.0, 3.0]
+		float sum1 = std::exp(1.0f) + std::exp(2.0f) + std::exp(3.0f);
+		expected_y[0] = std::exp(1.0f) / sum1;
+		expected_y[1] = std::exp(2.0f) / sum1;
+		expected_y[2] = std::exp(3.0f) / sum1;
+
+		// 두 번째 행: [0.0, 0.0, 0.0] → softmax = uniform
+		expected_y[3] = expected_y[4] = expected_y[5] = 1.0f / 3.0f;
+	}
+
+	const auto& y_data = y.data().raw_data();
+	for (size_t i = 0; i < y_data.size(); ++i) {
+		assert(std::abs(y_data[i] - expected_y[i]) < 1e-5);
+	}
+
+	// 역전파 테스트
+	y.backward();
+
+	// 역전파 결과 확인 (일단 합이 0인지 확인: softmax의 특성)
+	const auto& gx_data = x.grad().data().raw_data();
+	for (size_t row = 0; row < 2; ++row) {
+		float sum = gx_data[row * 3 + 0] + gx_data[row * 3 + 1] + gx_data[row * 3 + 2];
+		assert(std::abs(sum) < 1e-5);
+	}
+
+	std::cout << "✅ Sigmoid forward/backward test passed.\n";
+
+}
+
 
 int main() {
     test_sigmoid_forward_backward();
+	test_softmax_forward_backward();
     return 0;
 }
 

@@ -73,7 +73,7 @@ namespace layer {
 
 	void Linear::init_W() {
 		Tensor W_data = randn(in_size, out_size); 
-		W_data *= std::sqrt(1/in_size);
+		W_data *= std::sqrt(1/static_cast<float>(in_size));
 		params["W"].data() = W_data;
 	}
 
@@ -81,8 +81,8 @@ namespace layer {
 		const Variable& x = xs[0];
 		const Parameter& W = get_param("W");
 		const Parameter& b = get_param("b");
-			if (W.data().empty()) {
-			in_size = x.shape()[1];
+		if (W.data().empty()) {
+			in_size = x.shape().back();
 			init_W();
 		}
 		

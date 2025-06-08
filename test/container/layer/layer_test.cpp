@@ -46,7 +46,7 @@ void test_linear_layer() {
     Variable x(input_data);
 
     // (2) Linear 레이어 생성
-    Linear linear(3, 2);  // input dim: 3, output dim: 2
+    Linear linear(2);  // input dim: 3, output dim: 2
 
     // (3) 고정된 weight와 bias 설정
     Tensor<> W_data({3, 2}, {
@@ -55,13 +55,14 @@ void test_linear_layer() {
         1.0f, 1.0f
     });
     Tensor<> b_data({2}, {1.0f, 2.0f});
-
-    linear.get_param("W").data() = W_data;
-    linear.get_param("b").data() = b_data;
+	
+	linear.get_param("W").data() = W_data;
+	linear.get_param("b").data() = b_data;
 
     // (4) Forward 실행
     std::vector<Variable> inputs = {x};
     Variable y = linear(inputs);
+	y.show();	
 
     // (5) 출력 검증
     const Tensor<>& y_data = y.data();
@@ -112,6 +113,8 @@ void test_linear_regression() {
 	for (size_t i = 0; i < iters; i++) {
 		y_pred = predict(x, l1, l2);
 		loss = mean_squared_error(y, y_pred);
+		loss.set_name("loss");
+
 		l1.cleargrads();
 		l2.cleargrads();
 		loss.backward();
@@ -131,10 +134,62 @@ void test_linear_regression() {
 
 }
 
+void test_linear_layer_3d() {
+	using namespace layer;
+
+	std::cout << "[Test] Linear Layer Forward (3D input, with flatten)\n";
+
+	// (1) 입력 텐서: shape = [2, 2, 3]
+	// 배치 2, 시퀀스 2, feature 3
+	Tensor<> input_data({2, 2, 3}, {
+		1.0f, 2.0f, 3.0f,  // sample 0-0
+		4.0f, 5.0f, 6.0f,  // sample 0-1
+		7.0f, 8.0f, 9.0f,  // sample 1-0
+		10.0f, 11.0f, 12.0f  // sample 1-1
+	});
+	Variable x(input_data);
+
+	// (2) Linear 레이어 (input_dim=3, output_dim=2)
+	Linear linear(2);
+
+	// (3) 고정된 weight와 bias 설정
+	Tensor<> W_data({3, 2}, {
+		1.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f
+	});
+	Tensor<> b_data({2}, {1.0f, 2.0f});
+	linear.get_param("W").data() = W_data;
+	linear.get_param("b").data() = b_data;
+
+	// (4) Forward
+	Variable y = linear({x});
+
+	// (5) 출력 검증
+	const Tensor<>& y_data = y.data();
+	const std::vector<float>& actual = y_data.raw_data();
+	const std::vector<float> expected = {
+		// [1,2,3] @ W + b = [4,5] + [1,2] = [5,7]
+		5.0f, 7.0f,
+		11.0f, 13.0f,  // [4,5,6]
+		17.0f, 19.0f,  // [7,8,9]
+		23.0f, 25.0f   // [10,11,12]
+	};
+
+	assert(y_data.get_shape() == std::vector<size_t>({2, 2, 2}));
+	for (size_t i = 0; i < actual.size(); ++i) {
+		assert(std::abs(actual[i] - expected[i]) < 1e-5);
+	}
+
+	std::cout << "✅ 3D Linear layer test passed.\n";
+}
+
+
 int main() {
     test_layer_register_and_get_param();
 	test_linear_layer();
 	test_linear_regression();
+	test_linear_layer_3d();
     return 0;
 }
 

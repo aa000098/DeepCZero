@@ -8,7 +8,7 @@
 #include "container/tensor/tensor_ops.hpp"
 #include "container/tensor/tensor_ops_ext.hpp"
 #include "container/tensor/tensor_debug.hpp"
-#include "container/tensor/tensor_functions.hpp"
 #include "container/tensor/tensor_utils.hpp"
+#include "container/tensor/tensor_functions.hpp"
 #include "container/tensor/tensor_random.hpp"
 

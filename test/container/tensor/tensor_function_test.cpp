@@ -190,9 +190,45 @@ void test_add_at() {
 	std::cout << "\n✅ test_add_at passed.\n";
 }
 
+void test_tensor_max() {
+	std::cout << "[Test] max\n";
+    using T = float;
+
+    // 입력 텐서: shape = [2, 3]
+    Tensor<T> x({2, 3}, {
+        1.0, 5.0, 3.0,
+        4.0, 2.0, 6.0
+    });
+
+    // 전체 max
+    Tensor<T> max_all = x.max({}, false);
+    assert(max_all.size() == 1);
+    assert(max_all.raw_data()[0] == 6.0f);
+
+    // axis = 0 (행 방향): 결과 shape = [3]
+    Tensor<T> max_axis0 = x.max({0}, false);
+    std::vector<T> expected0 = {4.0f, 5.0f, 6.0f};
+    assert(max_axis0.get_shape() == std::vector<size_t>({3}));
+    assert(max_axis0.raw_data() == expected0);
+
+    // axis = 1 (열 방향), keepdims = true: 결과 shape = [2,1]
+    Tensor<T> max_axis1 = x.max({1}, true);
+    std::vector<T> expected1 = {5.0f, 6.0f};
+    assert(max_axis1.get_shape() == std::vector<size_t>({2,1}));
+    assert(max_axis1.raw_data() == expected1);
+
+    // axis = [0, 1] (전체): 결과 shape = []
+    Tensor<T> max_axis01 = x.max({0, 1}, false);
+    assert(max_axis01.get_shape() == std::vector<size_t>({}));
+    assert(max_axis01.raw_data()[0] == 6.0f);
+
+    std::cout << "✅ test_tensor_max passed.\n";
+}
+
 int main() {
 	test_tensor_sum();
 	test_broadcast_to();
 	test_sum_to();
 	test_add_at();
+	test_tensor_max();
 }

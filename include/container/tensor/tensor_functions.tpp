@@ -2,12 +2,12 @@
 
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensorview.hpp"
+#include "container/tensor/tensor_utils.hpp"
 
 #include <vector>
 #include <string>
 #include <memory>
 #include <stdexcept>
-#include <numeric>
 
 namespace tensor {
 
@@ -107,6 +107,5 @@ void add_at(Tensor<T>& gx,
 		gx_data[offset + i] += gy_data[i]; 
 
 }
-
 
 }

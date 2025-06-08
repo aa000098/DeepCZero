@@ -46,23 +46,6 @@ namespace tensor {
 				impl = std::make_shared<TensorND<T>>(shape, init);
 		};
 
-// slicing operators
-		TensorView<T> operator[](size_t idx) {
-			auto* ptr = dynamic_cast<TensorND<T>*>(impl.get());
-			if(!ptr) throw std::runtime_error("Only TensorND supports slicing");
-			return (*ptr)[idx]; };
-		
-		T& operator()(const std::vector<size_t>& indices) {
-			return (*impl)(indices); };
-
-		const T& operator()(const std::vector<size_t>& indices) const {
-			return (*impl)(indices); };
-
-		Tensor<T>& operator=(const TensorView<T>& view) {
-			this->impl = std::make_shared<TensorView<T>>(view);
-			return *this;
-		}
-
 // arithmetic operators
 		Tensor<T>& operator+=(const Tensor<T>& other) {
 			add_inplace(*this, other);
@@ -99,6 +82,23 @@ namespace tensor {
 			return *this;
 		}
 
+// slicing operators
+		TensorView<T> operator[](size_t idx) {
+			auto* ptr = dynamic_cast<TensorND<T>*>(impl.get());
+			if(!ptr) throw std::runtime_error("Only TensorND supports slicing");
+			return (*ptr)[idx]; };
+		
+		T& operator()(const std::vector<size_t>& indices) {
+			return (*impl)(indices); };
+
+		const T& operator()(const std::vector<size_t>& indices) const {
+			return (*impl)(indices); };
+
+		Tensor<T>& operator=(const TensorView<T>& view) {
+			this->impl = std::make_shared<TensorView<T>>(view);
+			return *this;
+		}
+
 // common functions
 		TensorView<T> view() const;
 		std::vector<size_t> get_shape() const { 
@@ -132,7 +132,11 @@ namespace tensor {
 		Tensor<T> reshape_like(const Tensor<T>& other) const;
 		Tensor<T> reshape(const std::vector<size_t>& new_shape) const;
 		Tensor<T> transpose(const std::vector<size_t>& axes={}) const;
-		Tensor<T> sum(const std::vector<int>& axis = {}, bool keepdims = false) const;
+		Tensor<T> sum(const std::vector<int>& axis = {},
+						 bool keepdims = false) const;
+		Tensor<T> max(const std::vector<int> axes,
+						bool keepdims) const;
+		
 
 // gemm functions
 		Tensor<T>& dot(const Tensor<T>& other) {

@@ -90,7 +90,7 @@ void test_softmax_forward_backward() {
 		assert(std::abs(sum) < 1e-5);
 	}
 
-	std::cout << "✅ Sigmoid forward/backward test passed.\n";
+	std::cout << "✅ Softmax forward/backward test passed.\n";
 
 }
 

@@ -146,7 +146,7 @@ Variable sigmoid(const Variable& x) {
 	return (*f)({x});
 }
 
-Variable softmax(const Variable& x, std::vector<int> axes = {}) {
+Variable softmax(const Variable& x, std::vector<int> axes) {
 	using namespace function;
 	std::shared_ptr<Function> f = std::make_shared<Softmax>(axes);
 	return (*f)({x});

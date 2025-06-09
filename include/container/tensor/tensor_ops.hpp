@@ -247,6 +247,21 @@ Tensor<T> exp(const Tensor<T>& x) {
 }
 
 template<typename T>
+Tensor<T> log(const Tensor<T>& x) {
+    const std::vector<T>& x_data = x.raw_data();
+    std::vector<T> result_data(x_data.size());
+
+    for (size_t i = 0; i < x_data.size(); ++i) {
+        if (x_data[i] <= static_cast<T>(0))
+            throw std::domain_error("log: input must be positive.");
+        result_data[i] = std::log(x_data[i]);
+    }
+
+    return Tensor<T>(x.get_shape(), result_data);
+}
+
+
+template<typename T>
 Tensor<T> sin(const Tensor<T>& x) {
 	std::vector<T> result_data(x.raw_data());
 	const std::vector<T>& x_data = x.raw_data();

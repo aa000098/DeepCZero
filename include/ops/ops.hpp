@@ -38,6 +38,7 @@ Variable matmul(const Variable& x, const Variable& w);
 
 // loss
 Variable mean_squared_error(const Variable& x0, const Variable& x1);
+Variable softmax_cross_entropy_error(const Variable& x, const Variable& t);
 
 // layers
 Variable linear(const Variable& x, const Variable& w, const Variable& b);

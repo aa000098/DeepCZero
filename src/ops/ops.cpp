@@ -128,18 +128,28 @@ Variable matmul(const Variable &x, const Variable& w) {
 	return (*f)({x, w});
 }
 
+// loss
 Variable mean_squared_error(const Variable &x0, const Variable& x1) {
 	using namespace function;
 	std::shared_ptr<Function> f = std::make_shared<MeanSquaredError>();
 	return (*f)({x0, x1});
 }
 
+Variable softmax_cross_entropy_error(const Variable& x, const Variable& t) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<SoftmaxCrossEntropyError>();
+	return (*f)({x, t});
+
+}
+
+// layer
 Variable linear(const Variable& x, const Variable& w, const Variable& b) {
 	using namespace function;
 	std::shared_ptr<Function> f = std::make_shared<Linear>();
 	return (*f)({x, w, b});
 }
 
+// activation
 Variable sigmoid(const Variable& x) {
 	using namespace function;
 	std::shared_ptr<Function> f = std::make_shared<Sigmoid>();

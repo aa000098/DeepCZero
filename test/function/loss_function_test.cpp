@@ -39,11 +39,63 @@ void test_mean_squared_error_backward() {
 	}
 }
 
+void test_softmax_cross_entropy_error_forward_backward() {
+    using namespace function;
+
+    // 입력: x (logits), t (정답 인덱스)
+    Tensor<> x_data({2, 3}, {
+        1.0f, 2.0f, 3.0f,
+        1.0f, 2.0f, 3.0f
+    });
+    Tensor<> t_data({2}, {2, 0});  // 정답 인덱스
+
+    Variable x(x_data);
+    Variable t(t_data);
+
+    // Forward
+    Variable loss = softmax_cross_entropy_error(x, t);
+
+    // 🔍 정답 계산 (수기 계산)
+    // softmax([1,2,3]) = [0.0900306, 0.244728, 0.665241]
+    float logp1 = std::log(0.665241f);  // label 2
+    float logp2 = std::log(0.0900306f); // label 0
+    float expected_loss = -(logp1 + logp2) / 2.0f;
+
+    float actual_loss = loss.data().raw_data()[0];
+    assert(std::abs(actual_loss - expected_loss) < 1e-4f);
+
+    std::cout << "[✅ Forward passed] loss = " << actual_loss << std::endl;
+
+    // Backward
+    loss.backward();
+
+    const auto& grad = x.grad().data().raw_data();
+    x.grad().show();
+
+    // 정답 그래디언트: (softmax - one_hot) / N
+    // softmax: [0.0900306, 0.244728, 0.665241]
+    float expected_grad[6] = {
+        0.0450153f, 0.122364f, -0.1676205f,  // label=2
+        -0.455f,    0.122364f, 0.332636f     // label=0
+    };
+
+    for (int i = 0; i < 6; ++i) {
+        assert(std::abs(grad[i] - expected_grad[i]) < 1e-4f);
+    }
+
+    std::cout << "[✅ Backward passed] x.grad = ";
+    x.grad().show();
+
+    std::cout << "\n🎉 SoftmaxCrossEntropyError forward/backward test passed.\n";
+}
+
 int main() {
 	test_mean_squared_error_forward();
 	test_mean_squared_error_backward();
-
 	std::cout << "✅ All MeanSquaredError tests passed." << std::endl;
+
+	test_softmax_cross_entropy_error_forward_backward();
+
 	return 0;
 }
 

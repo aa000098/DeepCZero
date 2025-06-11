@@ -74,12 +74,12 @@ void test_softmax_cross_entropy_error_forward_backward() {
     // 정답 그래디언트: (softmax - one_hot) / N
     // softmax: [0.0900306, 0.244728, 0.665241]
     float expected_grad[6] = {
-        0.0450153f, 0.122364f, -0.1676205f,  // label=2
-        -0.455f,    0.122364f, 0.332636f     // label=0
+        0.0450153f, 0.122364f, -0.16738f,  // label=2
+        -0.454985f, 0.122364f, 0.332620f   // label=0
     };
 
     for (int i = 0; i < 6; ++i) {
-        assert(std::abs(grad[i] - expected_grad[i]) < 1e-3f);
+        assert(std::abs(grad[i] - expected_grad[i]) < 1e-4f);
     }
 
     std::cout << "[✅ Backward passed] x.grad = ";

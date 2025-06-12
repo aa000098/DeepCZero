@@ -41,6 +41,7 @@ void test_mean_squared_error_backward() {
 
 void test_softmax_cross_entropy_error_forward_backward() {
     using namespace function;
+	std::cout << "[Test] Softmax Cross Entropy Error Forward Backward" << std::endl;
 
     // 입력: x (logits), t (정답 인덱스)
     Tensor<> x_data({2, 3}, {
@@ -51,7 +52,7 @@ void test_softmax_cross_entropy_error_forward_backward() {
 
     Variable x(x_data);
     Variable t(t_data);
-
+	
     // Forward
     Variable loss = softmax_cross_entropy_error(x, t);
 
@@ -88,12 +89,41 @@ void test_softmax_cross_entropy_error_forward_backward() {
     std::cout << "\n🎉 SoftmaxCrossEntropyError forward/backward test passed.\n";
 }
 
+void test_softmax_cross_entropy_error_forward_2() {
+    using namespace function;
+	std::cout << "[Test] Softmax Cross Entropy Error Test2" << std::endl;
+
+    // 입력: x (logits), t (정답 인덱스)
+    Tensor<> x_data({4, 2}, {
+        0.2f, -0.4f, 0.3f, 0.5f,
+        1.3f, -3.2f, 2.1f, 0.3f
+    });
+    Tensor<> t_data({4}, {1, 0, 1, 0});  // 정답 인덱스
+
+    Variable x(x_data);
+    Variable t(t_data);
+
+
+    // Forward
+    Variable loss = softmax_cross_entropy_error(x, t);
+
+    // 🔍 정답 계산 (수기 계산)
+    float expected_loss = 1.6249;
+
+    float actual_loss = loss.data().raw_data()[0];
+    assert(std::abs(actual_loss - expected_loss) < 1e-4f);
+
+    std::cout << "[✅ Forward passed] loss = " << actual_loss << std::endl;
+
+}
+
 int main() {
 	test_mean_squared_error_forward();
 	test_mean_squared_error_backward();
 	std::cout << "✅ All MeanSquaredError tests passed." << std::endl;
 
 	test_softmax_cross_entropy_error_forward_backward();
+	test_softmax_cross_entropy_error_forward_2();
 
 	return 0;
 }

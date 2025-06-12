@@ -142,7 +142,11 @@ namespace tensor {
 		Tensor<T>& dot(const Tensor<T>& other) {
 			return dot(*this, other);
 		}
+
+// io functions
+		void to_csv(const std::string& filename, bool index = false, bool header = false, char delimiter = ',');
 	};
+
 }
 
 #include "container/tensor/tensor.tpp"

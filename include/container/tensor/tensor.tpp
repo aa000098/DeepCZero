@@ -5,6 +5,10 @@
 
 #include <set>
 #include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <cstdlib>
+#include <filesystem>
 
 namespace tensor {
 
@@ -214,4 +218,41 @@ Tensor<T> Tensor<T>::max(const std::vector<int> axes,
 
 }
 
+template<typename T>
+void Tensor<T>::to_csv(const std::string& filename, bool index, bool header, char delimiter) {
+	const char* home = std::getenv("HOME");
+	if (home == nullptr) 
+		throw std::runtime_error("HOME environment variable not set.");
+
+	std::string dir_path = std::string(home) + "/.deepczero/datasets/";
+	std::filesystem::create_directories(dir_path);
+
+	std::string full_path = dir_path + "/" + filename;
+    std::ofstream out(full_path);
+    if (!out.is_open())
+        throw std::runtime_error("Failed to open file: " + full_path);
+
+    // 헤더 작성
+	if (header) {
+    	for (size_t i = 0; i < this->size(); ++i) 
+        	out << "dim" << i << delimiter;
+    	out << "value\n";
+	}
+
+    // 데이터 작성
+    for (size_t flat_idx = 0; flat_idx < this->size(); ++flat_idx) {
+		if (index) {
+        	std::vector<size_t> indices = unflatten_index(flat_idx, this->get_shape());
+        	for (size_t i = 0; i < indices.size(); ++i)
+            	out << indices[i] << delimiter;
+		}
+        out << std::setprecision(7) << this->raw_data()[flat_idx] << "\n";
+    }
+
+    out.close();
 }
+
+}
+
+
+

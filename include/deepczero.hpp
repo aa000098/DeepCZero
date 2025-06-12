@@ -11,3 +11,5 @@
 
 #include "container/layer/layer_all.hpp"
 #include "optimizer/optimizer_all.hpp"
+
+#include "dataset/dataset_all.hpp"

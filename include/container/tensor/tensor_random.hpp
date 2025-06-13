@@ -1,3 +1,5 @@
+#pragma once
+
 #include "container/tensor/tensor_all.hpp"
 
 #include <random>
@@ -38,3 +40,15 @@ inline Tensor<> randn(size_t rows, size_t cols) {
 	std::random_device rd;
 	return randn(rows, cols, rd());
 }
+
+inline Tensor<> permutation(size_t size) {
+	std::vector<float> values(size);
+	std::iota(values.begin(), values.end(), 0);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::shuffle(values.begin(), values.end(), gen);
+
+	return Tensor<>({size}, values);
+}
+

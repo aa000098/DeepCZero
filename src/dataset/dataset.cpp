@@ -36,18 +36,15 @@ void SpiralDataset::init_dataset() {
 		}
 	}
 
-	std::mt19937 rng(seed);
-	std::vector<size_t> indices(total);
-	std::iota(indices.begin(), indices.end(), 0);
-	std::shuffle(indices.begin(), indices.end(), rng);
+	Tensor<> indices = permutation(total);
 
 	Tensor<> x_shuffled({total, input_dim});
 	Tensor<> t_shuffled({total});
 
 	for (size_t i = 0; i < total; i++) {
 		for (size_t d = 0; d < input_dim; d++)
-			x_shuffled({i, d}) = x_data({indices[i], d});
-		t_shuffled({i}) = t_data({indices[i]});
+			x_shuffled({i, d}) = x_data({indices({i}), d});
+		t_shuffled({i}) = t_data({indices({i})});
 	}
 
 	data = Variable(x_shuffled);

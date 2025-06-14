@@ -47,7 +47,7 @@ void SpiralDataset::init_dataset() {
 		t_shuffled({i}) = t_data({indices({i})});
 	}
 
-	data = Variable(x_shuffled);
-	target = Variable(t_shuffled);
+	data = x_shuffled;
+	label = t_shuffled;
 }
 

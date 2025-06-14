@@ -14,14 +14,14 @@ void test_spiral_dataset_mlp() {
 	size_t num_class = 3;
 
 	SpiralDataset train_ds(num_data, num_class, true);
-	Variable train_X = train_ds.get_data();
-	Variable train_t = train_ds.get_target();
+	Tensor train_X = train_ds.get_data();
+	Tensor train_t = train_ds.get_label();
 
 	MLP model({hidden_size, 3});
 	SGD optimizer(lr);
 	optimizer.setup(model);
 
-	size_t data_size = train_X.shape()[0];
+	size_t data_size = train_X.get_shape()[0];
 	size_t max_iter = data_size / batch_size;
 
 	for (size_t epoch = 0; epoch < max_epoch; epoch++) {
@@ -34,8 +34,8 @@ void test_spiral_dataset_mlp() {
 
 			Tensor<size_t> batch_index = index.slice(0, start, end);
 
-			Variable batch_x = train_X.gather_rows(batch_index);
-			Variable batch_t = train_t.gather_rows(batch_index);
+			Tensor batch_x = train_X.gather_rows(batch_index);
+			Tensor batch_t = train_t.gather_rows(batch_index);
 			Variable y = model(batch_x);
 			Variable loss = softmax_cross_entropy_error(y, batch_t);
 

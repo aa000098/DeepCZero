@@ -14,19 +14,14 @@ namespace tensor {
 		Tensor1D(size_t len, T init = T()) : data_ptr(std::make_shared<std::vector<T>>(len, init)) {};
 		Tensor1D() : data_ptr(std::make_shared<std::vector<T>>()) {};
 
+		// TensorBase override
 		T& operator()(const std::vector<size_t>& indices) override {
 			return (*data_ptr)[indices[0]];
 		};
 
-		std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const {
-			if (dim != 0)
-				throw std::invalid_argument("Tensor1D only supports slicing along dimension 0.");
-			if (start >= end || end > data_ptr->size())
-				throw std::out_of_range("Invalid slice range for Tensor1D");
+		std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const override;
 
-			std::vector<T> sliced(data_ptr->begin() + start, data_ptr->begin() + end);
-			return std::make_shared<Tensor1D<T>>(sliced);
-		}; 
+		std::shared_ptr<TensorBase<T>> gather_rows(const std::vector<size_t>& indices) const;
 
 		std::vector<size_t> get_shape() const override { return {data_ptr->size()}; };
 		std::vector<size_t> get_strides() const override {
@@ -38,12 +33,11 @@ namespace tensor {
 			return data_ptr->empty(); };
 
 		std::vector<T>& raw_data() override {
-			return *data_ptr;};
+			return *data_ptr; };
 		const std::vector<T>& raw_data() const override {
-			return *data_ptr;};
+			return *data_ptr; };
 		std::shared_ptr<std::vector<T>> shared_data() const override {
-			return data_ptr;
-		};
+			return data_ptr; };
 	
 		void show() const override {
 			std::cout << "[ ";
@@ -57,3 +51,5 @@ namespace tensor {
 
 	};
 }
+
+#include "container/tensor/tensor1D.tpp"

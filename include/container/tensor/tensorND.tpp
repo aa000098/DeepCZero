@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <memory>
 
 namespace tensor {
 	template<typename T>
@@ -62,6 +63,42 @@ namespace tensor {
 
 		return std::make_shared<TensorND<T>>(result);
 	}
+
+	template<typename T>
+	std::shared_ptr<TensorBase<T>> TensorND<T>::gather_rows(const std::vector<size_t> &indices) const {
+
+	    const std::vector<size_t>& shape = this->get_shape();
+    	size_t ndim = shape.size();
+
+    	if (ndim == 0)
+        	throw std::runtime_error("get_item: scalar Variable cannot be indexed.");
+
+    	// 슬라이싱 대상: 첫 번째 차원
+    	size_t subblock_size = 1;
+    	for (size_t i = 1; i < ndim; ++i)
+        	subblock_size *= shape[i];
+
+    	std::vector<T> new_data;
+    	new_data.reserve(indices.size() * subblock_size);
+
+    	for (size_t i : indices) {
+        	if (i >= shape[0])
+            throw std::out_of_range("get_item: index out of bounds");
+
+        	for (size_t j = 0; j < subblock_size; ++j) {
+            	// 전체 플랫 인덱스 계산: row offset + local offset
+            	size_t flat_idx = i * subblock_size + j;
+            	new_data.push_back(this->raw_data()[flat_idx]);
+        	}
+    	}
+
+    	// 새 shape: 첫 번째 차원만 변경, 나머지는 유지
+    	std::vector<size_t> new_shape = shape;
+    	new_shape[0] = indices.size();
+
+    	return std::make_shared<TensorND<T>>(TensorND<T>(new_shape, new_data));
+	}
+
 
 	template<typename T>
 	TensorView<T> TensorND<T>::operator[](size_t idx) {

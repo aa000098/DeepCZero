@@ -10,8 +10,8 @@ void test_spiral_to_csv() {
 	bool train = true;
     SpiralDataset dataset(num_data, num_class, train);
 
-    Variable data = dataset.get_data();
-    Variable target = dataset.get_target();
+    Tensor data = dataset.get_data();
+    Tensor label = dataset.get_label();
 
     // 저장할 디렉토리 생성
     const char* home = std::getenv("HOME");
@@ -23,17 +23,17 @@ void test_spiral_to_csv() {
 
     // 파일 경로
 	std::string data_filename = "spiral_data.csv";
-	std::string target_filename = "spiral_target.csv";
+	std::string label_filename = "spiral_label.csv";
     std::string data_file = dir_path + "/" + data_filename; 
-    std::string target_file = dir_path + "/" + target_filename;;
+    std::string label_file = dir_path + "/" + label_filename;;
 
     // CSV 파일로 저장
-    data.data().to_csv(data_filename, false, false);
-    target.data().to_csv(target_filename, false, false);
+    data.to_csv(data_filename, false, false);
+    label.to_csv(label_filename, false, false);
 
     std::cout << "Spiral dataset saved to:\n"
               << "  " << data_file << "\n"
-              << "  " << target_file << "\n";
+              << "  " << label_file << "\n";
 }
 
 int main() {

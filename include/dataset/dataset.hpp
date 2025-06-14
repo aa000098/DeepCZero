@@ -1,13 +1,13 @@
 #pragma once
 
-#include "include/container/variable.hpp"
+#include "include/container/tensor/tensor_all.hpp"
 
 #include <string>
 
 class Dataset {
 protected:
-	Variable data;
-	Variable target;
+	Tensor<> data;
+	Tensor<> label;
 	bool train;
 
 public:
@@ -27,6 +27,6 @@ public:
 
 	void init_dataset();
 
-	Variable get_data() { return data; };
-	Variable get_target() { return target; };
+	Tensor<> get_data() { return data; };
+	Tensor<> get_label() { return label; };
 };

@@ -66,45 +66,6 @@ void Variable::clear_graph(std::unordered_set<std::uintptr_t>& visited) {
     impl->creator.reset(); 
 }
 
-Variable Variable::gather_rows(const std::vector<size_t> &indices) const {
-
-    const Tensor<>& x = this->data();
-    const std::vector<size_t>& shape = x.get_shape();
-    size_t ndim = shape.size();
-
-    if (ndim == 0)
-        throw std::runtime_error("get_item: scalar Variable cannot be indexed.");
-
-    // 슬라이싱 대상: 첫 번째 차원
-    size_t subblock_size = 1;
-    for (size_t i = 1; i < ndim; ++i)
-        subblock_size *= shape[i];
-
-    std::vector<float> new_data;
-    new_data.reserve(indices.size() * subblock_size);
-
-    for (size_t i : indices) {
-        if (i >= shape[0])
-            throw std::out_of_range("get_item: index out of bounds");
-
-        for (size_t j = 0; j < subblock_size; ++j) {
-            // 전체 플랫 인덱스 계산: row offset + local offset
-            size_t flat_idx = i * subblock_size + j;
-            new_data.push_back(x.raw_data()[flat_idx]);
-        }
-    }
-
-    // 새 shape: 첫 번째 차원만 변경, 나머지는 유지
-    std::vector<size_t> new_shape = shape;
-    new_shape[0] = indices.size();
-
-    return Variable(Tensor<>(new_shape, new_data));
-
-}
-
-Variable Variable::gather_rows(const Tensor<size_t>& indices) const {
-	return this->gather_rows(indices.raw_data());
-}
 
 void Variable::debug_refs() {
     std::cout << "[Variable] name: " << impl->name 

@@ -99,6 +99,11 @@ namespace tensor {
 			return Tensor<T>(sliced_tensor);
 		};
 
+		Tensor<T> gather_rows(const std::vector<size_t>& indices) const { 
+			return Tensor<T>(impl->gather_rows(indices)); };
+		Tensor<T> gather_rows(const Tensor<size_t>& indices) const { 
+			return this->gather_rows(indices.raw_data()); };
+
 		Tensor<T>& operator=(const TensorView<T>& view) {
 			this->impl = std::make_shared<TensorView<T>>(view);
 			return *this;

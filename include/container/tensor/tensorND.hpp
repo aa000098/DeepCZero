@@ -6,8 +6,13 @@
 
 #include <cstddef>
 #include <vector>
+#include <memory>
+
+
 
 namespace tensor {
+	
+
 	template<typename T>
 	class TensorND : public TensorBase<T> {
 	private:
@@ -34,12 +39,13 @@ namespace tensor {
 		const T& operator()(
 				const std::vector<size_t>& indices) const { 
 			return (*data_ptr)[flatten_index(indices, strides)]; };
-		std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const;
+		std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const override ;
 
+		std::shared_ptr<TensorBase<T>> gather_rows(const std::vector<size_t>& indices) const override;
 		
 		TensorView<T> view(size_t index) const;
 		
-		std::vector<size_t> get_strides() const {
+		std::vector<size_t> get_strides() const override {
 			return strides; };
 
 		std::shared_ptr<std::vector<T>> shared_data() const {

@@ -41,6 +41,19 @@ namespace tensor {
 	}
 
 
+	template<typename T>
+	std::shared_ptr<TensorBase<T>> TensorView<T>::slice(size_t dim, size_t start, size_t end) const {
+		if (dim >= shape.size() || start >= end || end > shape[dim])
+			throw std::invalid_argument("Invalid slice range");
+
+		std::vector<size_t> new_shape = shape;
+		new_shape[dim] = end - start;
+
+		std::vector<size_t> new_strides = strides;
+		size_t new_offset = offset + start * strides[dim];
+
+		return std::make_shared<TensorView<T>>(new_shape, this->data_ptr, new_strides, new_offset);
+	} 
 	/*
 	template<typename T>
 	std::ostream& operator<<(std::ostream& os, const TensorView<T>& view) {

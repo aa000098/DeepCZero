@@ -39,6 +39,8 @@ namespace tensor {
 		const T& operator()(const std::vector<size_t>& indices) const { 
 			return const_cast<TensorView*> (this)->operator()(indices); };
 
+		std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const; 
+
 		TensorView<T> operator[](size_t idx) const;
 
 //		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);

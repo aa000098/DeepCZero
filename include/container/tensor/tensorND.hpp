@@ -2,6 +2,7 @@
 
 #include "container/tensor/tensorbase.hpp"
 #include "container/tensor/tensorview.hpp"
+#include "container/tensor/tensor_utils.hpp"
 
 #include <cstddef>
 #include <vector>
@@ -29,10 +30,12 @@ namespace tensor {
 		
 		T& operator()(	
 				const std::vector<size_t>& indices) {
-			return (*data_ptr)[flatten_index(indices)]; };
+			return (*data_ptr)[flatten_index(indices, strides)]; };
 		const T& operator()(
 				const std::vector<size_t>& indices) const { 
-			return (*data_ptr)[flatten_index(indices)]; };
+			return (*data_ptr)[flatten_index(indices, strides)]; };
+		std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const;
+
 		
 		TensorView<T> view(size_t index) const;
 		
@@ -62,7 +65,7 @@ namespace tensor {
 
 	private:
 		void compute_strides();
-		size_t flatten_index(const std::vector<size_t>& indices);
+//		size_t flatten_index(const std::vector<size_t>& indices);
 	};
 }
 

@@ -3,6 +3,7 @@
 #include "container/tensor/tensorview.hpp"
 #include "container/tensor/tensorND.hpp"
 #include "container/tensor/tensor_debug.hpp"
+#include "container/tensor/tensor_utils.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -41,6 +42,26 @@ namespace tensor {
 		compute_strides(); 
 	};
 
+	template<typename T>
+	std::shared_ptr<TensorBase<T>> TensorND<T>::slice(size_t dim, size_t start, size_t end) const {
+		if (dim >= shape.size() || start >= end || end > shape[dim])
+			throw std::invalid_argument("Invalid slice range");
+
+		std::vector<size_t> new_shape = shape;
+		new_shape[dim] = end - start;
+
+		TensorND<T> result(new_shape);
+
+		std::vector<size_t> idx(shape.size(), 0);
+		for (size_t flat_idx = 0; flat_idx < result.size(); flat_idx++) {
+			auto new_idx = unflatten_index(flat_idx, new_shape);
+			idx = new_idx;
+			idx[dim] += start;
+			result(new_idx) = (*this)(idx);
+		}
+
+		return std::make_shared<TensorND<T>>(result);
+	}
 
 	template<typename T>
 	TensorView<T> TensorND<T>::operator[](size_t idx) {
@@ -87,7 +108,7 @@ namespace tensor {
 			stride *= shape[i];
 		}
 	}
-
+/*
 	template<typename T>
 	size_t TensorND<T>::flatten_index(const std::vector<size_t>& indices) {
 		if (indices.size() != shape.size())
@@ -100,7 +121,7 @@ namespace tensor {
 		}
 		return idx;
 	}
-
+*/
 	template<typename T>
 	void TensorND<T>::show() const {
 		print_tensor(*this);

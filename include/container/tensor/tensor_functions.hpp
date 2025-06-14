@@ -17,7 +17,10 @@ template<typename T>
 void add_at(Tensor<T>& gx, 
 			const std::vector<size_t>& slices,
 			const Tensor<T>& gy);
+
+template<typename T>
+inline std::tuple<Tensor<T>, Tensor<T>, std::vector<size_t>> broadcast_binary_operands(
+    const Tensor<T>& a, const Tensor<T>& b);
+
 }
-
-
 #include "container/tensor/tensor_functions.tpp"

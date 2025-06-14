@@ -11,6 +11,7 @@ namespace tensor {
 	public:
 
 		virtual T& operator()(const std::vector<size_t>& indices) = 0;
+		virtual std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const = 0; 
 		virtual size_t size() const = 0;
 		virtual size_t ndim() const = 0;
 		virtual size_t get_offset() const = 0;

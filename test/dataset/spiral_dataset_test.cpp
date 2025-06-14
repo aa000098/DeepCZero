@@ -11,6 +11,7 @@ void test_spiral_dataset() {
     SpiralDataset train_ds(num_data, num_class, true);
     Variable train_x = train_ds.get_data();
     Variable train_t = train_ds.get_target();
+	train_t.show();
 
     assert(train_x.shape()[0] == num_data * num_class);
     assert(train_x.shape()[1] == input_dim);

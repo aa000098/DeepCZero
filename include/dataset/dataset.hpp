@@ -13,6 +13,8 @@ protected:
 public:
 	Dataset(bool train = true) : train(train) {};
 
+	Tensor<> get_data() { return data; };
+	Tensor<> get_label() { return label; };
 };
 
 class SpiralDataset : public Dataset {
@@ -27,6 +29,16 @@ public:
 
 	void init_dataset();
 
-	Tensor<> get_data() { return data; };
-	Tensor<> get_label() { return label; };
+};
+
+class BigDataset : public Dataset {
+private:
+	size_t num_data;
+	size_t num_class;
+
+public:
+	BigDataset(	size_t num_data,
+				size_t num_class,
+				bool train = true);
+
 };

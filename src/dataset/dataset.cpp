@@ -36,7 +36,7 @@ void SpiralDataset::init_dataset() {
 		}
 	}
 
-	Tensor<> indices = permutation(total);
+	Tensor<size_t> indices = permutation(total);
 
 	Tensor<> x_shuffled({total, input_dim});
 	Tensor<> t_shuffled({total});
@@ -49,5 +49,5 @@ void SpiralDataset::init_dataset() {
 
 	data = Variable(x_shuffled);
 	target = Variable(t_shuffled);
-
 }
+

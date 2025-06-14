@@ -94,9 +94,13 @@ public:
 	float& operator()(
 			std::vector<size_t> idx) {
 		return impl->data(idx); };
-	tensor::TensorView<float> operator[](
+
+	TensorView<float> operator[](
 			size_t idx) const { 
 		return impl->data[idx]; };
+
+	Variable gather_rows(const std::vector<size_t>& indices) const;
+	Variable gather_rows(const Tensor<size_t>& indices) const;
 
 public:
 // impl functions

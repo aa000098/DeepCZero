@@ -19,7 +19,7 @@ void add_at(Tensor<T>& gx,
 			const Tensor<T>& gy);
 
 template<typename T>
-inline std::tuple<Tensor<T>, Tensor<T>, std::vector<size_t>> broadcast_binary_operands(
+std::tuple<Tensor<T>, Tensor<T>, std::vector<size_t>> broadcast_binary_operands(
     const Tensor<T>& a, const Tensor<T>& b);
 
 }

@@ -51,3 +51,21 @@ void SpiralDataset::init_dataset() {
 	label = t_shuffled;
 }
 
+
+BigDataset::BigDataset(	size_t num_data,
+						size_t num_class,
+						bool train)
+		: Dataset(train),
+		num_data(num_data),
+		num_class(num_class) {}
+
+Tensor<> BigDataset::get_data() {
+	//TODO: load data
+	Tensor x;
+	return x;
+}
+
+Tensor<> BigDataset::get_label() {
+	Tensor x;
+	return x;
+}

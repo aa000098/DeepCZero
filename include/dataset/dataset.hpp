@@ -41,4 +41,7 @@ public:
 				size_t num_class,
 				bool train = true);
 
+	Tensor<> get_data();
+	Tensor<> get_label();
+
 };

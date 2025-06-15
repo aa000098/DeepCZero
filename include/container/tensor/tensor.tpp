@@ -220,6 +220,7 @@ Tensor<T> Tensor<T>::max(const std::vector<int> axes,
 
 template<typename T>
 void Tensor<T>::to_csv(const std::string& filename, bool index, bool header, char delimiter) {
+	// 파일 기본 저장 경로 설정
 	const char* home = std::getenv("HOME");
 	if (home == nullptr) 
 		throw std::runtime_error("HOME environment variable not set.");
@@ -230,26 +231,106 @@ void Tensor<T>::to_csv(const std::string& filename, bool index, bool header, cha
 	std::string full_path = dir_path + "/" + filename;
     std::ofstream out(full_path);
     if (!out.is_open())
-        throw std::runtime_error("Failed to open file: " + full_path);
+		throw std::runtime_error("Failed to open file: " + full_path);
+
+	const auto& shape = this->get_shape();
+	size_t ndim = shape.size();
+
+	if (ndim >= 3)
+		throw std::runtime_error("to_csv only supports tensors with ndim <= 2");
 
     // 헤더 작성
 	if (header) {
-    	for (size_t i = 0; i < this->size(); ++i) 
-        	out << "dim" << i << delimiter;
-    	out << "value\n";
+		if (index) {
+        	out << "row" << delimiter;
+		}
+		if (ndim == 1)
+    		out << "col\n";
+		else if (ndim == 2) {
+			for (size_t j = 0; j < shape[1]; j++) {
+				out << "col" << j;
+				if (j < shape[1] - 1)
+					out << delimiter;
+			}
+			out << "\n";
+		}
 	}
 
     // 데이터 작성
-    for (size_t flat_idx = 0; flat_idx < this->size(); ++flat_idx) {
-		if (index) {
-        	std::vector<size_t> indices = unflatten_index(flat_idx, this->get_shape());
-        	for (size_t i = 0; i < indices.size(); ++i)
-            	out << indices[i] << delimiter;
+	if (ndim == 1) {
+		for (size_t i = 0; i < shape[0]; i++) {
+			if (index) out << i << delimiter;
+			out << std::setprecision(7) << this->raw_data()[i] << "\n";
 		}
-        out << std::setprecision(7) << this->raw_data()[flat_idx] << "\n";
-    }
+	} else if (ndim == 2) {
+		size_t rows = shape[0];
+		size_t cols = shape[1];
+		for (size_t i = 0; i < rows; i++) {
+			if (index) out << i << delimiter;
+			for (size_t j = 0; j < cols; j++) {
+				out << std::setprecision(7) << this->raw_data()[i * cols + j];
+				if (j < cols - 1)
+					out << delimiter;
+			}
+			out << "\n";
+		}
+	}
 
     out.close();
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::from_csv(const std::string& filename, bool index, bool header, char delimiter) {
+	const char* home = std::getenv("HOME");
+	if (home == nullptr) 
+		throw std::runtime_error("HOME environment variable not set.");
+
+	std::string dir_path = std::string(home) + "/.deepczero/datasets/";
+	std::filesystem::create_directories(dir_path);
+
+	std::string full_path = dir_path + "/" + filename;
+    std::ifstream in(full_path);
+
+	if (!in.is_open())
+        throw std::runtime_error("Failed to open file: " + full_path);
+
+	std::string line;
+	std::vector<T> values;
+	size_t num_cols = 0;
+	size_t num_rows = 0;
+
+	while (std::getline(in, line)) {
+		if (header) {
+			header = false;
+			continue;
+		}
+
+		std::stringstream ss(line);
+		std::string cell;
+		size_t col_count = 0;
+
+		if (index) 
+			std::getline(ss, cell, delimiter);
+		
+		while (std::getline(ss, cell, delimiter)) {
+			std::stringstream val_ss(cell);
+			T val;
+			val_ss >> val;
+			values.push_back(val);
+			col_count++;
+		}
+
+		if (col_count == 0) continue; 
+
+		if (num_cols == 0) num_cols = col_count;
+		else if (col_count != num_cols)
+			throw std::runtime_error("Inconsistent column size in CSV file");
+
+		num_rows++;
+	}
+	std::vector<size_t> shape = (num_cols == 1) ? std::vector<size_t>{num_rows} : std::vector<size_t> {num_rows, num_cols};
+
+	return Tensor<T>(shape, values);
 }
 
 }

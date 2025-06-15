@@ -154,9 +154,17 @@ namespace tensor {
 		}
 
 // io functions
-		void to_csv(const std::string& filename, bool index = false, bool header = false, char delimiter = ',');
-	};
+		void to_csv(const std::string& filename, 
+					bool index = false, 
+					bool header = false, 
+					char delimiter = ',');
 
+		static Tensor<T> from_csv(	const std::string& filename, 
+							bool index = false,
+							bool header = false,
+							char delimiter = ',');
+
+	};
 }
 
 #include "container/tensor/tensor.tpp"

@@ -95,7 +95,7 @@ public:
 			std::vector<size_t> idx) {
 		return impl->data(idx); };
 
-	TensorView<float> operator[](
+	Tensor<float> operator[](
 			size_t idx) const { 
 		return impl->data[idx]; };
 

@@ -39,7 +39,7 @@ int main() {
 
 	
 	std::cout << "b[2].show()" << std::endl;
-	b[2].show();
+	b[2]->show();
 
 
 

@@ -3,18 +3,30 @@
 #include "include/container/tensor/tensor_all.hpp"
 
 #include <string>
+#include <functional>
 
 class Dataset {
 protected:
 	Tensor<> data;
 	Tensor<> label;
+
 	bool train;
 
+	std::function<Tensor<>(const Tensor<>&)> transform;
+	std::function<Tensor<>(const Tensor<>&)> target_transform;
+
 public:
-	Dataset(bool train = true) : train(train) {};
+	Dataset(bool train = true,
+			std::function<Tensor<>(const Tensor<>&)> transform = nullptr,
+			std::function<Tensor<>(const Tensor<>&)> target_transform = nullptr
+			) 
+		: train(train), transform(transform), target_transform(target_transform) {};
 
 	Tensor<> get_data() { return data; };
+	Tensor<> get_data(size_t index);
 	Tensor<> get_label() { return label; };
+	Tensor<> get_label(size_t index);
+	size_t size() { return data.get_shape()[0]; };
 };
 
 class SpiralDataset : public Dataset {
@@ -41,7 +53,7 @@ public:
 				size_t num_class,
 				bool train = true);
 
-	Tensor<> get_data();
-	Tensor<> get_label();
+	Tensor<> get_data(size_t index);
+	Tensor<> get_label(size_t index);
 
 };

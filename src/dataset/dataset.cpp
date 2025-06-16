@@ -3,6 +3,23 @@
 
 #include <cmath>
 #include <random>
+#include <string>
+#include <functional>
+
+
+Tensor<> Dataset::get_data(size_t index) {
+	Tensor<> row = data[index];
+	if (transform)
+		return transform(row);
+	return row;
+}
+
+Tensor<> Dataset::get_label(size_t index) {
+	Tensor<> row = label[index];
+	if (target_transform)
+		return target_transform(row);
+	return row;
+}
 
 SpiralDataset::SpiralDataset(size_t num_data,
 							size_t num_class,
@@ -59,13 +76,15 @@ BigDataset::BigDataset(	size_t num_data,
 		num_data(num_data),
 		num_class(num_class) {}
 
-Tensor<> BigDataset::get_data() {
+Tensor<> BigDataset::get_data(size_t index) {
 	//TODO: load data
-	Tensor x;
-	return x;
+	std::string csv_file = "big_data_" + std::to_string(index) + ".csv";
+	data = Tensor<>::from_csv(csv_file, false, false);	
+	return data;
 }
 
-Tensor<> BigDataset::get_label() {
-	Tensor x;
-	return x;
+Tensor<> BigDataset::get_label(size_t index) {
+	std::string csv_file = "big_label_" + std::to_string(index) + ".csv";
+	label = Tensor<>::from_csv(csv_file, false, false);	
+	return label;
 }

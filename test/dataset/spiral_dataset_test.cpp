@@ -33,6 +33,7 @@ void test_spiral_dataset() {
         float label = test_t.raw_data()[i];
         assert(label >= 0 && label < static_cast<float>(num_class));
     }
+	std::cout << test_ds.size() << std::endl;
 
     std::cout << "[✅] Test dataset label range OK\n";
     std::cout << "[🎉] SpiralDataset test passed!\n";

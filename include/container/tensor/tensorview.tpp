@@ -29,17 +29,17 @@ namespace tensor {
 
 
 	template<typename T>
-	TensorView<T> TensorView<T>::operator[](size_t idx) const {
+	std::shared_ptr<TensorBase<T>> TensorView<T>::operator[](size_t index) {
 		if (shape.empty())
 			throw std::out_of_range("TensorView index out of bounds");
-		if (idx >= shape[0])
+		if (index >= shape[0])
 			throw std::out_of_range("TensorView index out of bounds");
 	
 		std::vector<size_t> new_shape(shape.begin() + 1, shape.end());
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
-		size_t new_offset = offset + idx * strides[0];
+		size_t new_offset = offset + index * strides[0];
 
-		return TensorView<T>(new_shape, data_ptr, new_strides, new_offset);
+		return std::make_shared<TensorView<T>>(new_shape, data_ptr, new_strides, new_offset);
 	}
 
 	template<typename T>

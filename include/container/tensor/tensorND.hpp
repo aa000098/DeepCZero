@@ -30,8 +30,8 @@ namespace tensor {
 
 		TensorND() : data_ptr(std::make_shared<std::vector<T>>()) {};
 
-		TensorView<T> operator[](size_t idx);
-		const TensorView<T> operator[](size_t idx) const;
+		std::shared_ptr<TensorBase<T>> operator[](size_t index) override;
+		const std::shared_ptr<TensorBase<T>> operator[](size_t idx) const;
 		
 		T& operator()(	
 				const std::vector<size_t>& indices) {

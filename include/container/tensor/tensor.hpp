@@ -83,10 +83,8 @@ namespace tensor {
 		}
 
 // slicing operators
-		TensorView<T> operator[](size_t idx) {
-			auto* ptr = dynamic_cast<TensorND<T>*>(impl.get());
-			if(!ptr) throw std::runtime_error("Only TensorND supports slicing");
-			return (*ptr)[idx]; };
+		Tensor<T> operator[](size_t idx) {
+			return Tensor<T>((*impl)[idx]); };
 		
 		T& operator()(const std::vector<size_t>& indices) {
 			return (*impl)(indices); };

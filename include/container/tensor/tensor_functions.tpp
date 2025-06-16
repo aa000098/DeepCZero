@@ -95,9 +95,9 @@ void add_at(Tensor<T>& gx,
 			const std::vector<size_t>& slices, 
 			const Tensor<T>& gy) {
 
-	TensorView<T> view = gx.view();
+	Tensor<T> view;
 	for (size_t idx : slices)
-		view = view[idx];
+		view = gx[idx];
 
 	auto& gx_data = view.raw_data();
 	const auto& gy_data = gy.raw_data();

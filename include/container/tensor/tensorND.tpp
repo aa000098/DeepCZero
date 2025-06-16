@@ -101,7 +101,7 @@ namespace tensor {
 
 
 	template<typename T>
-	TensorView<T> TensorND<T>::operator[](size_t idx) {
+	std::shared_ptr<TensorBase<T>> TensorND<T>::operator[](size_t idx) {
 		if (shape.size() < 2)
 			throw std::runtime_error("Tensor must be at least 2D to support [] access returning view");
 
@@ -109,11 +109,11 @@ namespace tensor {
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
 		size_t new_offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, data_ptr, new_strides, new_offset);
+		return std::make_shared<TensorView<T>>(new_shape, data_ptr, new_strides, new_offset);
 	}
 
 	template<typename T>
-	const TensorView<T> TensorND<T>::operator[](size_t idx) const {
+	const std::shared_ptr<TensorBase<T>> TensorND<T>::operator[](size_t idx) const {
 		if (shape.size() < 2)
 			throw std::runtime_error("Tensor must be at least 2D to support [] access returning view");
 
@@ -121,7 +121,7 @@ namespace tensor {
 		std::vector<size_t> new_strides(strides.begin() + 1, strides.end());
 		size_t new_offset = idx * strides[0];
 
-		return TensorView<T>(new_shape, data_ptr, new_strides, new_offset);
+		return std::make_shared<TensorView<T>>(new_shape, data_ptr, new_strides, new_offset);
 	}
 
 	template<typename T>

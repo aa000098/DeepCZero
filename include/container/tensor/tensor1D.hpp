@@ -1,6 +1,8 @@
 #pragma once
 
 #include "container/tensor/tensorbase.hpp"
+#include "container/tensor/tensorview.hpp"
+
 
 #include <iostream>
 
@@ -13,6 +15,13 @@ namespace tensor {
 		Tensor1D(const std::vector<T>& vec) : data_ptr(std::make_shared<std::vector<T>>(vec)) {};
 		Tensor1D(size_t len, T init = T()) : data_ptr(std::make_shared<std::vector<T>>(len, init)) {};
 		Tensor1D() : data_ptr(std::make_shared<std::vector<T>>()) {};
+
+		std::shared_ptr<TensorBase<T>> operator[](size_t index) override {
+			if (index >= this->size())
+				throw std::out_of_range("Tensor1D::operator[] index out of range");
+			std::vector<T> v = { (*data_ptr)[index] };
+			return std::make_shared<Tensor1D<T>>(v);
+		}
 
 		// TensorBase override
 		T& operator()(const std::vector<size_t>& indices) override {

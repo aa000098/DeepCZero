@@ -12,6 +12,7 @@ namespace tensor {
 
 		// slice functions
 		virtual T& operator()(const std::vector<size_t>& indices) = 0;
+		virtual std::shared_ptr<TensorBase<T>> operator[](size_t index) = 0;
 		virtual std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const = 0; 
 		virtual std::shared_ptr<TensorBase<T>> gather_rows(const std::vector<size_t>& indices) const;
 

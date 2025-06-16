@@ -47,7 +47,7 @@ namespace tensor {
 		
 		std::shared_ptr<TensorBase<T>> gather_rows(const std::vector<size_t>& indices) const override;
 
-		TensorView<T> operator[](size_t idx) const;
+		std::shared_ptr<TensorBase<T>> operator[](size_t index) override;
 
 //		friend std::ostream& operator<<(std::ostream& os, const TensorView<T>& view);
 

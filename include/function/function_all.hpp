@@ -7,3 +7,5 @@
 #include "function/loss_functions.hpp"
 #include "function/activation_functions.hpp"
 #include "function/slice_functions.hpp"
+
+#include "function/transform/transform_all.hpp"

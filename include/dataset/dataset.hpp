@@ -1,9 +1,10 @@
 #pragma once
 
 #include "include/container/tensor/tensor_all.hpp"
+#include "function/transform/transform_all.hpp"
 
 #include <string>
-#include <functional>
+#include <memory>
 
 class Dataset {
 protected:
@@ -12,14 +13,13 @@ protected:
 
 	bool train;
 
-	std::function<Tensor<>(const Tensor<>&)> transform;
-	std::function<Tensor<>(const Tensor<>&)> target_transform;
+	std::shared_ptr<Transform<float>> transform;
+	std::shared_ptr<Transform<float>> target_transform;
 
 public:
 	Dataset(bool train = true,
-			std::function<Tensor<>(const Tensor<>&)> transform = nullptr,
-			std::function<Tensor<>(const Tensor<>&)> target_transform = nullptr
-			) 
+			std::shared_ptr<Transform<float>> transform = nullptr,
+			std::shared_ptr<Transform<float>> target_transform = nullptr) 
 		: train(train), transform(transform), target_transform(target_transform) {};
 
 	Tensor<> get_data() { return data; };

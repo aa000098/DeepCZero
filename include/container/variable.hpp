@@ -1,7 +1,7 @@
 #pragma once
 
 #include "container/tensor/tensor.hpp"
-#include "ops/ops_all.hpp"
+#include "function/ops/ops_all.hpp"
 
 #include <memory>
 #include <vector>

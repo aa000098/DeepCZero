@@ -8,4 +8,3 @@
 #include "function/activation_functions.hpp"
 #include "function/slice_functions.hpp"
 
-#include "function/transform/transform_all.hpp"

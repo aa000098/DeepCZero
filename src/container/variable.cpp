@@ -1,5 +1,5 @@
-#include "container/variable_all.hpp"
 #include "container/tensor/tensor_all.hpp"
+#include "container/container_all.hpp"
 #include "function/function.hpp"
 #include "graph/graph.hpp"
 #include "config/config.hpp"

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "include/container/tensor/tensor_all.hpp"
-#include "function/transform/transform_all.hpp"
+#include "container/tensor/tensor_all.hpp"
+#include "dataset/transform/transform_all.hpp"
 
 #include <string>
 #include <memory>

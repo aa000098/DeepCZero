@@ -1,6 +1,6 @@
 #include "function/slice_functions.hpp"
 #include "container/tensor/tensor_all.hpp"
-#include "ops/slice_ops.hpp"
+#include "function/ops/slice_ops.hpp"
 
 
 Variable function::GetItem::forward(const std::vector<Variable>& xs) {

@@ -1,5 +1,4 @@
-#include "ops/ops.hpp"
-#include "container/variable_all.hpp"
+#include "deepczero.hpp"
 
 #include <iostream>
 

@@ -1,6 +1,4 @@
-#include "graph/graph.hpp"
-#include "ops/ops.hpp"
-#include "container/variable.hpp"
+#include "deepczero.hpp"
 
 #include <iostream>
 #include <vector>

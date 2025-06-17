@@ -1,5 +1,4 @@
-#include "container/variable_all.hpp"
-#include "container/tensor/tensor.hpp"
+#include "deepczero.hpp"
 
 #include <iostream>
 #include <memory>

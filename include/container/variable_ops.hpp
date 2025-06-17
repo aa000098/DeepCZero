@@ -1,7 +1,7 @@
 #pragma once
 
 #include "container/variable.hpp"
-#include "ops/ops.hpp"
+#include "function/ops/ops.hpp"
 
 // Variable + Variable
 inline Variable operator+(const Variable& lhs, const Variable& rhs) {

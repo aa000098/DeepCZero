@@ -1,4 +1,4 @@
-#include "ops/slice_ops.hpp"
+#include "function/ops/slice_ops.hpp"
 #include "function/function_all.hpp"
 
 

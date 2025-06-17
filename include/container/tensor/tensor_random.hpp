@@ -4,6 +4,8 @@
 
 #include <random>
 
+namespace tensor {
+
 inline Tensor<> rand(size_t rows, size_t cols, size_t seed) {
 	std::mt19937 gen(seed);
 
@@ -52,3 +54,4 @@ inline Tensor<size_t> permutation(size_t size) {
 	return Tensor<size_t>({size}, values);
 }
 
+}

@@ -83,7 +83,7 @@ namespace tensor {
 		}
 
 // slicing operators
-		Tensor<T> operator[](size_t idx) {
+		Tensor<T> operator[](size_t idx) const {
 			return Tensor<T>((*impl)[idx]); };
 		
 		T& operator()(const std::vector<size_t>& indices) {
@@ -129,6 +129,8 @@ namespace tensor {
 			return impl->raw_data(); };
 		const std::vector<T>& raw_data() const {
 			return impl->raw_data(); };
+
+		std::vector<T> view_data() const;
 
 		void show() const {
 			if (!impl) std::cout << "[  ]" << std::endl;

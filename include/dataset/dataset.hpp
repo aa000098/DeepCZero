@@ -6,6 +6,8 @@
 #include <string>
 #include <memory>
 
+using tensor::Tensor;
+
 class Dataset {
 protected:
 	Tensor<> data;
@@ -22,11 +24,11 @@ public:
 			std::shared_ptr<Transform<float>> target_transform = nullptr) 
 		: train(train), transform(transform), target_transform(target_transform) {};
 
-	Tensor<> get_data() { return data; };
-	Tensor<> get_data(size_t index);
-	Tensor<> get_label() { return label; };
-	Tensor<> get_label(size_t index);
-	size_t size() { return data.get_shape()[0]; };
+	Tensor<> get_data() const { return data; };
+	Tensor<> get_data(size_t index) const;
+	Tensor<> get_label() const { return label; };
+	Tensor<> get_label(size_t index) const;
+	size_t size() const { return data.get_shape()[0]; };
 };
 
 class SpiralDataset : public Dataset {

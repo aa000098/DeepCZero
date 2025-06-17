@@ -218,6 +218,38 @@ Tensor<T> Tensor<T>::max(const std::vector<int> axes,
 
 }
 
+template <typename T>
+std::vector<T> Tensor<T>::view_data() const {
+	std::vector<T> result(size());
+
+	auto shape = impl->get_shape();
+	auto strides = impl->get_strides();
+	auto offset = impl->get_offset();
+	const auto& data = impl->raw_data();
+
+	size_t ndim = shape.size();
+
+	// index 상태 저장용
+	std::vector<size_t> indices(ndim, 0);
+
+	for (size_t i = 0; i < size(); ++i) {
+		// linear offset 계산
+		size_t linear_index = offset;
+		for (size_t d = 0; d < ndim; ++d)
+			linear_index += indices[d] * strides[d];
+
+		result[i] = data[linear_index];
+
+		// 다음 index 계산 (다중 루프 대신 1D 인덱스 -> N차원 인덱스로 변환)
+		for (ssize_t d = ndim - 1; d >= 0; --d) {
+			if (++indices[d] < shape[d]) break;
+			indices[d] = 0;  // overflow → 다음 차원 증가
+		}
+	}
+
+	return result;
+}
+
 template<typename T>
 void Tensor<T>::to_csv(const std::string& filename, bool index, bool header, char delimiter) {
 	// 파일 기본 저장 경로 설정

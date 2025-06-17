@@ -22,5 +22,19 @@ template<typename T>
 std::tuple<Tensor<T>, Tensor<T>, std::vector<size_t>> broadcast_binary_operands(
     const Tensor<T>& a, const Tensor<T>& b);
 
+
+template<typename T>
+Tensor<T> arrange(size_t size) {
+	std::vector<T> values(size);
+	std::iota(values.begin(), values.end(), 0);
+
+	return Tensor<T>({size}, values);
 }
+
+template<typename T>
+Tensor<T> stack(const std::vector<Tensor<T>>& tensors);
+
+}
+
+
 #include "container/tensor/tensor_functions.tpp"

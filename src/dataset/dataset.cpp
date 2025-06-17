@@ -1,19 +1,20 @@
-#include "include/dataset/dataset.hpp"
-#include "include/container/tensor/tensor_all.hpp"
+#include "dataset/dataset.hpp"
+#include "container/tensor/tensor_all.hpp"
 
 #include <cmath>
 #include <random>
 #include <string>
 
+using namespace tensor;
 
-Tensor<> Dataset::get_data(size_t index) {
+Tensor<> Dataset::get_data(size_t index) const {
 	Tensor<> row = data[index];
 	if (transform)
 		return (*transform)(row);
 	return row;
 }
 
-Tensor<> Dataset::get_label(size_t index) {
+Tensor<> Dataset::get_label(size_t index) const {
 	Tensor<> row = label[index];
 	if (target_transform)
 		return (*target_transform)(row);

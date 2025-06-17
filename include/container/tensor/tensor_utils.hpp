@@ -3,7 +3,7 @@
 #include <numeric>
 #include <set>
 
-using namespace tensor;
+namespace tensor {
 
 inline size_t product(const std::vector<size_t>& shape) {
     return std::accumulate(shape.begin(), shape.end(), size_t{1}, std::multiplies<size_t>());
@@ -63,3 +63,4 @@ inline std::vector<size_t> compute_contiguous_strides(const std::vector<size_t>&
     return strides;
 }
 
+}

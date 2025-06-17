@@ -138,4 +138,28 @@ std::tuple<Tensor<T>, Tensor<T>, std::vector<size_t>> broadcast_binary_operands(
 }
 
 
+template<typename T>
+Tensor<T> stack(const std::vector<Tensor<T>>& tensors) {
+	if (tensors.empty())
+		throw std::runtime_error("Cannot stack empty tensor list");
+
+	const auto& base_shape = tensors[0].get_shape();
+	size_t batch_size = tensors.size();
+
+	std::vector<size_t> new_shape = { batch_size };
+	new_shape.insert(new_shape.end(), base_shape.begin(), base_shape.end());
+	
+	std::vector<T> stacked_data;
+
+	for (const auto& t : tensors) {
+		if (t.get_shape() != base_shape)
+			throw std::runtime_error("All tensors must have the same shape to stack");
+
+		const auto& data = t.view_data();
+		stacked_data.insert(stacked_data.end(), data.begin(), data.end());
+	}
+
+	return Tensor<T>(new_shape, stacked_data);
+}
+
 }

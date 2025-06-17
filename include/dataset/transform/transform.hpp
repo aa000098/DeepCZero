@@ -4,6 +4,8 @@
 
 #include <memory>
 
+using namespace tensor;
+
 template<typename T>
 class Transform {
 public:

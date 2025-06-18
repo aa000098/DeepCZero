@@ -15,8 +15,9 @@ void test_accuracy_all_correct() {
     Variable y_var(y_data);
     Variable t_var(t_data);
 
-    function::Accuracy acc;
-    Variable result = acc.forward(y_var, t_var);
+ //   function::Accuracy acc;
+ //   Variable result = acc.forward(y_var, t_var);
+	Variable result = accuracy(y_var, t_var);
 
     float acc_value = result.data()({0});
     std::cout << "Accuracy (all correct): " << acc_value << std::endl;

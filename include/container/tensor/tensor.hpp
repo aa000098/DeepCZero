@@ -144,8 +144,12 @@ namespace tensor {
 		Tensor<T> transpose(const std::vector<size_t>& axes={}) const;
 		Tensor<T> sum(const std::vector<int>& axis = {},
 						 bool keepdims = false) const;
-		Tensor<T> max(const std::vector<int> axes,
+		Tensor<T> max(const std::vector<int>& axes,
 						bool keepdims) const;
+		Tensor<size_t> argmax(int axis, 
+								bool keepdims = false) const;
+		Tensor<uint8_t> equal(const Tensor<T>& other) const; 
+		float mean() const;
 		
 
 // gemm functions

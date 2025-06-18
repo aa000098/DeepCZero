@@ -162,4 +162,15 @@ Tensor<T> stack(const std::vector<Tensor<T>>& tensors) {
 	return Tensor<T>(new_shape, stacked_data);
 }
 
+
+template<typename SrcT, typename DstT>
+Tensor<DstT> cast_tensor(const Tensor<SrcT>& src) {
+	std::vector<DstT> dst(src.size());
+
+	for (size_t i = 0; i < src.size(); i++)
+		dst[i] = static_cast<DstT>(src.raw_data()[i]);
+
+	return Tensor<DstT>(src.get_shape(), dst);
+}
+
 }

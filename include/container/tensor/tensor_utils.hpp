@@ -63,4 +63,18 @@ inline std::vector<size_t> compute_contiguous_strides(const std::vector<size_t>&
     return strides;
 }
 
+inline std::vector<size_t> replace_axis(const std::vector<size_t>& idx, size_t axis, size_t value) {
+	std::vector<size_t> new_idx = idx;
+	new_idx[axis] = value;
+	return new_idx;
+}
+
+template <typename T = float>
+inline std::vector<T> arrange_vector(size_t size) {
+	std::vector<T> values(size);
+	std::iota(values.begin(), values.end(), 0);
+
+	return values;
+}
+
 }

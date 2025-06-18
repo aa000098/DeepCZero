@@ -34,6 +34,10 @@ Tensor<T> arrange(size_t size) {
 template<typename T>
 Tensor<T> stack(const std::vector<Tensor<T>>& tensors);
 
+
+template<typename SrcT, typename DstT>
+Tensor<DstT> cast_tensor(const Tensor<SrcT>& src);
+
 }
 
 

@@ -192,7 +192,7 @@ Tensor<T> max_along_axis(const Tensor<T>& x, int axis, bool keepdims) {
 
 
 template <typename T>
-Tensor<T> Tensor<T>::max(const std::vector<int> axes,
+Tensor<T> Tensor<T>::max(const std::vector<int>& axes,
 						bool keepdims) const {
 	Tensor<T> result = *this;
 	std::vector<int> sorted_axes;
@@ -217,6 +217,100 @@ Tensor<T> Tensor<T>::max(const std::vector<int> axes,
 	return result;
 
 }
+
+template <typename T>
+Tensor<size_t> argmax_along_axis(const Tensor<T>& x, int axis, bool keepdims) {
+    const auto& src_shape = x.get_shape();
+	const auto& src_stride = x.get_strides();
+    const auto& src_data = x.raw_data();
+    size_t ndim = src_shape.size();
+
+    // 음수 axis 처리
+    if (axis < 0) axis += static_cast<int>(ndim);
+
+    if (axis < 0 || axis >= static_cast<int>(ndim))
+        throw std::invalid_argument("max_along_axis: invalid axis");
+
+    // 1. reduced shape 계산
+    std::set<size_t> reduce_axes = { static_cast<size_t>(axis) };
+    std::vector<size_t> result_shape = compute_reduced_shape(src_shape, reduce_axes, keepdims);
+    std::vector<size_t> result_strides = compute_contiguous_strides(result_shape);
+
+	Tensor<size_t> result(result_shape, 0);
+	auto& result_data = result.raw_data();
+	std::vector<bool> is_initialized(result_data.size(), false);
+
+	// 2. 순회하며 argmax 계산
+	size_t total = x.size();
+	for (size_t flat_idx = 0; flat_idx < total; flat_idx++) {
+		std::vector<size_t> idx = unflatten_index(flat_idx, src_shape);
+
+		// argmax result 인덱스 
+		std::vector<size_t> dst_idx;
+		for (size_t i = 0; i < ndim; i++) {
+			if (i == static_cast<size_t>(axis)) {
+				if (keepdims) dst_idx.push_back(0);
+				continue;
+			}
+			dst_idx.push_back(idx[i]);
+		}
+
+		size_t dst_flat = flatten_index(dst_idx, result_strides);
+
+		// 타겟 axis에서의 flat_idx의 unflatten index  
+		size_t candidate_idx = idx[axis];
+
+		// 첫 초기화
+		if (!is_initialized[dst_flat]) {
+			result_data[dst_flat] = candidate_idx;
+			is_initialized[dst_flat] = true;
+		} else { 
+		// 임시 최대값 result_data[dst_flat]과 현재값 src_data[flat_idx] 비교 
+			std::vector<size_t> old_idx = replace_axis(idx, axis, result_data[dst_flat]);		
+			if (src_data[flat_idx] > src_data[flatten_index(old_idx, src_stride)])
+				result_data[dst_flat] = candidate_idx;
+		}
+
+	}
+
+	return result;
+}
+
+template <typename T>
+Tensor<size_t> Tensor<T>::argmax(int axis, 
+								bool keepdims) const {
+	return argmax_along_axis(*this, axis, keepdims);
+}
+
+
+template <typename T>
+Tensor<uint8_t> Tensor<T>::equal(const Tensor<T>& other) const {
+	const auto& a = this->raw_data();
+	const auto& b = other.raw_data();
+
+	if (this->get_shape() != other.get_shape())
+		throw std::invalid_argument("equal: shape mismatch");
+
+	std::vector<uint8_t> result_data(a.size());
+	for (size_t i = 0; i < a.size(); i++)
+		result_data[i] = (a[i] == b[i]);
+
+	return Tensor<uint8_t>(this->get_shape(), result_data);
+}
+
+
+template <typename T>
+float Tensor<T>::mean() const {
+	const auto& data = this->raw_data();
+
+	if (data.empty())
+		throw std::runtime_error("mean(): tensor is empty");
+
+	float sum = this->sum()({0});
+
+	return sum / static_cast<float>(data.size());
+}
+
 
 template <typename T>
 std::vector<T> Tensor<T>::view_data() const {

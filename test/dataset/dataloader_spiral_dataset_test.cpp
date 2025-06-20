@@ -19,7 +19,7 @@ void test_dataloader_spiral_dataset() {
 
 	for (size_t i = 0; i < max_epoch; i++) {
 	    while (train_loader.has_next()) {
-        	auto [x_batch, y_batch] = train_loader.next();
+        	auto [x_batch, y_batch] = train_loader.next_batch();
 
         	// 체크: 배치 shape
         	auto x_shape = x_batch.get_shape();  // [B, D]

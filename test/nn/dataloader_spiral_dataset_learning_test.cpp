@@ -38,8 +38,8 @@ void test_dataloader_spiral_dataset_learning() {
 				loss.backward();
 				optimizer.update();
 
-				sum_loss += loss({0}) * static_cast<float>(train_loader.size());
-				sum_acc += acc({0}) * static_cast<float>(train_loader.size());
+				sum_loss += loss({0}) * static_cast<float>(t.size());
+				sum_acc += acc({0}) * static_cast<float>(t.size());
 			}
 			std::cout << "epoch : " << epoch+1 << std::endl;
 			std::cout << "train loss : " << sum_loss / static_cast<float>(train_set.size()) << ", accuray : " << sum_acc / static_cast<float>(train_set.size()) << std::endl;
@@ -54,8 +54,8 @@ void test_dataloader_spiral_dataset_learning() {
 					Variable loss = softmax_cross_entropy_error(y, t);
 					Variable acc = accuracy(y, t);
 
-					sum_loss += loss({0}) * static_cast<float>(test_loader.size());
-					sum_acc += acc({0}) * static_cast<float>(test_loader.size());
+					sum_loss += loss({0}) * static_cast<float>(t.size());
+					sum_acc += acc({0}) * static_cast<float>(t.size());
 				}
 			}
 			std::cout << "test loss : " << sum_loss / static_cast<float>(test_set.size()) << ", accuray : " << sum_acc / static_cast<float>(test_set.size()) << std::endl;

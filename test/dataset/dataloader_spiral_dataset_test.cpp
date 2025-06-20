@@ -9,13 +9,12 @@ void test_dataloader_spiral_dataset() {
     size_t batch_size = 10;
 
     SpiralDataset train_set(num_data, num_class, true);
-    DataLoader train_loader(train_set, batch_size, true);
-
     SpiralDataset test_set(num_data, num_class, false);
-    DataLoader test_loader(train_set, batch_size, false);
+
+    DataLoader train_loader(train_set, batch_size, true);
+    DataLoader test_loader(test_set, batch_size, false);
 
     size_t total_seen = 0;
-
 	size_t max_epoch = 1;
 
 	for (size_t i = 0; i < max_epoch; i++) {

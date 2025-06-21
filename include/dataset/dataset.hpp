@@ -62,13 +62,14 @@ public:
 
 class MNISTDataset : public Dataset {
 private:
+	bool train;
 
 protected:
 	Tensor<> _load_data(std::string& file_path);
-	Tesnro<> _load_label(std::string& file_path);
+	Tensor<> _load_label(std::string& file_path);
 
 public:
 	MNISTDataset(bool train = true);
 	void init_dataset();
-	void show(size_t row = 10, size_t col = 10);
+	void show(size_t index = 0);
 };

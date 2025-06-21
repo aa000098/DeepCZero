@@ -1,12 +1,21 @@
 #include "dataset/dataset.hpp"
+#include "dataset/utils.hpp"
 #include "container/tensor/tensor_all.hpp"
 
 #include <cmath>
 #include <random>
 #include <string>
+#include <map>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#else 
+#include <arpa/inet.h>
+#endif
 
 using namespace tensor;
 
+// [Dataset]
 Tensor<> Dataset::get_data(size_t index) const {
 	Tensor<> row = data[index];
 	if (transform)
@@ -21,6 +30,7 @@ Tensor<> Dataset::get_label(size_t index) const {
 	return row;
 }
 
+// [SpiralDataset]
 SpiralDataset::SpiralDataset(size_t num_data,
 							size_t num_class,
 							bool train)
@@ -68,7 +78,7 @@ void SpiralDataset::init_dataset() {
 	label = t_shuffled;
 }
 
-
+// [BigDataset]
 BigDataset::BigDataset(	size_t num_data,
 						size_t num_class,
 						bool train)
@@ -87,4 +97,108 @@ Tensor<> BigDataset::get_label(size_t index) {
 	std::string csv_file = "big_label_" + std::to_string(index) + ".csv";
 	label = Tensor<>::from_csv(csv_file, false, false);	
 	return label;
+}
+
+
+// [MNISTDataset]
+MNISTDataset::MNISTDataset(bool train) : train(train) {
+	init_dataset();
+}
+
+Tensor<> MNISTDataset::_load_data(std::string& file_path) {
+	std::ifstream file(file_path, std::ios::binary);
+	if(!file) throw std::runtime_error("Cannot open file: " + file_path);
+
+	uint32_t magic, num, rows, cols;
+	file.read((char*)&magic, 4);
+	file.read((char*)&num, 4);
+	file.read((char*)&rows, 4);
+	file.read((char*)&cols, 4);
+
+	magic = ntohl(magic);
+	num = ntohl(num);
+	rows = ntohl(rows);
+	cols = ntohl(cols);
+
+	std::vector<float> buffer(num * rows * cols);
+	for (size_t i = 0; i < buffer.size(); i++) {
+		unsigned char byte;
+		file.read((char*)&byte, 1);
+		buffer[i] = byte / 255.0f;
+	}
+
+	return Tensor<>({num, rows, cols}, buffer);
+}
+
+
+Tensor<> MNISTDataset::_load_label(std::string& file_path) {
+	std::ifstream file(file_path, std::ios::binary);
+	if(!file) throw std::runtime_error("Cannot open file: " + file_path);
+
+	uint32_t magic, num;
+	file.read((char*)&magic, 4);
+	file.read((char*)&num, 4);
+
+	magic = ntohl(magic);
+	num = ntohl(num);
+
+	if (magic != 2049)
+		throw std::runtime_error("Invalid magic number in MNIST label file: " + file_path);
+
+	std::vector<float> labels(num);
+	file.read((char*)labels.data(), num);
+
+	return Tensor<>({num}, labels);
+}
+
+void MNISTDataset::init_dataset() {
+	std::string base_url = "https://ossci-datasets.s3.amazonaws.com/mnist/"; 
+
+	std::map<std::string, std::string> train_files = {
+		{"target", "train-images-idx3-ubyte.gz"},
+		{"label", "train-labels-idx1-ubyte.gz"}
+	};
+	std::map<std::string, std::string> test_files = {
+		{"target", "t10k-images-idx3-ubyte.gz"},
+		{"label", "t10k-labels-idx1-ubyte.gz"}
+	};
+
+	const auto& files = train ? train_files : test_files;
+
+	std::string data_gz_path = get_file(base_url + files.at("target"));
+	std::string label_gz_path = get_file(base_url + files.at("label"));
+
+	std::string data_path = gunzip_file(data_gz_path);
+	std::string label_path = gunzip_file(label_gz_path);
+
+	data = _load_data(data_path);
+	label = _load_label(label_path);
+}
+
+void MNISTDataset::show(size_t index) {
+    if (index >= data.size())
+        throw std::out_of_range("Index out of range in MNISTDataset::show");
+
+    const Tensor<float>& image = data[index];  // shape: [28, 28] 혹은 [1, 28, 28]
+    std::vector<size_t> shape = image.get_shape();
+
+    // 이미지가 [1, 28, 28]인 경우 첫 축 제거
+    size_t H = shape.back() == 28 ? shape[shape.size() - 2] : shape[0];
+    size_t W = 28;
+
+    std::cout << "Label: " << label[index]({0}) << std::endl;
+
+    for (size_t i = 0; i < H; ++i) {
+        for (size_t j = 0; j < W; ++j) {
+            float val = (shape.size() == 3)
+                ? image({0, i, j})
+                : image({i, j});
+            char pixel = val > 0.8 ? '#' :
+                         val > 0.5 ? '+' :
+                         val > 0.2 ? '.' : ' ';
+            std::cout << pixel;
+        }
+        std::cout << "\n";
+    }
+
 }

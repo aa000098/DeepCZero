@@ -51,11 +51,24 @@ private:
 	size_t num_class;
 
 public:
-	BigDataset(	size_t num_data,
-				size_t num_class,
+	BigDataset(	size_t num_data = 100,
+				size_t num_class = 3,
 				bool train = true);
 
 	Tensor<> get_data(size_t index);
 	Tensor<> get_label(size_t index);
 
+};
+
+class MNISTDataset : public Dataset {
+private:
+
+protected:
+	Tensor<> _load_data(std::string& file_path);
+	Tesnro<> _load_label(std::string& file_path);
+
+public:
+	MNISTDataset(bool train = true);
+	void init_dataset();
+	void show(size_t row = 10, size_t col = 10);
 };

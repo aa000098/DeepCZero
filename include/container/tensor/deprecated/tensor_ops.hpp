@@ -19,7 +19,6 @@ Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
     size_t total = result.size();
     size_t ndim_result = broadcast_shape.size();
 
-	//#pragma omp parallel for
     for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
         std::vector<size_t> idx(ndim_result);
         size_t rem = flat_idx;
@@ -44,7 +43,6 @@ Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
     size_t total = result.size();
     size_t ndim_result = broadcast_shape.size();
 
-	//#pragma omp parallel for
     for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
         std::vector<size_t> idx(ndim_result);
         size_t rem = flat_idx;
@@ -68,7 +66,6 @@ Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
     size_t total = result.size();
     size_t ndim_result = broadcast_shape.size();
 
-	//#pragma omp parallel for
     for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
         std::vector<size_t> idx(ndim_result);
         size_t rem = flat_idx;
@@ -93,7 +90,6 @@ Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
     size_t total = result.size();
     size_t ndim_result = broadcast_shape.size();
 
-	//#pragma omp parallel for
     for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
         std::vector<size_t> idx(ndim_result);
         size_t rem = flat_idx;
@@ -129,7 +125,6 @@ void add_inplace(Tensor<T>& a, const Tensor<T>& b) {
 	const size_t ndim = shape_a.size();
 	const size_t total = a.size();
 
-	//#pragma omp parallel for
 	for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
 		std::vector<size_t> idx(ndim);
 		size_t rem = flat_idx;
@@ -149,7 +144,6 @@ void sub_inplace(Tensor<T>& a, const Tensor<T>& b) {
 	const size_t ndim = shape_a.size();
 	const size_t total = a.size();
 
-	//#pragma omp parallel for
 	for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
 		std::vector<size_t> idx(ndim);
 		size_t rem = flat_idx;
@@ -169,7 +163,6 @@ void mul_inplace(Tensor<T>& a, const Tensor<T>& b) {
 	const size_t ndim = shape_a.size();
 	const size_t total = a.size();
 
-	//#pragma omp parallel for
 	for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
 		std::vector<size_t> idx(ndim);
 		size_t rem = flat_idx;
@@ -189,7 +182,6 @@ void div_inplace(Tensor<T>& a, const Tensor<T>& b) {
 	const size_t ndim = shape_a.size();
 	const size_t total = a.size();
 
-	//#pragma omp parallel for
 	for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
 		std::vector<size_t> idx(ndim);
 		size_t rem = flat_idx;
@@ -354,8 +346,6 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 
     // 6. flatten loop over batches
     size_t batch_size = product(batch_shape);
-
-	//#pragma omp parallel for collapse(1)
     for (size_t batch_idx = 0; batch_idx < batch_size; ++batch_idx) {
         auto batch_idx_vec = unflatten_index(batch_idx, batch_shape);
 
@@ -376,29 +366,6 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
     }
 
     return Tensor<T>(result_shape, result_data);
-
-}
-
-template<typename T>
-Tensor<T> maximum(const Tensor<T>& input, T scalar) {
-	std::vector<T> out_data(input.size());
-	const auto& in_data = input.data();
-
-	for (size_t i = 0; i < input.size(); i++) 
-		out_data[i] = std::max(in_data[i], scalar);
-
-	return Tensor<T>(input.get_shape(), out_data);
-}
-
-template<typename T>
-Tensor<T> greater(const Tensor<T>& x, T scalar) {
-	const auto& x_data = x.data();
-	std::vector<T> out_data(x.size());
-
-	for (size_t i = 0; i < x.size(); i++)
-		out_data[i] = x_data[i] > scalar ? 1 : 0;
-
-	return Tensor<T>(x.get_shape(), out_data);
 
 }
 

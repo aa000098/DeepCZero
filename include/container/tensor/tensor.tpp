@@ -19,7 +19,7 @@ TensorView<T> Tensor<T>::view() const {
 		throw std::runtime_error("Only TensorND supports view()");
 
 	return TensorView<T>(
-			ptr->get_shape(),
+			ptr->get_shape,
 			ptr->shared_data(),
 			ptr->get_strides(),
 			ptr->get_offset()
@@ -311,6 +311,13 @@ float Tensor<T>::mean() const {
 	return sum / static_cast<float>(data.size());
 }
 
+template <typename T>
+std::vector<T> Tensor<T>::data() const {
+	if (auto view = dynamic_cast<const TensorView<T>*>(impl.get()))
+		return view_data();
+	else
+		return raw_data();
+}
 
 template <typename T>
 std::vector<T> Tensor<T>::view_data() const {

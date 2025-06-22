@@ -122,6 +122,7 @@ namespace tensor {
 		bool empty() const { 
 			if (!impl) return true;
 			else return impl->empty(); };
+		std::vector<T> data() const;
 
 		std::shared_ptr<std::vector<T>> shared_data() const {
 			return impl->shared_data(); };

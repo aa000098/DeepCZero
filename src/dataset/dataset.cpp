@@ -16,6 +16,15 @@
 using namespace tensor;
 
 // [Dataset]
+Tensor<> Dataset::get_data() const {
+	return data;
+}
+
+Tensor<> Dataset::get_label() const {
+	return label;
+
+}
+
 Tensor<> Dataset::get_data(size_t index) const {
 	Tensor<> row = data[index];
 	if (transform)
@@ -101,8 +110,16 @@ Tensor<> BigDataset::get_label(size_t index) {
 
 
 // [MNISTDataset]
-MNISTDataset::MNISTDataset(bool train) : train(train) {
+MNISTDataset::MNISTDataset(bool train) : Dataset(train) {	
+	transform = std::make_shared<Compose<float>>(
+		std::vector<std::shared_ptr<Transform<float>>>({
+			std::make_shared<Flatten<float>>(), 
+			std::make_shared<ToFloat<float>>(), 
+			std::make_shared<Normalize<float>>(0, 255)
+		}));
+
 	init_dataset();
+
 }
 
 Tensor<> MNISTDataset::_load_data(std::string& file_path) {
@@ -124,7 +141,7 @@ Tensor<> MNISTDataset::_load_data(std::string& file_path) {
 	for (size_t i = 0; i < buffer.size(); i++) {
 		unsigned char byte;
 		file.read((char*)&byte, 1);
-		buffer[i] = byte / 255.0f;
+		buffer[i] =static_cast<float>(byte);
 	}
 
 	return Tensor<>({num, rows, cols}, buffer);
@@ -141,10 +158,6 @@ Tensor<> MNISTDataset::_load_label(std::string& file_path) {
 
 	magic = ntohl(magic);
 	num = ntohl(num);
-
-	std::cout << "magic: " << magic << std::endl;
-	//if (magic != 2049)
-	//	throw std::runtime_error("Invalid magic number in MNIST label file: " + file_path);
 
 	std::vector<uint8_t> raw_labels(num);
 	file.read((char*)raw_labels.data(), num);
@@ -170,6 +183,7 @@ void MNISTDataset::init_dataset() {
 
 	const auto& files = train ? train_files : test_files;
 
+	// get_file, gunzip_file - dataset/utils.hpp
 	std::string data_gz_path = get_file(base_url + files.at("target"));
 	std::string label_gz_path = get_file(base_url + files.at("label"));
 
@@ -198,9 +212,9 @@ void MNISTDataset::show(size_t index) {
             float val = (shape.size() == 3)
                 ? image({0, i, j})
                 : image({i, j});
-            char pixel = val > 0.8 ? '#' :
-                         val > 0.5 ? '+' :
-                         val > 0.2 ? '.' : ' ';
+            char pixel = val > 204 ? '#' :
+                         val > 127 ? '+' :
+                         val > 51 ? '.' : ' ';
             std::cout << pixel;
         }
         std::cout << "\n";

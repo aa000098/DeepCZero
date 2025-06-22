@@ -13,6 +13,7 @@ public:
 	virtual ~Transform() = default;
 };
 
+
 template <typename T>
 class Compose : public Transform<T> {
 private:
@@ -20,13 +21,9 @@ private:
 
 public:
 	Compose(const std::vector<std::shared_ptr<Transform<T>>>& tfs) : transforms(tfs) {}
+	Compose(const std::initializer_list<std::shared_ptr<Transform<T>>>& tfs) : transforms(tfs) {}
 
-	Tensor<T> operator()(const Tensor<T>& input) const override {
-		Tensor<T> out = input;
-		for (auto& t : transforms)
-			out = (*t)(out);
-		return out;
-	}
+	Tensor<T> operator()(const Tensor<T>& input) const override;
 };
 
 
@@ -37,15 +34,29 @@ private:
 	T std;
 
 public:
-	Normalize(T mean, T std) : mean(mean), std(std) {};
+	Normalize(T mean = 0, T std = 1) 
+		: mean(mean), std(std) {};
 
-	Tensor<T> operator()(const Tensor<T>& input) const override {
-		Tensor<T> out = input;
-		auto& data = out.raw_data();
-		for (auto& x : data)
-			x = (x - mean) / std;
-		return out;
-	}
+	Tensor<T> operator()(const Tensor<T>& input) const override;
 };
 
 
+template<typename T>
+class Flatten : public Transform<T> {
+public:
+	Tensor<T> operator()(const Tensor<T>& input) const override;
+};
+
+template<typename SrcT, typename DstT>
+class AsType : public Transform<DstT> {
+public:
+	Tensor<DstT> operator()(const Tensor<SrcT>& input) const override;
+};
+
+template<typename T>
+class ToFloat : public Transform<T> {
+public:
+	Tensor<T> operator()(const Tensor<T>& input) const override;
+};
+
+#include "dataset/transform/transform.tpp"

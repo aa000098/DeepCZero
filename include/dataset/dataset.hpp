@@ -24,9 +24,9 @@ public:
 			std::shared_ptr<Transform<float>> target_transform = nullptr) 
 		: train(train), transform(transform), target_transform(target_transform) {};
 
-	Tensor<> get_data() const { return data; };
+	Tensor<> get_data() const;
 	Tensor<> get_data(size_t index) const;
-	Tensor<> get_label() const { return label; };
+	Tensor<> get_label() const;
 	Tensor<> get_label(size_t index) const;
 	size_t size() const { return data.get_shape()[0]; };
 };
@@ -61,9 +61,6 @@ public:
 };
 
 class MNISTDataset : public Dataset {
-private:
-	bool train;
-
 protected:
 	Tensor<> _load_data(std::string& file_path);
 	Tensor<> _load_label(std::string& file_path);

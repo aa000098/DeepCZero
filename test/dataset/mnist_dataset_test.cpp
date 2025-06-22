@@ -2,10 +2,12 @@
 
 void test_mnist_dataset_show() {
 	MNISTDataset dataset(true);
-	dataset.show(0);
+	MNISTDataset testset(false);
+	dataset.show(2);
+	testset.show(2);
 }
 
 int main() {
 	test_mnist_dataset_show();
-
+	
 }

@@ -142,11 +142,16 @@ Tensor<> MNISTDataset::_load_label(std::string& file_path) {
 	magic = ntohl(magic);
 	num = ntohl(num);
 
-	if (magic != 2049)
-		throw std::runtime_error("Invalid magic number in MNIST label file: " + file_path);
+	std::cout << "magic: " << magic << std::endl;
+	//if (magic != 2049)
+	//	throw std::runtime_error("Invalid magic number in MNIST label file: " + file_path);
+
+	std::vector<uint8_t> raw_labels(num);
+	file.read((char*)raw_labels.data(), num);
 
 	std::vector<float> labels(num);
-	file.read((char*)labels.data(), num);
+	for (size_t i = 0; i < num; i++)
+		labels[i] = static_cast<float>(raw_labels[i]);
 
 	return Tensor<>({num}, labels);
 }

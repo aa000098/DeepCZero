@@ -1,7 +1,7 @@
 # compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP
-LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz
+CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp
+LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp
  
 # directory
 SRC_DIR = src

@@ -94,10 +94,36 @@ void test_softmax_forward_backward() {
 
 }
 
+void test_relu_forward_backward() {
+    using namespace function;
+
+    // 입력 데이터 준비
+    Tensor<float> input_tensor({6}, {-1.0f, 0.0f, 1.0f, 2.0f, -0.5f, 3.5f});
+    Variable x(input_tensor);
+
+    // 순전파 테스트
+    Variable y = relu(x);
+    Tensor<float> expected_forward({6}, {0.0f, 0.0f, 1.0f, 2.0f, 0.0f, 3.5f});
+    for (size_t i = 0; i < y.data().size(); ++i) {
+        assert(std::abs(y.data().data()[i] - expected_forward.data()[i]) < 1e-6f);
+    }
+
+    // 역전파 테스트: dy는 모두 1이라고 가정
+
+    y.backward();
+	Tensor<float> grads = x.grad().data();
+    Tensor<float> expected_grad({6}, {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f});
+    for (size_t i = 0; i < grads.data().size(); ++i) {
+        assert(std::abs(grads.data()[i] - expected_grad.data()[i]) < 1e-6f);
+    }
+
+    std::cout << "ReLU forward and backward test passed!" << std::endl;
+}
 
 int main() {
     test_sigmoid_forward_backward();
 	test_softmax_forward_backward();
+	test_relu_forward_backward();
     return 0;
 }
 

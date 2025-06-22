@@ -161,3 +161,9 @@ Variable softmax(const Variable& x, std::vector<int> axes) {
 	std::shared_ptr<Function> f = std::make_shared<Softmax>(axes);
 	return (*f)({x});
 }
+
+Variable relu(const Variable& x) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<ReLU>();
+	return (*f)({x});
+}

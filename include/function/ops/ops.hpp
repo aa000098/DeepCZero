@@ -46,4 +46,5 @@ Variable linear(const Variable& x, const Variable& w, const Variable& b);
 // activations
 Variable sigmoid(const Variable& x);
 Variable softmax(const Variable& x, const std::vector<int> axes = {1});
+Variable relu(const Variable& x);
 

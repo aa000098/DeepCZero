@@ -32,3 +32,22 @@ std::vector<Variable> function::Softmax::backward(const Variable& gy) {
 	return { gx };
 
 }
+
+
+Variable function::ReLU::forward(const std::vector<Variable>& xs) {
+	const Tensor<>& x = xs[0].data();
+	const Tensor<> result = maximum(x, 0.0f);	
+	return Variable(result);
+}
+
+
+std::vector<Variable> function::ReLU::backward(const Variable& gy) {
+	const Variable& x = inputs[0];
+	const Tensor<>& x_data = x.data();
+
+	Tensor<> mask_data = greater(x_data, 0.0f);
+	Variable mask(mask_data, "mask");
+
+	Variable gx = gy * mask;
+	return { gx };
+}

@@ -32,6 +32,11 @@ sudo apt install valgrind
 sudo apt install graphviz
 ```
   
+### 데이터 다운로드를 위한 도구
+```bash
+sudo apt install libcurl4-gnutls-dev
+```
+   
 
 ## 빌드 및 실행 방법
 ### 전체 빌드

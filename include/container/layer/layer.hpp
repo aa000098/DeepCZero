@@ -45,6 +45,8 @@ namespace layer {
 		void cleargrads();
 
 		std::vector<Parameter> get_params();
+
+		std::unordered_map<std::string, Parameter> flatten_params(const std::string& parent_key = "");
 		
 
 	};

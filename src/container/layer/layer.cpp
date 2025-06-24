@@ -52,6 +52,22 @@ namespace layer {
 		return all_params;
 	}
 
+
+	std::unordered_map<std::string, Parameter> Layer::flatten_params(const std::string& parent_key) {
+		std::unordered_map<std::string, Parameter> params_dict;
+
+		for (const auto& [name, param] : this->params) {
+			std::string key = parent_key.empty() ? name : parent_key + "/" + name;
+			params_dict[key] = param;
+		}
+
+		for (const auto& [name, sublayer] : this->sublayers) {
+			std::string key = parent_key.empty() ? name : parent_key + "/" + name;
+			auto sub_params = sublayer->flatten_params(key);
+			params_dict.insert(sub_params.begin(), sub_params.end());
+		}
+		return params_dict;
+	}
 	
 	Linear::Linear( size_t out_size, 
 					bool nobias,

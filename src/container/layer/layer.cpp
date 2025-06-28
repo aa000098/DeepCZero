@@ -68,7 +68,33 @@ namespace layer {
 		}
 		return params_dict;
 	}
+
+
+	void Layer::save_weights(std::string path) {
+		// to_cpu();
+		std::unordered_map<std::string, Parameter> params_dict = flatten_params();
+
+		std::vector<Parameter> params_array = get_params();
+		
+	}
+
+	void Layer::load_weights(std::string path) {
+		std::ifstream fin(path, std::ios::binary);
+
+		if (!fin.is_open())
+			throw std::runtime_error("file not opened");
+
+
+//		fin.read((char *)& 
+
+		std::unordered_map<std::string, Parameter> params_dict = flatten_params();
+		for (const auto& [name, param] : params_dict)
+			params[name] = param;
 	
+	}
+	
+	
+// [Linear]
 	Linear::Linear( size_t out_size, 
 					bool nobias,
 					/*dtype = float32, */

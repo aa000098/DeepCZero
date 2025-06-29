@@ -2,6 +2,7 @@
 build/
 bin/
 tags
+models/*
 
 *.o
 *.out

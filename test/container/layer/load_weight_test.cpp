@@ -18,6 +18,6 @@ int main() {
 	std::string txt;
 	while(getline(file, txt)) {
 		std::cout << txt << std::endl;
-	}
+ 	}
 
 }

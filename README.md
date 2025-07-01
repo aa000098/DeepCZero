@@ -36,7 +36,11 @@ sudo apt install graphviz
 ```bash
 sudo apt install libcurl4-gnutls-dev
 ```
-   
+
+### 모델 로딩을 위한 zip 도구
+```
+sudo apt install libzip-dev
+```
 
 ## 빌드 및 실행 방법
 ### 전체 빌드

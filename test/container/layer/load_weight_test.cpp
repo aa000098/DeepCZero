@@ -14,10 +14,20 @@ int main() {
 		return 0;
 	}
 
+	// 파일 전체 읽기
+	file.seekg(0, std::ios::end);
+	size_t filesize = file.tellg();
+	file.seekg(0, std::ios::beg);
 
-	std::string txt;
-	while(getline(file, txt)) {
-		std::cout << txt << std::endl;
- 	}
+	std::vector<uint8_t> buffer(filesize);
+	file.read(reinterpret_cast<char*>(buffer.data()), filesize);
+
+	// 예시: 첫 16바이트 출력
+	for (int i = 0; i < 16; ++i) {
+		std::printf("%02X ", buffer[i]);
+	}
+	std::puts("");
+
+
 
 }

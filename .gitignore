@@ -1,8 +1,10 @@
 # build file
 build/
 bin/
+models/
+venv/
+
 tags
-models/*
 
 *.o
 *.out

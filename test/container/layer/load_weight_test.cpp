@@ -54,7 +54,7 @@ int main() {
 
 
     zip_int64_t num_entries = zip_get_num_entries(archive, 0);
-    for (zip_uint64_t i = 0; i < num_entries; ++i) {
+    for (zip_int64_t i = 0; i < num_entries; ++i) {
         const char* name = zip_get_name(archive, i, 0);
         if (name) {
             std::cout << "Found: " << name << std::endl;

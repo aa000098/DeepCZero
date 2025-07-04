@@ -4,7 +4,7 @@
 
 int main() {
 	{
-		dcz::UsingConfig no_grad(false);
+		dcz::no_grad();
 
 		Variable x({2, 3, 4});
 		Variable y = square(x);

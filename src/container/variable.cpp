@@ -23,7 +23,7 @@ void Variable::backward(bool retain_grad, bool create_graph) {
 		Variable* gy = output->grad.get();
 
 		{
-			dcz::UsingConfig is_higher_order_diff(create_graph);
+			dcz::UsingConfig is_higher_order_diff("enable_backprop", create_graph);
 			std::vector<Variable> gxs = f->backward(*gy);
 			for (size_t i = 0; i < gxs.size(); ++i) {
 				std::shared_ptr<VariableImpl<>> input = inputs[i];

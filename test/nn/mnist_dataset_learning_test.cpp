@@ -54,7 +54,7 @@ void test_mnist_dataset_learning() {
 			sum_loss = 0;
 			sum_acc = 0;
 			{
-				dcz::UsingConfig no_grad(true);
+				dcz::UsingConfig no_grad("enable_backprop", true);
 				
 				for (const auto& [x, t] : test_loader) {
 					Variable y = model(x);

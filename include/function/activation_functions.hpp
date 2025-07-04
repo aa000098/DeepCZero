@@ -3,6 +3,7 @@
 #include "function/function.hpp"
 
 namespace function {
+
 class Sigmoid : public Function {
 
 public:
@@ -29,6 +30,18 @@ public:
 	std::vector<Variable> backward(const Variable& gy) override;
 	~ReLU() = default;
 	
+};
+
+
+class Dropout  {
+private:
+	float dropout_rate;
+public:
+	Dropout(float dropout_rate = 0.1) : dropout_rate(dropout_rate) {};
+	Variable forward(const std::vector<Variable>& xs);
+	Variable operator()(const Variable& x) { 
+return forward({x}); };
+	~Dropout() = default;
 };
 
 

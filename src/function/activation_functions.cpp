@@ -1,5 +1,6 @@
 #include "function/activation_functions.hpp"
 #include "container/tensor/tensor_all.hpp"
+#include "config/config.hpp"
 
 Variable function::Sigmoid::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
@@ -51,3 +52,22 @@ std::vector<Variable> function::ReLU::backward(const Variable& gy) {
 	Variable gx = gy * mask;
 	return { gx };
 }
+
+
+Variable function::Dropout::forward(const std::vector<Variable>& xs) {
+	const Tensor<>& x = xs[0].data();
+
+	if (dcz::Config::get().train) {
+		Tensor<> mask(x.get_shape());
+		Tensor<> random = rand(x.get_shape());
+		for (size_t i = 0; i < x.size(); i++)
+			mask.raw_data()[i] = random.raw_data()[i] > dropout_rate ? 1.0f : 0.0f;
+		float scale = 1 - dropout_rate;
+		Tensor<> result = x * mask / scale;
+		return Variable(result);
+	} else {
+		return Variable(x);
+	}
+}
+
+

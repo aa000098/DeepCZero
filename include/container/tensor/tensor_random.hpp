@@ -19,6 +19,27 @@ inline Tensor<> rand(size_t rows, size_t cols, size_t seed) {
 	return Tensor<>({rows, cols}, data);
 }
 
+inline Tensor<> rand(const std::vector<size_t>& shape, size_t seed) {
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<> dist(0, 1);
+
+    size_t total_size = 1;
+    for (size_t s : shape) total_size *= s;
+
+    std::vector<float> data;
+    data.reserve(total_size);
+    for (size_t i = 0; i < total_size; ++i)
+        data.push_back(dist(gen));
+
+    return Tensor<>(shape, data);
+}
+
+inline Tensor<> rand(const std::vector<size_t>& shape) {
+    std::random_device rd;
+    return rand(shape, rd());
+}
+
+
 inline Tensor<> rand(size_t rows, size_t cols) {
 	std::random_device rd;
 	return rand(rows, cols, rd());

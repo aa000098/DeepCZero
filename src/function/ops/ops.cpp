@@ -167,3 +167,9 @@ Variable relu(const Variable& x) {
 	std::shared_ptr<Function> f = std::make_shared<ReLU>();
 	return (*f)({x});
 }
+
+Variable dropout(const Variable& x, const float& dropout_rate) {
+	using namespace function;	
+	Dropout f(dropout_rate);
+	return f(x);
+}

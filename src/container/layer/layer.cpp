@@ -69,7 +69,7 @@ namespace layer {
 		return params_dict;
 	}
 
-
+/*
 	void Layer::save_weights(std::string path) {
 		// to_cpu();
 		std::unordered_map<std::string, Parameter> params_dict = flatten_params();
@@ -92,7 +92,7 @@ namespace layer {
 			params[name] = param;
 	
 	}
-	
+*/	
 	
 // [Linear]
 	Linear::Linear( size_t out_size, 

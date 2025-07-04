@@ -47,4 +47,4 @@ Variable linear(const Variable& x, const Variable& w, const Variable& b);
 Variable sigmoid(const Variable& x);
 Variable softmax(const Variable& x, const std::vector<int> axes = {1});
 Variable relu(const Variable& x);
-
+Variable dropout(const Variable& x, const float& dropout_rate);

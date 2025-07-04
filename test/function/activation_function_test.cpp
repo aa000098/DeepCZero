@@ -3,6 +3,8 @@
 #include <iostream>
 #include "deepczero.hpp"  // Include this according to your framework setup
 
+#define DCZ_TEST_MODE() auto __dcz_config_guard = dcz::test_mode()
+
 float sigmoid_reference(float x) {
     return 0.5f * std::tanh(0.5f * x) + 0.5f;
 }
@@ -120,10 +122,44 @@ void test_relu_forward_backward() {
     std::cout << "ReLU forward and backward test passed!" << std::endl;
 }
 
+void test_dropout_forward() {
+    using namespace function;
+
+    // (1) 입력 데이터 준비
+    Tensor<float> input_tensor({6}, {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f});
+    Variable x(input_tensor);
+
+    // (2) 학습 모드 테스트 (Config::train = true)
+    Variable y_train = dropout(x, 0.5f);
+
+    std::cout << "[Train mode] Dropout result: ";
+    for (size_t i = 0; i < y_train.data().size(); ++i)
+        std::cout << y_train.data().data()[i] << " ";
+    std::cout << std::endl;
+
+    // (3) 평가 모드 테스트 (Config::train = false)
+	{
+		DCZ_TEST_MODE();
+    	Variable y_eval = dropout(x, 0.5f);
+    	std::cout << "[Eval mode] Dropout result: ";
+    	for (size_t i = 0; i < y_eval.data().size(); ++i)
+        	std::cout << y_eval.data().data()[i] << " ";
+    	std::cout << std::endl;
+
+    // (4) assert로 평가 모드 검증: 입력과 동일해야 함
+    	for (size_t i = 0; i < y_eval.data().size(); ++i) {
+        	assert(std::abs(y_eval.data().data()[i] - input_tensor.data()[i]) < 1e-6f);
+    	}
+	}
+
+    std::cout << "✅ Dropout forward test passed (train + eval mode)!" << std::endl;
+}
+
 int main() {
     test_sigmoid_forward_backward();
 	test_softmax_forward_backward();
 	test_relu_forward_backward();
+	test_dropout_forward();
     return 0;
 }
 

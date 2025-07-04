@@ -1,7 +1,7 @@
 # compiler and flags
 CXX = g++
 CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp
-LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp
+LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
   
 # directory
 SRC_DIR = src
@@ -33,7 +33,7 @@ $(LIB_TARGET): $(OBJS)
 
 $(BIN_DIR)/%: $(BUILD_DIR)/%.o $(LIB_TARGET)
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)

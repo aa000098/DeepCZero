@@ -77,4 +77,8 @@ inline std::vector<T> arrange_vector(size_t size) {
 	return values;
 }
 
+inline size_t get_conv_outsize(int input_size, int kernel_size, int stride, int pad) {
+	return (input_size + pad * 2 - kernel_size) / stride + 1;
+}
+
 }

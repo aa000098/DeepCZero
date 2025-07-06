@@ -8,3 +8,4 @@
 #include "function/activation_functions.hpp"
 #include "function/slice_functions.hpp"
 #include "function/evaluation_functions.hpp"
+#include "function/conv_functions.hpp"

@@ -1,0 +1,33 @@
+#pragma once
+
+#include "function/function.hpp"
+
+namespace function {
+
+	class Im2col : public Function {
+	private:
+		std::vector<size_t> input_shape;
+		size_t kernel_size;
+		size_t stride;
+		size_t pad;
+		bool to_matrix;
+	
+	public:
+		Im2col(	std::vector<size_t> input_shape,
+				size_t kernel_size,
+				size_t stride,
+				size_t pad,
+				bool to_matrix)
+			: input_shape(input_shape),
+				kernel_size(kernel_size),
+				stride(stride),
+				pad(pad),
+				to_matrix(to_matrix) {};
+
+		Variable forward(const std::vector<Variable>& xs) override;
+		std::vector<Variable> backward(const Variable& gy) override;
+		~Im2col() = default;
+
+	};
+
+}

@@ -7,16 +7,16 @@ namespace function {
 	class Im2col : public Function {
 	private:
 		std::vector<size_t> input_shape;
-		size_t kernel_size;
-		size_t stride;
-		size_t pad;
+		std::pair<size_t, size_t> kernel_size;
+		std::pair<size_t, size_t> stride;
+		std::pair<size_t, size_t> pad;
 		bool to_matrix;
 	
 	public:
 		Im2col(	std::vector<size_t> input_shape,
-				size_t kernel_size,
-				size_t stride,
-				size_t pad,
+				std::pair<size_t, size_t> kernel_size,
+				std::pair<size_t, size_t> stride,
+				std::pair<size_t, size_t> pad,
 				bool to_matrix)
 			: input_shape(input_shape),
 				kernel_size(kernel_size),

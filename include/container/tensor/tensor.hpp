@@ -133,10 +133,6 @@ namespace tensor {
 
 		std::vector<T> view_data() const;
 
-		void show() const {
-			if (!impl) std::cout << "[  ]" << std::endl;
-			else impl->show(); };
-
 // Tensor functions
 		Tensor<T> clone() const {
 			return Tensor<T>(this->get_shape(), this->raw_data()); };
@@ -151,7 +147,8 @@ namespace tensor {
 								bool keepdims = false) const;
 		Tensor<uint8_t> equal(const Tensor<T>& other) const; 
 		float mean() const;
-		
+	
+		Tensor<T> pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value);
 
 // gemm functions
 		Tensor<T>& dot(const Tensor<T>& other) {
@@ -169,6 +166,9 @@ namespace tensor {
 							bool header = false,
 							char delimiter = ',');
 
+		void show() const {
+			if (!impl) std::cout << "[  ]" << std::endl;
+			else impl->show(); };
 	};
 }
 

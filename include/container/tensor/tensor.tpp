@@ -351,6 +351,38 @@ std::vector<T> Tensor<T>::view_data() const {
 	return result;
 }
 
+template <typename T>
+Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) {
+	auto old_shape = this->get_shape();
+	size_t ndim = old_shape.size();
+
+	std::vector<size_t> new_shape(ndim);
+	for (size_t i = 0; i < ndim; i++)
+		new_shape[i] = old_shape[i] + padding[i].first + padding[i].second;
+
+	Tensor<T> padded_tensor(new_shape, pad_value);
+
+	std::vector<size_t> old_idx(ndim, 0);
+	std::vector<size_t> new_idx(ndim, 0);
+
+	std::function<void(size_t)> copy_data = [&](size_t dim) {
+		if (dim == ndim) {
+			padded_tensor(new_idx) = (*this)(old_idx);
+			return;
+		}
+		for (size_t i = 0; i < old_shape[dim]; i++) {
+			old_idx[dim] = i;
+			new_idx[dim] = i + padding[dim].first;
+			copy_data(dim + 1);
+		}
+	};
+
+	copy_data(0);
+
+	return padded_tensor;
+}
+
+
 template<typename T>
 void Tensor<T>::to_csv(const std::string& filename, bool index, bool header, char delimiter) {
 	// 파일 기본 저장 경로 설정

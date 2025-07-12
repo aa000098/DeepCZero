@@ -173,4 +173,32 @@ Tensor<DstT> cast_tensor(const Tensor<SrcT>& src) {
 	return Tensor<DstT>(src.get_shape(), dst);
 }
 
+
+template<typename T>
+Tensor<T> im2col_array(	const Tensor<T> img,
+						std::pair<size_t, size_t> kernel_size,
+						std::pair<size_t, size_t> stride,
+						std::pair<size_t, size_t> pad,
+						bool to_matrix) {
+	std::vector<size_t> shape = img.get_shape();
+	size_t N = shape[0];
+	size_t C = shape[1];
+	size_t H = shape[2];
+	size_t W = shape[3];
+
+	auto [KH, KW] = kernel_size;
+	auto [SH, SW] = stride;
+	auto [PH, PW] = pad;
+	size_t OH = get_conv_outsize(H, KH, SH, PH);
+	size_t HW = get_conv_outsize(W, KW, SW, PW);
+
+	// to array
+
+	return img;
+
+}
+
+
+
+
 }

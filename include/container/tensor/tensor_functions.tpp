@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
+#include <omp.h>
 
 namespace tensor {
 
@@ -190,11 +191,34 @@ Tensor<T> im2col_array(	const Tensor<T> img,
 	auto [SH, SW] = stride;
 	auto [PH, PW] = pad;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
-	size_t HW = get_conv_outsize(W, KW, SW, PW);
+	size_t OW = get_conv_outsize(W, KW, SW, PW);
 
 	// to array
+	auto padded = img.pad({{0, 0}, {0, 0}, {PH, PH}, {PW, PW}}, 0);
 
-	return img;
+	Tensor<T> col({N, C, KH, KW, OH, OW});
+
+	#pragma omp parallel for collapse(4)
+    for (size_t n = 0; n < N; ++n) {
+        for (size_t c = 0; c < C; ++c) {
+            for (size_t j = 0; j < KH; ++j) {
+                for (size_t i = 0; i < KW; ++i) {
+                    for (size_t y = 0; y < OH; ++y) {
+                        for (size_t x = 0; x < OW; ++x)
+                            col({n, c, j, i, y, x}) = padded({n, c, j + y * SH, i + x * SW});
+                    }
+                }
+            }
+        }
+    }
+
+	if (to_matrix) { 
+		col = col.transpose({0, 4, 5, 1, 2, 3});
+		col = col.contiguous();
+		col = col.reshape({N * OH * OW, C * KH * KW});
+	}
+
+	return col;
 
 }
 

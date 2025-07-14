@@ -225,10 +225,55 @@ void test_tensor_max() {
     std::cout << "✅ test_tensor_max passed.\n";
 }
 
+void test_im2col_array() {
+    using T = float;
+
+    // 1. 입력 이미지 생성 (1, 1, 4, 4)
+    Tensor<T> img({1, 1, 4, 4});
+    for (size_t i = 0; i < 16; ++i)
+        img.raw_data()[i] = static_cast<T>(i + 1);  // 값: 1 ~ 16
+
+    // 2. 커널, 스트라이드, 패딩 설정
+    std::pair<size_t, size_t> kernel_size = {3, 3};
+    std::pair<size_t, size_t> stride = {1, 1};
+    std::pair<size_t, size_t> pad = {1, 1};
+
+    // 3. im2col 실행 (to_matrix = true)
+    Tensor<T> col = im2col_array(img, kernel_size, stride, pad, true);
+
+    // 4. 결과 shape 확인: (1 * 4 * 4, 1 * 3 * 3) = (16, 9)
+    std::vector<size_t> expected_shape = {16, 9};
+    assert(col.get_shape() == expected_shape);
+
+    // 5. 첫 번째 row의 expected 값 계산
+    // padded image:
+    //  0  0  0  0  0  0
+    //  0  1  2  3  4  0
+    //  0  5  6  7  8  0
+    //  0  9 10 11 12  0
+    //  0 13 14 15 16  0
+    //  0  0  0  0  0  0
+    //
+    // 첫 번째 커널 위치 (0,0): 커널이 0/0/0, 0/1/2, 0/5/6 위치
+    std::vector<T> expected_first_row = {
+        0, 0, 0,
+        0, 1, 2,
+        0, 5, 6
+    };
+
+	col.show();
+    for (size_t i = 0; i < 9; ++i) {
+        assert(col({0, i}) == expected_first_row[i]);
+    }
+
+    std::cout << "✅ test_im2col_array passed." << std::endl;
+}
+
 int main() {
 	test_tensor_sum();
 	test_broadcast_to();
 	test_sum_to();
 	test_add_at();
 	test_tensor_max();
+	test_im2col_array();
 }

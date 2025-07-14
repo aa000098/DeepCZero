@@ -148,7 +148,9 @@ namespace tensor {
 		Tensor<uint8_t> equal(const Tensor<T>& other) const; 
 		float mean() const;
 	
-		Tensor<T> pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value);
+		Tensor<T> pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) const;
+
+		Tensor<T> contiguous() const;
 
 // gemm functions
 		Tensor<T>& dot(const Tensor<T>& other) {

@@ -31,8 +31,8 @@ Tensor<T> Tensor<T>::reshape_like(const Tensor<T>& other) const {
 	const auto& target_shape = other.get_shape();
 	size_t target_size = other.size();
 
-	this->show();
-	other.show();
+	//this->show();
+	//other.show();
 	if (target_size != this->size()) {
 		throw std::runtime_error("reshape_like failed: element count mismatch");
 	}
@@ -352,7 +352,7 @@ std::vector<T> Tensor<T>::view_data() const {
 }
 
 template <typename T>
-Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) {
+Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) const {
 	auto old_shape = this->get_shape();
 	size_t ndim = old_shape.size();
 
@@ -380,6 +380,26 @@ Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, 
 	copy_data(0);
 
 	return padded_tensor;
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::contiguous() const {
+    Tensor<T> result(get_shape());
+    std::vector<T>& result_data = result.raw_data();
+    std::vector<size_t> shape = get_shape();
+    std::vector<size_t> indices(shape.size(), 0);
+
+    size_t total = impl->size();
+    for (size_t i = 0; i < total; ++i) {
+        result_data[i] = (*this)(indices);
+        for (size_t j = shape.size() - 1; j < shape.size(); --j) {
+            if (++indices[j] < shape[j]) break;
+            indices[j] = 0;
+            if (j == 0) break;
+        }
+    }
+
+    return result;
 }
 
 

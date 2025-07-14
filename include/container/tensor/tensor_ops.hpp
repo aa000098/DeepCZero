@@ -351,11 +351,31 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
     result_shape.push_back(N);
 
     std::vector<T> result_data(product(result_shape), T{});
+	auto result_strides = compute_contiguous_strides(result_shape); 
 
     // 6. flatten loop over batches
     size_t batch_size = product(batch_shape);
 
-	//#pragma omp parallel for collapse(1)
+	#pragma omp parallel for
+	for (size_t flat = 0; flat < batch_size * M * N; ++flat) {
+		size_t batch_idx = flat / (M * N);
+		size_t i = (flat / N) % M;
+		size_t j = flat % N;
+
+		auto batch_idx_vec = unflatten_index(batch_idx, batch_shape);
+
+		T sum = T{};
+		for (size_t k = 0; k < K1; ++k) {
+			auto idx_a = batch_idx_vec; idx_a.push_back(i); idx_a.push_back(k);
+			auto idx_b = batch_idx_vec; idx_b.push_back(k); idx_b.push_back(j);
+			sum += a_bc(idx_a) * b_bc(idx_b);
+		}
+
+		auto idx_res = batch_idx_vec; idx_res.push_back(i); idx_res.push_back(j);
+		size_t flat_idx = flatten_index(idx_res, result_strides);
+		result_data[flat_idx] = sum;
+	}
+	/*
     for (size_t batch_idx = 0; batch_idx < batch_size; ++batch_idx) {
         auto batch_idx_vec = unflatten_index(batch_idx, batch_shape);
 
@@ -368,13 +388,12 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
                     sum += a_bc(idx_a) * b_bc(idx_b);
                 }
                 auto idx_res = batch_idx_vec; idx_res.push_back(i); idx_res.push_back(j);
-				auto result_strides = compute_contiguous_strides(result_shape); 
                 size_t flat = flatten_index(idx_res, result_strides);
                 result_data[flat] = sum;
             }
         }
     }
-
+*/
     return Tensor<T>(result_shape, result_data);
 
 }

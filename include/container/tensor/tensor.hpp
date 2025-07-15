@@ -97,6 +97,18 @@ namespace tensor {
 			return Tensor<T>(sliced_tensor);
 		};
 
+		Tensor<T> slice(const std::vector<std::pair<size_t, size_t>>& ranges) const {
+			if (ranges.size() > this->ndim())
+				throw std::runtime_error("Too many slicing dimensions");
+
+			Tensor<T> result = *this;
+			for (size_t dim = 0; dim < ranges.size(); ++dim) {
+				auto [start, end] = ranges[dim];
+				result = result.slice(dim, start, end);
+			}
+			return result;
+		}
+
 		Tensor<T> gather_rows(const std::vector<size_t>& indices) const { 
 			return Tensor<T>(impl->gather_rows(indices)); };
 		Tensor<T> gather_rows(const Tensor<size_t>& indices) const { 

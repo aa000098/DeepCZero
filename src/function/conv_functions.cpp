@@ -3,12 +3,15 @@
 
 Variable function::Im2col::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
-	std::vector<size_t> x_shape = x.get_shape();
+	input_shape = x.get_shape();
+	Tensor<> y = im2col_array(x, kernel_size, stride, pad, to_matrix);
 	
-	return Variable(x);
+	return Variable(y);
 }
 
 std::vector<Variable> function::Im2col::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
 	return {gy * x};
 }
+
+

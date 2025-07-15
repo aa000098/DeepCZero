@@ -13,16 +13,14 @@ namespace function {
 		bool to_matrix;
 	
 	public:
-		Im2col(	std::vector<size_t> input_shape,
-				std::pair<size_t, size_t> kernel_size,
+		Im2col(	std::pair<size_t, size_t> kernel_size,
 				std::pair<size_t, size_t> stride,
 				std::pair<size_t, size_t> pad,
 				bool to_matrix)
-			: input_shape(input_shape),
-				kernel_size(kernel_size),
-				stride(stride),
-				pad(pad),
-				to_matrix(to_matrix) {};
+		: kernel_size(kernel_size),
+			stride(stride),
+			pad(pad),
+			to_matrix(to_matrix) {};
 
 		Variable forward(const std::vector<Variable>& xs) override;
 		std::vector<Variable> backward(const Variable& gy) override;

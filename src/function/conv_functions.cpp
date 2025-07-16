@@ -11,7 +11,7 @@ Variable function::Im2col::forward(const std::vector<Variable>& xs) {
 
 std::vector<Variable> function::Im2col::backward(const Variable& gy) {
 	const Variable gx = col2im(gy, input_shape, kernel_size, stride, pad, to_matrix);
-	return {gy};
+	return {gx};
 }
 
 
@@ -24,7 +24,7 @@ Variable function::Col2im::forward(const std::vector<Variable>& xs) {
 
 std::vector<Variable> function::Col2im::backward(const Variable& gy) {
 	const Variable gx = im2col(gy, kernel_size, stride, pad, to_matrix);
-	return {gy};
+	return {gx};
 }
 
 

@@ -261,13 +261,68 @@ void test_im2col_array() {
         0, 5, 6
     };
 
-	col.show();
     for (size_t i = 0; i < 9; ++i) {
         assert(col({0, i}) == expected_first_row[i]);
     }
 
     std::cout << "✅ test_im2col_array passed." << std::endl;
 }
+
+
+void test_col2im_array() {
+    using T = float;
+
+    // 1. 입력 이미지 생성 (1, 1, 4, 4)
+    Tensor<T> img({1, 1, 4, 4});
+    for (size_t i = 0; i < 16; ++i)
+        img.raw_data()[i] = static_cast<T>(i + 1);  // 값: 1 ~ 16
+
+    // 2. 커널, 스트라이드, 패딩 설정
+    std::pair<size_t, size_t> kernel_size = {3, 3};
+    std::pair<size_t, size_t> stride = {1, 1};
+    std::pair<size_t, size_t> pad = {1, 1};
+
+    // ============================
+    // ✅ Case 1: to_matrix = false
+    // ============================
+    {
+        Tensor<T> col = im2col_array(img, kernel_size, stride, pad, false);
+        Tensor<T> reconstructed = col2im_array(col, {1, 1, 4, 4}, kernel_size, stride, pad, false);
+		reconstructed.show();
+
+        Tensor<T> ones = im2col_array(Tensor<T>({1, 1, 4, 4}, 1), kernel_size, stride, pad, false);
+        Tensor<T> overlap_map = col2im_array(ones, {1, 1, 4, 4}, kernel_size, stride, pad, false);
+
+        for (size_t i = 0; i < 16; ++i) {
+            T expected = img.raw_data()[i];
+            T actual = reconstructed.raw_data()[i] / overlap_map.raw_data()[i];
+            assert(std::abs(expected - actual) < 1e-4);
+        }
+
+        std::cout << "✅ test_col2im_array (to_matrix = false) passed." << std::endl;
+    }
+
+    // ============================
+    // ✅ Case 2: to_matrix = true
+    // ============================
+    {
+        Tensor<T> col = im2col_array(img, kernel_size, stride, pad, true);
+        Tensor<T> reconstructed = col2im_array(col, {1, 1, 4, 4}, kernel_size, stride, pad, true);
+		reconstructed.show();
+
+        Tensor<T> ones = im2col_array(Tensor<T>({1, 1, 4, 4}, 1), kernel_size, stride, pad, true);
+        Tensor<T> overlap_map = col2im_array(ones, {1, 1, 4, 4}, kernel_size, stride, pad, true);
+
+        for (size_t i = 0; i < 16; ++i) {
+            T expected = img.raw_data()[i];
+            T actual = reconstructed.raw_data()[i] / overlap_map.raw_data()[i];
+            assert(std::abs(expected - actual) < 1e-4);
+        }
+
+        std::cout << "✅ test_col2im_array (to_matrix = true) passed." << std::endl;
+    }
+}
+
 
 int main() {
 	test_tensor_sum();
@@ -276,4 +331,5 @@ int main() {
 	test_add_at();
 	test_tensor_max();
 	test_im2col_array();
+	test_col2im_array();
 }

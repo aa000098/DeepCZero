@@ -223,6 +223,57 @@ Tensor<T> im2col_array(	const Tensor<T> img,
 }
 
 
+template<typename T>
+Tensor<T> col2im_array(	const Tensor<T> col,
+						std::vector<size_t> img_shape,
+						std::pair<size_t, size_t> kernel_size,
+						std::pair<size_t, size_t> stride,
+						std::pair<size_t, size_t> pad,
+						bool to_matrix) {
+	size_t N = img_shape[0];
+	size_t C = img_shape[1];
+	size_t H = img_shape[2];
+	size_t W = img_shape[3];
+
+	auto [KH, KW] = kernel_size;
+	auto [SH, SW] = stride;
+	auto [PH, PW] = pad;
+	size_t OH = get_conv_outsize(H, KH, SH, PH);
+	size_t OW = get_conv_outsize(W, KW, SW, PW);
+
+	Tensor<T> col_arr = col;
+
+
+	if (to_matrix) {
+		col_arr = col_arr.reshape({N, OH, OW, C, KH, KW});
+		col_arr = col_arr.transpose({0, 3, 4, 5, 1, 2});	
+		col_arr.contiguous();
+	}
+
+	// to array
+	Tensor<T> padded_img({N, C, H + 2*PH + SH - 1, W + 2*PW + SW - 1});
+
+	//#pragma omp parallel for collapse(4)
+    for (size_t n = 0; n < N; ++n) {
+        for (size_t c = 0; c < C; ++c) {
+            for (size_t j = 0; j < KH; ++j) {
+                for (size_t i = 0; i < KW; ++i) {
+                    for (size_t y = 0; y < OH; ++y) {
+                        for (size_t x = 0; x < OW; ++x) {
+                            padded_img({n, c, j + y * SH, i + x * SW}) += col_arr({n, c, j, i, y, x});
+						}
+                    }
+                }
+            }
+        }
+    }
+
+	return padded_img.slice({{0,N}, {0,C}, {PH, PH+H}, {PW, PW+W}});
+
+}
+
+
+
 
 
 }

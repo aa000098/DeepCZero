@@ -28,4 +28,30 @@ namespace function {
 
 	};
 
+	class Col2im : public Function {
+	private:
+		std::vector<size_t> input_shape;
+		std::pair<size_t, size_t> kernel_size;
+		std::pair<size_t, size_t> stride;
+		std::pair<size_t, size_t> pad;
+		bool to_matrix;
+	
+	public:
+		Col2im(	std::vector<size_t> input_shape,
+				std::pair<size_t, size_t> kernel_size,
+				std::pair<size_t, size_t> stride,
+				std::pair<size_t, size_t> pad,
+				bool to_matrix)
+		: 	input_shape(input_shape),
+			kernel_size(kernel_size),
+			stride(stride),
+			pad(pad),
+			to_matrix(to_matrix) {};
+
+		Variable forward(const std::vector<Variable>& xs) override;
+		std::vector<Variable> backward(const Variable& gy) override;
+		~Col2im() = default;
+
+	};
+
 }

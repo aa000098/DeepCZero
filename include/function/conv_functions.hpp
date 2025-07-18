@@ -4,6 +4,22 @@
 
 namespace function {
 
+	class Conv2d : public Function {
+	private:
+		std::pair<size_t, size_t> stride;
+		std::pair<size_t, size_t> pad;
+
+	public:
+		Conv2d(	std::pair<size_t, size_t> stride = {1,1},
+				std::pair<size_t, size_t> pad = {0,0})
+			: stride(stride), pad(pad) {};
+		
+		Variable forward(const std::vector<Variable>& xs) override;
+		std::vector<Variable> backward(const Variable& gy) override;
+		~Conv2d() = default;
+
+	};
+
 	class Im2col : public Function {
 	private:
 		std::vector<size_t> input_shape;

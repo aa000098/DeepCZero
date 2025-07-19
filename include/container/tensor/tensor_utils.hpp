@@ -81,4 +81,8 @@ inline size_t get_conv_outsize(int input_size, int kernel_size, int stride, int 
 	return (input_size + pad * 2 - kernel_size) / stride + 1;
 }
 
+inline size_t get_deconv_outsize(int input_size, int kernel_size, int stride, int pad) {
+	return stride * (input_size - 1) + kernel_size - 2*pad;
+}
+
 }

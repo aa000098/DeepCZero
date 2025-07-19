@@ -20,6 +20,24 @@ namespace function {
 
 	};
 
+	class Deconv2d : public Function {
+	private:
+		std::pair<size_t, size_t> stride;
+		std::pair<size_t, size_t> pad;
+		std::pair<size_t, size_t> out_size;
+	
+	public:
+		Deconv2d(std::pair<size_t, size_t> stride = {1,1},
+				std::pair<size_t, size_t> pad = {0,0},
+				std::pair<size_t, size_t> out_size = {0, 0})
+			: stride(stride), pad(pad), out_size(out_size) {};
+
+		Variable forward(const std::vector<Variable>& xs) override;
+		std::vector<Variable> backward(const Variable& gy) override;
+		~Deconv2d() = default;
+
+	};
+
 	class Im2col : public Function {
 	private:
 		std::vector<size_t> input_shape;

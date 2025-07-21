@@ -77,6 +77,17 @@ inline std::vector<T> arrange_vector(size_t size) {
 	return values;
 }
 
+inline std::vector<size_t> cast_axes(const std::vector<int>& axes, size_t ndim) {
+	std::vector<size_t> result;
+	for (int ax : axes) {
+		if (ax < 0)
+			result.push_back(static_cast<size_t>(ndim + ax));
+		else
+			result.push_back(static_cast<size_t>(ax));
+	}
+	return result;
+}
+
 inline size_t get_conv_outsize(int input_size, int kernel_size, int stride, int pad) {
 	return (input_size + pad * 2 - kernel_size) / stride + 1;
 }

@@ -168,6 +168,10 @@ namespace tensor {
 		Tensor<T>& dot(const Tensor<T>& other) {
 			return dot(*this, other);
 		}
+		
+		Tensor<T>& tensordot(const Tensor<T>& other, const std::pair<std::vector<int>, std::vector<int>> axes) {
+			return tensordot(*this, other, axes);
+		}
 
 // io functions
 		void to_csv(const std::string& filename, 

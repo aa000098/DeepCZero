@@ -399,6 +399,72 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 }
 
 template<typename T>
+Tensor<T> tensordot(const Tensor<T> &A, 
+                    const Tensor<T>& B,
+                    const std::pair<std::vector<int>, std::vector<int>>& axes) {
+    // 1. 분해
+    const auto A_shape = A.get_shape();
+    const auto B_shape = B.get_shape();
+    const size_t A_ndim = A_shape.size();
+    const size_t B_ndim = B_shape.size();
+
+    const auto& A_contract_axes = cast_axes(axes.first, A_ndim);
+    const auto& B_contract_axes = cast_axes(axes.second, B_ndim);
+
+    if (A_contract_axes.size() != B_contract_axes.size())
+        throw std::runtime_error("Axes length mismatch");
+
+    for (size_t i = 0; i < A_contract_axes.size(); ++i) {
+        if (A_shape[A_contract_axes[i]] != B_shape[B_contract_axes[i]])
+            throw std::runtime_error("Shape mismatch in tensordot axes");
+    }
+
+    // 2. 계산에 사용될 축 외의 남은 축 구하기
+    std::vector<size_t> A_free_axes, B_free_axes;
+    for (size_t i = 0; i < A_ndim; ++i)
+        if (std::find(A_contract_axes.begin(), A_contract_axes.end(), i) == A_contract_axes.end())
+            A_free_axes.push_back(i);
+    for (size_t i = 0; i < B_ndim; ++i)
+        if (std::find(B_contract_axes.begin(), B_contract_axes.end(), i) == B_contract_axes.end())
+            B_free_axes.push_back(i);
+
+    // 3. transpose
+    std::vector<size_t> A_axes = A_free_axes;
+    A_axes.insert(A_axes.end(), A_contract_axes.begin(), A_contract_axes.end());
+
+    std::vector<size_t> B_axes = B_contract_axes;
+    B_axes.insert(B_axes.end(), B_free_axes.begin(), B_free_axes.end());
+
+    Tensor<T> A_trans = A.transpose(A_axes);
+    Tensor<T> B_trans = B.transpose(B_axes);
+
+    // 4. reshape
+    size_t A_outer = 1, A_inner = 1;
+    for (size_t ax : A_free_axes) A_outer *= A_shape[ax];
+    for (size_t ax : A_contract_axes) A_inner *= A_shape[ax];
+
+    size_t B_inner = 1, B_outer = 1;
+    for (size_t ax : B_contract_axes) B_inner *= B_shape[ax];
+    for (size_t ax : B_free_axes) B_outer *= B_shape[ax];
+
+    Tensor<T> A_mat = A_trans.reshape({A_outer, A_inner});
+    Tensor<T> B_mat = B_trans.reshape({B_inner, B_outer});
+
+    // 5. 행렬 곱 (A_inner == B_inner)
+    Tensor<T> result = A_mat * B_mat; // (A_outer, B_outer)
+
+    // 6. reshape to final shape
+    std::vector<size_t> A_free_shape, B_free_shape;
+    for (size_t ax : A_free_axes) A_free_shape.push_back(A_shape[ax]);
+    for (size_t ax : B_free_axes) B_free_shape.push_back(B_shape[ax]);
+
+    std::vector<size_t> final_shape = A_free_shape;
+    final_shape.insert(final_shape.end(), B_free_shape.begin(), B_free_shape.end());
+
+    return result.reshape(final_shape);	
+}
+
+template<typename T>
 Tensor<T> maximum(const Tensor<T>& input, T scalar) {
 	std::vector<T> out_data(input.size());
 	const auto& in_data = input.data();

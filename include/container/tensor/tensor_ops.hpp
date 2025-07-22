@@ -401,7 +401,8 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 template<typename T>
 Tensor<T> tensordot(const Tensor<T> &A, 
                     const Tensor<T>& B,
-                    const std::pair<std::vector<int>, std::vector<int>>& axes) {
+                    const std::pair<std::vector<int>, 
+							std::vector<int>>& axes) {
     // 1. 분해
     const auto A_shape = A.get_shape();
     const auto B_shape = B.get_shape();
@@ -451,7 +452,7 @@ Tensor<T> tensordot(const Tensor<T> &A,
     Tensor<T> B_mat = B_trans.reshape({B_inner, B_outer});
 
     // 5. 행렬 곱 (A_inner == B_inner)
-    Tensor<T> result = A_mat * B_mat; // (A_outer, B_outer)
+    Tensor<T> result = dot(A_mat, B_mat); // (A_outer, B_outer)
 
     // 6. reshape to final shape
     std::vector<size_t> A_free_shape, B_free_shape;

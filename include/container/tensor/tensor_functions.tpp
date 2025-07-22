@@ -218,6 +218,7 @@ Tensor<T> im2col_array(	const Tensor<T> img,
 		col = col.reshape({N * OH * OW, C * KH * KW});
 	}
 
+	// [N, C, KH, KW, OH, OW]
 	return col;
 
 }
@@ -272,6 +273,17 @@ Tensor<T> col2im_array(	const Tensor<T> col,
 
 }
 
+template<typename T>
+bool is_allclose(const Tensor<T>& a, const Tensor<T>& b, float rtol, float atol) {
+    if (a.get_shape() != b.get_shape())
+        return false;
+    for (size_t i = 0; i < a.size(); ++i) {
+        float diff = std::abs(a.raw_data()[i] - b.raw_data()[i]);
+        float thresh = atol + rtol * std::abs(b.raw_data()[i]);
+        if (diff > thresh) return false;
+    }
+    return true;
+}
 
 
 

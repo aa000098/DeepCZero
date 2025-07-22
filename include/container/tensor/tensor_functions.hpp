@@ -55,7 +55,8 @@ Tensor<T> col2im_array(	const Tensor<T> col,
 						std::pair<size_t, size_t> pad,
 						bool to_matrix=true);
 
-
+template<typename T>
+bool is_allclose(const Tensor<T>& a, const Tensor<T>& b, float rtol=1e-4, float atol=1e-6);
 
 }
 

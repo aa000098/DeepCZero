@@ -162,9 +162,37 @@ void test_tensor_dot_4d() {
     std::cout << "✅ dot (4D) test passed.\n" << std::endl;
 }
 
+void test_tensor_tensordot_basic() {
+    // A: shape (2, 3)
+    Tensor<float> A({2, 3}, {1,2,3,4,5,6});
+
+    // B: shape (3, 4)
+    Tensor<float> B({3, 4}, {7,8,9,10,11,12,13,14,15,16,17,18});
+    
+	// Compute tensordot over axis 1 of A and axis 0 of B → result shape (2, 4)
+    Tensor<float> Y = tensordot(A, B, {{1}, {0}});
+
+    // Check output shape
+    const auto& shape = Y.get_shape();
+    assert(shape.size() == 2);
+    assert(shape[0] == 2 && shape[1] == 4);
+
+    // Expected result manually calculated:
+    // Y[0] = [1*7 + 2*11 + 3*15, ..., 1*10 + 2*14 + 3*18]
+    // Y[1] = [4*7 + 5*11 + 6*15, ..., 4*10 + 5*14 + 6*18]
+    Tensor expected(
+		{2, 4}, 
+		{ 74, 80, 86, 92, 173, 188, 203, 218 });
+
+	Y.show();
+    assert(is_allclose(Y, expected));
+
+    std::cout << "✅ test_tensordot_basic passed.\n";
+}
 int main() {
     test_tensor_arithmetic();
 	test_tensor_dot_batched();
 	test_tensor_dot_4d();
+	test_tensor_tensordot_basic();
     return 0;
 }

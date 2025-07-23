@@ -18,6 +18,12 @@ Variable deconv2d(const Variable& x,
 				std::pair<size_t, size_t> pad,
 				std::pair<size_t, size_t> out_size);
 
+Variable conv2dgradw(const Variable& x,
+					const Variable& gy,
+					const Variable& W,
+					std::pair<size_t, size_t> stride,
+					std::pair<size_t, size_t> pad);
+					
 
 
 Variable im2col(const Variable& x,

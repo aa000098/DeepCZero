@@ -4,6 +4,8 @@
 
 namespace function {
 
+// [Convolution]
+
 	class Conv2d : public Function {
 	private:
 		std::pair<size_t, size_t> stride;
@@ -38,6 +40,27 @@ namespace function {
 
 	};
 
+	class Conv2dGradW : public Function {
+	private:
+		std::pair<size_t, size_t> kernel_size;
+		std::pair<size_t, size_t> stride;
+		std::pair<size_t, size_t> pad;
+	public:
+		Conv2dGradW(const Variable &W,
+					std::pair<size_t, size_t> stride,
+					std::pair<size_t, size_t> pad) {
+			auto k_shape = W.shape();
+			kernel_size = {k_shape[0], k_shape[1]};
+			this->stride = stride;
+			this->pad = pad;
+		};
+					
+		Variable forward(const std::vector<Variable>& xs) override;
+		std::vector<Variable> backward(const Variable& gy) override;
+		~Conv2dGradW() = default;
+	};
+
+// [Im2col]
 	class Im2col : public Function {
 	private:
 		std::vector<size_t> input_shape;

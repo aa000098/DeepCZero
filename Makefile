@@ -2,7 +2,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp
 LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
-  
+   
 # directory
 SRC_DIR = src
 TEST_DIR = test

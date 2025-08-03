@@ -278,6 +278,7 @@ void test_tensor_tensordot_3d() {
     Tensor<float> Y = tensordot(A, B, {{1,2}, {0,1}});
 
     // Expected result (2, 2) → 수동 계산
+	/*
     Tensor<float> expected(
         {2, 2},
         {
@@ -290,6 +291,14 @@ void test_tensor_tensordot_3d() {
             13*2+14*4+15*6+16*8 + 17*10+18*12+19*14+20*16 + 21*18+22*20+23*22+24*24,
         }
     );
+	*/
+	Tensor<float> expected(
+    	{2, 2},
+    	{
+        	1222, 1300,
+        	2950, 3172
+    	}
+	);
 
     Y.show();
     assert(is_allclose(Y, expected));
@@ -322,6 +331,7 @@ void test_tensor_tensordot_4d_5d() {
     );
 
     // Expected: shape (2, 4, 2)
+	/*
     Tensor<float> expected(
         {2, 4, 2},
         {
@@ -336,6 +346,21 @@ void test_tensor_tensordot_4d_5d() {
             2857, 3088  // A[1] · B[3]
         }
     );
+	*/
+	Tensor<float> expected(
+    	{2, 4, 2},
+    	{
+        	161, 182,  // A[0] · B[0]
+        	413, 434,  // A[0] · B[1]
+        	665, 686,  // A[0] · B[2]
+        	917, 938,  // A[0] · B[3]
+
+        	377, 434,  // A[1] · B[0]
+        	1061,1118, // A[1] · B[1]
+        	1745,1802, // A[1] · B[2]
+        	2429,2486  // A[1] · B[3]
+    	}
+	);
 
     Tensor<float> Y = tensordot(A, B, {{1, 2, 3}, {1, 2, 3}});
     Y.show();

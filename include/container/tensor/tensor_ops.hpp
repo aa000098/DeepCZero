@@ -436,8 +436,8 @@ Tensor<T> tensordot(const Tensor<T> &A,
     std::vector<size_t> B_axes = B_contract_axes;
     B_axes.insert(B_axes.end(), B_free_axes.begin(), B_free_axes.end());
 
-    Tensor<T> A_trans = A.transpose(A_axes);
-    Tensor<T> B_trans = B.transpose(B_axes);
+    Tensor<T> A_trans = A.transpose(A_axes).contiguous();
+    Tensor<T> B_trans = B.transpose(B_axes).contiguous();
 
     // 4. reshape
     size_t A_outer = 1, A_inner = 1;

@@ -16,16 +16,18 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 	// [N, C, KH, KW, OH, OW]
 	const Tensor<> &col = im2col_array(x, {KH, KW}, stride, pad, false);
 	
-	col.show();
-	W.show();
+	//col.show();
+	//W.show();
 
+	// [N, OH, OW, OC] 
 	Tensor<> y = tensordot(col, W, {{1,2,3}, {1,2,3}});
 	
-	y.show();
+	//y.show();
 
 	if (!b.empty())
 		y += b;
-
+	
+	// [N, OC, OH, OW]
 	y = y.transpose({0, 3, 1, 2});
 
 	return Variable(y);

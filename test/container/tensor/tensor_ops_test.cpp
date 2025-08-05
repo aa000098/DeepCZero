@@ -367,7 +367,7 @@ void test_tensor_tensordot_4d_5d() {
     //assert(is_allclose(Y, expected));
     std::cout << "✅ test_tensordot_4d_5d_small passed.\n";
 }
-
+ 
 int main() {
     test_tensor_arithmetic();
 	test_tensor_dot_batched();

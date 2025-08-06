@@ -23,6 +23,7 @@ void test_conv2d_forward_backward() {
     Variable b(b_tensor);
 
     // Forward
+	// [N, OC, OH, OW]
     Variable y = conv2d(x, W, b, {1, 1}, {1, 1});
     const Tensor<> &y_data = y.data();
 

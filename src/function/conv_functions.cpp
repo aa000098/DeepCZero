@@ -50,7 +50,9 @@ std::vector<Variable> function::Conv2d::backward(const Variable& gy) {
 }
 
 Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {	
+	// [N, C_in, H_in, W_in]
 	const Tensor<> &x = xs[0].data();
+	// [C, OC, KH, KW]
 	const Tensor<> &W = xs[1].data();
 	const Tensor<> &b = xs[2].data();
 
@@ -73,19 +75,22 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	if (C != C_in)
 		throw std::runtime_error("Deconv2d: W.shape[0] != x.shape[1]");
 
-	size_t out_h, out_w;
+	size_t OH, OW;
 	if (out_size == std::pair<size_t, size_t>{0,0}) {
-		out_h = get_deconv_outsize(H_in, KH, SH, PH);
-		out_w = get_deconv_outsize(W_in, KW, SW, PW);
+		OH = get_deconv_outsize(H_in, KH, SH, PH);
+		OW = get_deconv_outsize(W_in, KW, SW, PW);
 	} else {
-		out_h = out_size.first;
-		out_w = out_size.second;
+		OH = out_size.first;
+		OW = out_size.second;
 	}
-	std::vector<size_t> output_shape = {N, OC, out_h, out_w};
+	std::vector<size_t> output_shape = {N, OC, OH, OW};
 
+	// [OC, KH, KW, N, H, W]
 	Tensor<> gcol = tensordot(W, x, {{0}, {1}});
+	// [N, OC, KH, KW, H, W]
 	gcol = gcol.transpose({3, 0, 1, 2, 4, 5});
 	
+	// [N, OC, OH, OW]
 	Tensor<> y = col2im_array(gcol, output_shape, {KH, KW}, stride, pad, false);
 
 	if (!b.empty()) {

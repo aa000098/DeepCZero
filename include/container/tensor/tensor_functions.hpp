@@ -41,14 +41,14 @@ Tensor<DstT> cast_tensor(const Tensor<SrcT>& src);
 
 
 template<typename T>
-Tensor<T> im2col_array(	const Tensor<T> img,
+Tensor<T> im2col_array(	const Tensor<T> &img,
 						std::pair<size_t, size_t> kernel_size,
 						std::pair<size_t, size_t> stride,
 						std::pair<size_t, size_t> pad,
 						bool to_matrix=true);
 
 template<typename T>
-Tensor<T> col2im_array(	const Tensor<T> col,
+Tensor<T> col2im_array(	const Tensor<T> &col,
 						std::vector<size_t> img_shape,
 						std::pair<size_t, size_t> kernel_size,
 						std::pair<size_t, size_t> stride,

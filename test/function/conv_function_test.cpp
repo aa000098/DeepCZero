@@ -34,11 +34,44 @@ void test_conv2d_forward_backward() {
     assert(y_data.get_shape() == std::vector<size_t>({1, 3, 5, 5}));
     std::cout << "Conv2d forward shape passed." << std::endl;
 
-    // b 값이 각 출력 채널에 영향 미쳤는지 평균으로 확인
+    // ===== Forward expected 값으로 검증 (NCHW 플랫 순서) =====
+    std::vector<float> expv = {
+      // ch 0
+      70.68f,104.79f,107.40f,110.01f, 72.24f,
+      105.39f,155.70f,159.21f,162.72f,106.47f,
+      117.54f,173.25f,176.76f,180.27f,117.72f,
+      129.69f,190.80f,194.31f,197.82f,128.97f,
+       81.84f,119.91f,121.98f,124.05f, 80.52f,
+      // ch 1
+      164.74f,248.26f,255.73f,263.20f,176.02f,
+      258.58f,389.08f,399.88f,410.68f,274.24f,
+      295.03f,443.08f,453.88f,464.68f,309.79f,
+      331.48f,497.08f,507.88f,518.68f,345.34f,
+      224.50f,336.28f,343.21f,350.14f,232.90f,
+      // ch 2
+      258.80f,391.73f,404.06f,416.39f,279.80f,
+      411.77f,622.46f,640.55f,658.64f,442.01f,
+      472.52f,712.91f,731.00f,749.09f,501.86f,
+      533.27f,803.36f,821.45f,839.54f,561.71f,
+      367.16f,552.65f,564.44f,576.23f,385.28f
+    };
+
+    double max_abs_diff = 0.0, mean_abs_diff = 0.0;
+    for (size_t i = 0; i < y_data.size(); ++i) {
+        double d = std::abs((double)y_data.data()[i] - (double)expv[i]);
+        max_abs_diff = std::max(max_abs_diff, d);
+        mean_abs_diff += d;
+    }
+    mean_abs_diff /= (double)y_data.size();
+    std::cout << "Forward max abs diff: " << max_abs_diff
+              << ", mean abs diff: " << mean_abs_diff << "\n";
+    assert(max_abs_diff < 1e-4);
+
+	//값이 각 출력 채널에 영향 미쳤는지 평균으로 확인
     for (size_t c = 0; c < 3; ++c) {
         float sum = 0.0f;
         for (size_t i = 0; i < 25; ++i) {
-            sum += y_data.raw_data()[c * 25 + i];
+            sum += y_data.data()[c * 25 + i];
         }
         float avg_val = sum / 25.0f;
         float expected_bias = b_tensor.raw_data()[c];

@@ -72,4 +72,18 @@ namespace layer {
 		Variable forward(const std::vector<Variable>& xs) override;
 
 	};
+
+	class Conv2d : public Layer {
+	private:
+		size_t out_channels;
+		size_t in_channels;
+		std::pair<size_t, size_t> kernel_size;
+		std::pair<size_t, size_t> stride;
+		std::pair<size_t, size_t> pad;
+		bool no_bias;
+		// dtype
+
+	public:
+
+	};
 }	

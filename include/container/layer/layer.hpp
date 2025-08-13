@@ -84,6 +84,16 @@ namespace layer {
 		// dtype
 
 	public:
+		Conv2d() = default;
+		Conv2d(size_t out_channels,
+				std::pair<size_t, size_t> kernel_size,
+				std::pair<size_t, size_t> stride = {1, 1},
+				std::pair<size_t, size_t> pad = {0, 0},
+				bool no_biasi = false,
+				size_t in_channels = 0);
+
+		void init_W();
+		Variable forward(const std::vector<Variable>& xs) override;
 
 	};
 }	

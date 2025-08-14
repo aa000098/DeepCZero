@@ -89,7 +89,7 @@ namespace layer {
 				std::pair<size_t, size_t> kernel_size,
 				std::pair<size_t, size_t> stride = {1, 1},
 				std::pair<size_t, size_t> pad = {0, 0},
-				bool no_biasi = false,
+				bool no_bias = false,
 				size_t in_channels = 0);
 
 		void init_W();

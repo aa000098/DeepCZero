@@ -132,4 +132,35 @@ namespace layer {
 		return y;
 	}
 
+
+	Conv2d::Conv2d(size_t out_channels,
+					std::pair<size_t, size_t> kernel_size,
+					std::pair<size_t, size_t> stride,
+					std::pair<size_t, size_t> pad,
+					bool no_bias,
+					size_t in_channels) 
+		: out_channels(out_channels), kernel_size(kernel_size), stride(stride), pad(pad), no_bias(no_bias), in_channels(in_channels) {
+		Parameter W({}, "W");
+		register_params("W", W);
+		if (in_channels != 0)
+			init_W();
+
+		if (no_bias) {
+			Parameter b({}, "b");
+			register_params("b", b);
+		} else {
+			Tensor b_data(out_channels);
+			Parameter b(b_data, "b");
+			register_params("b", b);
+		}
+	}
+
+	void Linear::init_W() {
+	}
+
+	Variable Conv2d::forward(const std::vector<Variable>& xs) {
+		
+		Variable y;
+		return y;
+	}
 }

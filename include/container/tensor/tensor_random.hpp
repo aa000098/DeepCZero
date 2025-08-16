@@ -48,7 +48,6 @@ inline Tensor<> rand(size_t rows, size_t cols) {
 
 inline Tensor<> randn(size_t rows, size_t cols, size_t seed) {
 	std::mt19937 gen(seed);
-
 	std::normal_distribution<> dist(0, 1);
 
 	std::vector<float> data;
@@ -62,6 +61,25 @@ inline Tensor<> randn(size_t rows, size_t cols, size_t seed) {
 inline Tensor<> randn(size_t rows, size_t cols) {
 	std::random_device rd;
 	return randn(rows, cols, rd());
+}
+
+inline Tensor<> randn(const std::vector<size_t>& shape, size_t seed) {
+	std::mt19937 gen(seed);
+	std::normal_distribution<> dist(0, 1);
+	
+	size_t total = std::accumulate(shape.begin(), shape.end(), 1ULL, std::multiplies<size_t>());
+	std::vector<float> data;
+	data.reserve(total);
+
+	for (size_t i = 0; i < total; i++)
+		data.push_back(dist(gen));
+
+	return Tensor<>(shape, data);
+}
+
+inline Tensor<> randn(const std::vector<size_t>& shape) {
+	std::random_device rd;
+	return randn(shape, rd());
 }
 
 inline Tensor<size_t> permutation(size_t size) {

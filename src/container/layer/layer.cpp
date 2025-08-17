@@ -163,7 +163,6 @@ namespace layer {
 		float scale = std::sqrt(1 / static_cast<float>(C * KH * KW));
 		Tensor W_data = randn({OC, C, KH, KW}) * scale;
 		params["W"].data() = W_data;
-
 	}
 
 	Variable Conv2d::forward(const std::vector<Variable>& xs) {

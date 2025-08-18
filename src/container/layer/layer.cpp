@@ -166,8 +166,15 @@ namespace layer {
 	}
 
 	Variable Conv2d::forward(const std::vector<Variable>& xs) {
+		const Variable& x = xs[0];
+		const Parameter& W = get_param("W");
+		const Parameter& b = get_param("b");
+		if (W.data().empty()) {
+			in_channels = x.shape().back();
+			init_W();
+		}
 		
-		Variable y;
+		Variable y = conv2d(x, W, b, stride, pad);
 		return y;
 	}
 }

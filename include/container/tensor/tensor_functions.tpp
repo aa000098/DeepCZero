@@ -33,6 +33,8 @@ Tensor<T> broadcast_to(const Tensor<T>& src, const std::vector<size_t>& target_s
 
 	std::vector<size_t> new_strides(ndim_target);
 	for (size_t i = 0; i < ndim_target; i++) {
+//		std::cout << "padded_shape[i]: " << padded_shape[i] << std::endl;
+//		std::cout << "target_shape[i]: " << target_shape[i] << std::endl;
 		if (padded_shape[i] == target_shape[i])
 			new_strides[i] = padded_strides[i];
 		else if (padded_shape[i] == 1) 

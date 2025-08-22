@@ -34,7 +34,9 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 }
 
 std::vector<Variable> function::Conv2d::backward(const Variable& gy) {
+	// [N, C, H, W]
 	Variable x(inputs[0]);
+	// [OC, C, KH, KW]
 	Variable W(inputs[1]);
 	Variable b(inputs[2]);
 
@@ -42,6 +44,9 @@ std::vector<Variable> function::Conv2d::backward(const Variable& gy) {
 	Variable gx = deconv2d(gy, W, b, stride, pad, {x_shape[2], x_shape[3]});
 
 	Variable gW = conv2dgradw(x, gy, W, stride, pad);
+	x.show();
+	gx.show();
+	gW.show();
 
 	Variable gb;
 	if (!b.empty())
@@ -84,6 +89,7 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 		OW = out_size.second;
 	}
 	std::vector<size_t> output_shape = {N, OC, OH, OW};
+	std::cout << "N, OC, OH, OW: " << N << " " << OC << " " << OH << " " << OW << std::endl;
 
 	// [OC, KH, KW, N, H, W]
 	Tensor<> gcol = tensordot(W, x, {{0}, {1}});
@@ -93,10 +99,12 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	// [N, OC, OH, OW]
 	Tensor<> y = col2im_array(gcol, output_shape, {KH, KW}, stride, pad, false);
 
+	y.show();
 	if (!b.empty()) {
 		Tensor<> reshaped_b = b.reshape({1, b.size(), 1, 1});
 		y += reshaped_b;
 	}
+	y.show();
 
 	return Variable(y);
 		

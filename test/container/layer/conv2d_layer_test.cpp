@@ -36,9 +36,12 @@ void test_conv2d_backward() {
 
     // Forward
     Variable y = conv.forward({x});
+	y.show();
 
     // Backward
-    y.backward();
+	y.backward();
+
+	y.grad().show();
 
     // x.grad() shape 검증 (입력과 동일해야 함)
     std::vector<size_t> expected_grad_shape = {1, 1, 4, 4};

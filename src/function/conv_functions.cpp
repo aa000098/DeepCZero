@@ -67,8 +67,8 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	const auto x_shape = x.get_shape();
 	const auto w_shape = W.get_shape();
 	
-	size_t C = w_shape[0];
-	size_t OC = w_shape[1];
+	size_t OC = w_shape[0];
+	size_t C = w_shape[1];
 	size_t KH = w_shape[2];
 	size_t KW = w_shape[3];
 
@@ -76,6 +76,9 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	size_t C_in = x_shape[1];
 	size_t H_in = x_shape[2];
 	size_t W_in = x_shape[3];
+
+	std::cout << "N, OC, C, C_in: " << N << " " << OC << " " << C << " " << C_in << std::endl;
+	x.show();
 
 	if (C != C_in)
 		throw std::runtime_error("Deconv2d: W.shape[0] != x.shape[1]");

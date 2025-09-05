@@ -22,7 +22,7 @@ void test_conv2d_forward() {
     assert(y.data().get_shape() == expected_shape);
 
     std::cout << "[Conv2d Forward Test Passed]" << std::endl;
-} 
+}  
  
 void test_conv2d_backward() {
     using T = float;

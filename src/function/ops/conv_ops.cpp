@@ -27,6 +27,14 @@ Variable deconv2d(const Variable &x,
 	return (*f)({x, W, b});
 }
 
+Variable deconv2d(const Variable &x,
+				const Variable &W,
+				std::pair<size_t, size_t> stride={1,1},
+				std::pair<size_t, size_t> pad={0,0},
+				std::pair<size_t, size_t> outsize={0,0}) {
+	return deconv2d(x, W, Variable(), stride, pad, outsize);
+}
+
 Variable conv2dgradw(const Variable &x,
 					const Variable &gy,
 					const Variable &W,

@@ -50,7 +50,7 @@ namespace function {
 					std::pair<size_t, size_t> stride,
 					std::pair<size_t, size_t> pad) {
 			auto k_shape = W.shape();
-			kernel_size = {k_shape[0], k_shape[1]};
+			kernel_size = {k_shape[2], k_shape[3]};
 			this->stride = stride;
 			this->pad = pad;
 		};

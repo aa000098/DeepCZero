@@ -10,6 +10,7 @@ namespace function {
 			std::pair<size_t, size_t> kernel_size;
 			std::pair<size_t, size_t> stride;
 			std::pair<size_t, size_t> pad;
+			Tensor<size_t> indexes;
 
 		public:
 			Pooling(std::pair<size_t, size_t> kernel_size,

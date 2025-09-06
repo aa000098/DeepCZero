@@ -40,12 +40,24 @@ std::vector<Variable> function::Conv2d::backward(const Variable& gy) {
 	Variable W(inputs[1]);
 	Variable b(inputs[2]);
 
+	std::cout << "gy.shape: ";
+	for (auto s : gy.shape()) std::cout << s << " ";
+	std::cout << std::endl;
 	const auto &x_shape = x.shape(); 
-	Variable gx = deconv2d(gy, W, b, stride, pad, {x_shape[2], x_shape[3]});
+	Variable gx = deconv2d(gy, W, stride, pad, {x_shape[2], x_shape[3]});
 
+	std::cout << "W.shape: ";
+	for (auto s : W.shape()) std::cout << s << " ";
+	std::cout << std::endl;
+	std::cout << "gx.shape: ";
+	for (auto s : gx.shape()) std::cout << s << " ";
+	std::cout << std::endl;
 	Variable gW = conv2dgradw(x, gy, W, stride, pad);
+	std::cout << "x: " << std::endl;
 	x.show();
+	std::cout << "gx: " << std::endl;
 	gx.show();
+	std::cout << "gW: " << std::endl;
 	gW.show();
 
 	Variable gb;
@@ -55,9 +67,9 @@ std::vector<Variable> function::Conv2d::backward(const Variable& gy) {
 }
 
 Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {	
-	// [N, C_in, H_in, W_in]
+	// [N, OC_in, H_in, W_in]
 	const Tensor<> &x = xs[0].data();
-	// [C, OC, KH, KW]
+	// [OC, C, KH, KW]
 	const Tensor<> &W = xs[1].data();
 	const Tensor<> &b = xs[2].data();
 
@@ -73,14 +85,14 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	size_t KW = w_shape[3];
 
 	size_t N = x_shape[0];
-	size_t C_in = x_shape[1];
+	size_t OC_in = x_shape[1];
 	size_t H_in = x_shape[2];
 	size_t W_in = x_shape[3];
 
-	std::cout << "N, OC, C, C_in: " << N << " " << OC << " " << C << " " << C_in << std::endl;
+	std::cout << "N, OC, C, OC_in: " << N << " " << OC << " " << C << " " << OC_in << std::endl;
 	x.show();
 
-	if (C != C_in)
+	if (OC != OC_in)
 		throw std::runtime_error("Deconv2d: W.shape[0] != x.shape[1]");
 
 	size_t OH, OW;
@@ -91,8 +103,8 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 		OH = out_size.first;
 		OW = out_size.second;
 	}
-	std::vector<size_t> output_shape = {N, OC, OH, OW};
-	std::cout << "N, OC, OH, OW: " << N << " " << OC << " " << OH << " " << OW << std::endl;
+	std::vector<size_t> output_shape = {N, C, OH, OW};
+	std::cout << "N, C, OH, OW: " << N << " " << C << " " << OH << " " << OW << std::endl;
 
 	// [OC, KH, KW, N, H, W]
 	Tensor<> gcol = tensordot(W, x, {{0}, {1}});
@@ -102,11 +114,14 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	// [N, OC, OH, OW]
 	Tensor<> y = col2im_array(gcol, output_shape, {KH, KW}, stride, pad, false);
 
+	std::cout << "y.show()" << std::endl;
+	std::cout << "b.size(): " << b.size() << std::endl;
 	y.show();
 	if (!b.empty()) {
 		Tensor<> reshaped_b = b.reshape({1, b.size(), 1, 1});
 		y += reshaped_b;
 	}
+	std::cout << "y.show()" << std::endl;
 	y.show();
 
 	return Variable(y);
@@ -129,8 +144,18 @@ std::vector<Variable> function::Deconv2d::backward(const Variable& gy) {
 Variable function::Conv2dGradW::forward(const std::vector<Variable>& xs) {	
 	const Tensor<> &x = xs[0].data();
 	const Tensor<> &gy = xs[1].data();
+	std::cout << "x.shape: ";
+	for (auto s : x.get_shape()) std::cout << s << " ";
+	std::cout << std::endl;
 
 	Tensor<> col = im2col_array(x, kernel_size, stride, pad, false);
+	
+	std::cout << "gy.shape: ";
+	for (auto s : gy.get_shape()) std::cout << s << " ";
+	std::cout << "\ncol.shape: ";
+	for (auto s : col.get_shape()) std::cout << s << " ";
+	std::cout << std::endl;
+
 	Tensor<> gW = tensordot(gy, col, {{0,2,3}, {0,4,5}});
 
 	return Variable(gW);
@@ -141,8 +166,8 @@ std::vector<Variable> function::Conv2dGradW::backward(const Variable& gW) {
 	const Variable &gy = inputs[1];
 	const Variable b;
 
-	size_t xh = x.shape()[0];
-	size_t xw = x.shape()[1];
+	size_t xh = x.shape()[2];
+	size_t xw = x.shape()[3];
 	Variable gx = deconv2d(gy, gW, b, stride, pad, {xh, xw});
 
 	Variable ggy = conv2d(x, gW, b, stride, pad);

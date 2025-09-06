@@ -41,7 +41,7 @@ void test_conv2d_backward() {
     // Backward
 	y.backward();
 
-	y.grad().show();
+	x.show();
 
     // x.grad() shape 검증 (입력과 동일해야 함)
     std::vector<size_t> expected_grad_shape = {1, 1, 4, 4};

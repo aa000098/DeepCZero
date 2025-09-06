@@ -402,6 +402,17 @@ Tensor<T> Tensor<T>::contiguous() const {
     return result;
 }
 
+template<typename T>
+Tensor<T> Tensor<T>::ravel() const {
+	if (this->ndim() <= 1) return *this;
+
+	return this->reshape({this->size()});
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::flatten() const {
+	return Tensor<T>({this->size()}, this->raw_data());
+}
 
 template<typename T>
 void Tensor<T>::to_csv(const std::string& filename, bool index, bool header, char delimiter) {

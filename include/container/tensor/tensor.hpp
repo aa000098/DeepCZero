@@ -163,6 +163,8 @@ namespace tensor {
 		Tensor<T> pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) const;
 
 		Tensor<T> contiguous() const;
+		Tensor<T> ravel() const;
+		Tensor<T> flatten() const;
 
 // gemm functions
 		Tensor<T>& dot(const Tensor<T>& other) {

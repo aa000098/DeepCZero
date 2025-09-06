@@ -30,3 +30,45 @@ std::vector<Variable> function::Pooling::backward(
 
 	return { Variable() };
 }
+
+Variable function::Pooling2DGrad::forward(
+		const std::vector<Variable>& xs) {
+	const Tensor<>& gy = xs[0].data();
+
+	std::vector<size_t> gy_shape = gy.get_shape();
+	size_t N = gy_shape[0];
+	size_t C = gy_shape[1];
+	size_t OH = gy_shape[2];
+	size_t OW = gy_shape[3];
+
+	size_t H = input_shape[2];
+	size_t W = input_shape[3];
+	auto [KH, KW] = kernel_size;
+	size_t K = KH * KW;
+	size_t S = N * C * OH * OW;
+
+	Tensor<> gy_flat = gy.ravel();
+	Tensor<size_t> idx_flat = indexes.ravel(); 
+
+	Tensor<> gcol_flat = Tensor<>({S * K});
+
+	for (size_t i = 0; i < S; i++) {
+		const size_t pos = i * K + idx_flat({i});
+		gcol_flat({i}) = gy_flat({i});
+	}
+	
+	// indexes for python style
+	//indexes = indexes.ravel() + arrange<size_t>(0, indexes.size() * KH * KW, KH * KW);
+	
+	Tensor<> gcol = gcol_flat.reshape({N, C, OH, OW< KH< KW}).transpose({0, 1, 4, 5, 2, 3});
+
+	Tensor<> gx = col2im_array(gcol, {N, C, H, W}, {KH, KW}, stride, pad, false);
+
+	return Variable(gx);
+}
+
+std::vector<Variable> function::Pooling2DGrad::backward(
+		const Variable& gy) {
+
+	return { Variable() };
+}

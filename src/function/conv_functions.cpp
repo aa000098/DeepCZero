@@ -116,18 +116,9 @@ std::vector<Variable> function::Deconv2d::backward(const Variable& gy) {
 Variable function::Conv2dGradW::forward(const std::vector<Variable>& xs) {	
 	const Tensor<> &x = xs[0].data();
 	const Tensor<> &gy = xs[1].data();
-	std::cout << "x.shape: ";
-	for (auto s : x.get_shape()) std::cout << s << " ";
-	std::cout << std::endl;
 
 	Tensor<> col = im2col_array(x, kernel_size, stride, pad, false);
 	
-	std::cout << "gy.shape: ";
-	for (auto s : gy.get_shape()) std::cout << s << " ";
-	std::cout << "\ncol.shape: ";
-	for (auto s : col.get_shape()) std::cout << s << " ";
-	std::cout << std::endl;
-
 	Tensor<> gW = tensordot(gy, col, {{0,2,3}, {0,4,5}});
 
 	return Variable(gW);

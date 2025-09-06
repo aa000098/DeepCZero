@@ -16,14 +16,9 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 	// [N, C, KH, KW, OH, OW]
 	const Tensor<> &col = im2col_array(x, {KH, KW}, stride, pad, false);
 	
-	//col.show();
-	//W.show();
-
 	// [N, OH, OW, OC] 
 	Tensor<> y = tensordot(col, W, {{1,2,3}, {1,2,3}});
 	
-	//y.show();
-
 	if (!b.empty())
 		y += b;
 	
@@ -40,25 +35,10 @@ std::vector<Variable> function::Conv2d::backward(const Variable& gy) {
 	Variable W(inputs[1]);
 	Variable b(inputs[2]);
 
-	std::cout << "gy.shape: ";
-	for (auto s : gy.shape()) std::cout << s << " ";
-	std::cout << std::endl;
 	const auto &x_shape = x.shape(); 
 	Variable gx = deconv2d(gy, W, stride, pad, {x_shape[2], x_shape[3]});
 
-	std::cout << "W.shape: ";
-	for (auto s : W.shape()) std::cout << s << " ";
-	std::cout << std::endl;
-	std::cout << "gx.shape: ";
-	for (auto s : gx.shape()) std::cout << s << " ";
-	std::cout << std::endl;
 	Variable gW = conv2dgradw(x, gy, W, stride, pad);
-	std::cout << "x: " << std::endl;
-	x.show();
-	std::cout << "gx: " << std::endl;
-	gx.show();
-	std::cout << "gW: " << std::endl;
-	gW.show();
 
 	Variable gb;
 	if (!b.empty())
@@ -89,8 +69,6 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	size_t H_in = x_shape[2];
 	size_t W_in = x_shape[3];
 
-	std::cout << "N, OC, C, OC_in: " << N << " " << OC << " " << C << " " << OC_in << std::endl;
-	x.show();
 
 	if (OC != OC_in)
 		throw std::runtime_error("Deconv2d: W.shape[0] != x.shape[1]");
@@ -104,7 +82,6 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 		OW = out_size.second;
 	}
 	std::vector<size_t> output_shape = {N, C, OH, OW};
-	std::cout << "N, C, OH, OW: " << N << " " << C << " " << OH << " " << OW << std::endl;
 
 	// [OC, KH, KW, N, H, W]
 	Tensor<> gcol = tensordot(W, x, {{0}, {1}});
@@ -114,15 +91,10 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	// [N, OC, OH, OW]
 	Tensor<> y = col2im_array(gcol, output_shape, {KH, KW}, stride, pad, false);
 
-	std::cout << "y.show()" << std::endl;
-	std::cout << "b.size(): " << b.size() << std::endl;
-	y.show();
 	if (!b.empty()) {
 		Tensor<> reshaped_b = b.reshape({1, b.size(), 1, 1});
 		y += reshaped_b;
 	}
-	std::cout << "y.show()" << std::endl;
-	y.show();
 
 	return Variable(y);
 		

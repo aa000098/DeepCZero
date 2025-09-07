@@ -54,7 +54,7 @@ Variable function::Pooling2DGrad::forward(
 
 	for (size_t i = 0; i < S; i++) {
 		const size_t pos = i * K + idx_flat({i});
-		gcol_flat({i}) = gy_flat({i});
+		gcol_flat({pos}) = gy_flat({i});
 	}
 	
 	// indexes for python style
@@ -72,3 +72,15 @@ std::vector<Variable> function::Pooling2DGrad::backward(
 
 	return { Variable() };
 }
+
+Variable function::Pooling2DWithIndexes::forward(
+		const std::vector<Variable>& xs) {
+	return Variable();
+}
+
+std::vector<Variable> function::Pooling2DWithIndexes::backward(
+		const Variable& gy) {
+
+	return { Variable() };
+}
+

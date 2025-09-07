@@ -7,7 +7,7 @@
 #include "graph/utils/utils.hpp"
 
 #include "function/function_all.hpp"
-#include "function/ops/ops.hpp"
+#include "function/ops/ops_all.hpp"
 
 #include "container/layer/layer_all.hpp"
 #include "optimizer/optimizer_all.hpp"

@@ -1,16 +1,18 @@
 #pragma once
 
 #include "function/function.hpp"
+#include "container/tensor/tensor_all.hpp"
 
 namespace function {
 
 // [Max Pooling]
 	class Pooling : public Function {
 		private:
+			Tensor<size_t> indexes;
+			std::vector<size_t> input_shape;
 			std::pair<size_t, size_t> kernel_size;
 			std::pair<size_t, size_t> stride;
 			std::pair<size_t, size_t> pad;
-			Tensor<size_t> indexes;
 
 		public:
 			Pooling(std::pair<size_t, size_t> kernel_size,

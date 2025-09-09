@@ -101,7 +101,7 @@ void test_pooling_forward_backward() {
     // 모두 통과
     std::cout << "[OK] test_pooling_forward_backward passed.\n";
 }
-
+ 
 int main() {
     test_pooling_forward_backward();
     return 0;

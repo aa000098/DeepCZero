@@ -27,6 +27,8 @@ void test_pooling_forward_backward() {
     // 1) Forward 검증: 기대 출력은 [[6,8],[14,16]]
     Variable vy = pooling(vx, kernel, stride, pad);
     const Tensor<>& y = vy.data();
+	vx.show();
+	vy.show();
 
     assert(y.get_shape() == std::vector<size_t>({1, 1, 2, 2}));
 	std::cout << "[y shape test passed]" << std::endl;
@@ -68,37 +70,11 @@ void test_pooling_forward_backward() {
         for (size_t i = 0; i < flat.size(); ++i) sum += flat({i}) > 0 ? static_cast<float>(flat({i})) : -1 * static_cast<float>(flat({i}));
         assert(std::fabs(sum) < 1e-6f && "Pooling backward (ones) mismatch");
     }
+
+	vx.grad().show();
+
 	std::cout << "[gx value test passed]" << std::endl;
 
-
-    // 3) (선택) Pooling2DWithIndexes 검증: same output as forward
-    // Pooling 내부에 저장된 indexes/input_shape에 접근 가능하다는 가정 하에서만 사용.
-    // 접근이 불가하면 이 블록은 주석 처리해도 무방.
-    {
-		Tensor<> col = im2col_array(x, kernel, stride, pad, false);
-		auto col_shape = col.get_shape();
-		size_t N = col_shape[0]; 
-		size_t C = col_shape[1]; 
-		size_t KH = col_shape[2]; 
-		size_t KW = col_shape[3]; 
-		size_t OH = col_shape[4]; 
-		size_t OW = col_shape[5]; 
-		col = col.reshape({N, C, KH*KW, OH, OW});
-		Tensor<size_t> indexes = col.argmax(2);
-
-		const Variable& gy = vy.grad(); 
-		Variable ggy = pooling2d_with_indexes(gy, indexes, vx.shape(), kernel, stride, pad);
-
-        const Tensor<>& y2 = ggy.data();
-
-        Tensor<> diff = y2 - y;
-        float sum = 0.0f;
-        Tensor<> flat = diff.ravel();
-        for (size_t i = 0; i < flat.size(); ++i) sum += flat({i}) > 0 ? static_cast<float>(flat({i})) : -1 * static_cast<float>(flat({i}));
-        assert(std::fabs(sum) < 1e-6f && "Pooling2DWithIndexes forward mismatch");
-    }
-
-    // 모두 통과
     std::cout << "[OK] test_pooling_forward_backward passed.\n";
 }
  

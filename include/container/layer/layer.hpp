@@ -2,11 +2,13 @@
 
 #include "container/parameter.hpp"
 #include "container/tensor/tensor_all.hpp"
+#include "utils/utils.hpp"
 
 #include <unordered_map>
 #include <string>
 #include <memory>
 #include <vector>
+#include <cassert>
 
 class Parameter;
 
@@ -91,6 +93,19 @@ namespace layer {
 				std::pair<size_t, size_t> pad = {0, 0},
 				bool no_bias = false,
 				size_t in_channels = 0);
+
+		Conv2d(size_t out_channels,
+				std::initializer_list<size_t> kernel_size,
+				std::initializer_list<size_t> stride = {1,1},
+				std::initializer_list<size_t> pad = {0,0},
+				bool no_bias = false,
+				size_t in_channels = 0) 
+			: Conv2d(out_channels,
+					to_pair(kernel_size),
+					to_pair(stride),
+					to_pair(pad),
+					no_bias,
+					in_channels) {}
 
 		void init_W();
 		Variable forward(const std::vector<Variable>& xs) override;

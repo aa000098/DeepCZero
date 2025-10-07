@@ -6,7 +6,7 @@ void test_vgg_forward_backward() {
 	VGG16 model;	
 	Variable y = model.forward({x});
 }
-               
+                
 int main() {
 	test_vgg_forward_backward();
 }

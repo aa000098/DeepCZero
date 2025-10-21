@@ -60,7 +60,9 @@ VGG16::VGG16(bool pretrained) {
 
 Variable VGG16::forward(const std::vector<Variable>& xs) {
 	Variable x = xs[0];
+	std::cout << "1" << std::endl;
 	x =  relu((*conv1_1)(x));
+	std::cout << "2" << std::endl;
 	x =  relu((*conv1_2)(x));
 	x = pooling(x, {2, 2}, {2, 2});
 	x =  relu((*conv2_1)(x));

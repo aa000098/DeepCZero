@@ -52,7 +52,7 @@ VGG16::VGG16(bool pretrained) {
 	fc6 = std::make_shared<Linear>(4096);
 	fc7 = std::make_shared<Linear>(4096);
 	fc8 = std::make_shared<Linear>(1000);
-  
+   
 	if (pretrained) {
 		std::string weights_path = get_file(this->WEIGHTS_PATH);
 	}

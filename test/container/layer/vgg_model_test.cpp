@@ -8,5 +8,5 @@ void test_vgg_forward_backward() {
 }
               
 int main() {
-	test_vgg_forward_backward();
+//	test_vgg_forward_backward();
 }

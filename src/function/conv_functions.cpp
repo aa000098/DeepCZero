@@ -8,6 +8,7 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 	const Tensor<> &x = xs[0].data();
 	// [OC, C, KH, KW]
 	const Tensor<> &W = xs[1].data();
+	// [OC]
 	const Tensor<> &b = xs[2].data();
 	const auto w_shape = W.get_shape();
 	size_t KH = w_shape[2];

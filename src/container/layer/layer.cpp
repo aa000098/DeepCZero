@@ -171,10 +171,10 @@ namespace layer {
 		const Parameter& W = get_param("W");
 		const Parameter& b = get_param("b");
 		if (W.data().empty()) {
-			in_channels = x.shape().back();
+			in_channels = x.shape()[1];
 			init_W();
 		}
-		for (size_t i =0; i < x.shape().size(); i++) 
+/*		for (size_t i =0; i < x.shape().size(); i++) 
 			std::cout << x.shape()[i] << " ";
 		std::cout << std::endl;
 		for (size_t i =0; i < W.shape().size(); i++) 
@@ -183,7 +183,7 @@ namespace layer {
 		for (size_t i =0; i < b.shape().size(); i++) 
 			std::cout << b.shape()[i] << " ";
 		std::cout << std::endl;
-		
+*/		
 		Variable y = conv2d(x, W, b, stride, pad);
 		return y;
 	}

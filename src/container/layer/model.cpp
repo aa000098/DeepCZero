@@ -59,31 +59,54 @@ VGG16::VGG16(bool pretrained) {
 }
              
 Variable VGG16::forward(const std::vector<Variable>& xs) {
-	Variable x = xs[0];
-	std::cout << "1" << std::endl;
-	x =  relu((*conv1_1)(x));
-	std::cout << "2" << std::endl;
 
+	// [B, C_in, H, W]
+	Variable x = xs[0];
+	
+	// [B, 64, H, W]
+	x =  relu((*conv1_1)(x));
 	x =  relu((*conv1_2)(x));
+	// [B, 64, H/2, W/2]
 	x = pooling(x, {2, 2}, {2, 2});
+
+	// [B, 128, H/2, W/2]
 	x =  relu((*conv2_1)(x));
 	x =  relu((*conv2_2)(x));
+	// [B, 128, H/4, W/4]
 	x = pooling(x, {2, 2}, {2, 2});
+
+	// [B, 256, H/4, W/4]
 	x =  relu((*conv3_1)(x));
 	x =  relu((*conv3_2)(x));
 	x =  relu((*conv3_3)(x));
+	// [B, 256, H/8, W/8]
 	x = pooling(x, {2, 2}, {2, 2});
+
+	// [B, 512, H/8, W/8]
 	x =  relu((*conv4_1)(x));
 	x =  relu((*conv4_2)(x));
 	x =  relu((*conv4_3)(x));
+	// [B, 512, H/16, W/16]
 	x = pooling(x, {2, 2}, {2, 2});
+
+	// [B, 512, H/16, W/16]
 	x =  relu((*conv5_1)(x));
 	x =  relu((*conv5_2)(x));
 	x =  relu((*conv5_3)(x));
+	// [B, 512, H/32, W/32]
 	x = pooling(x, {2, 2}, {2, 2});
-	x = reshape(x, {x.shape()[0], x.shape()[3]});
+
+	std::vector<size_t> x_shape = x.shape();
+	size_t flatten_dim = x_shape[1] * x_shape[2] * x_shape[3]; 
+	// [B, 512 * H/32 * W/32]
+	x = reshape(x, {x.shape()[0], flatten_dim});
+
+	// [B, 4096]
 	x = dropout(relu((*fc6)(x)));
 	x = dropout(relu((*fc7)(x)));
+
+	// [B, 1000]
 	x = (*fc8)(x);
+
 	return x;
 }

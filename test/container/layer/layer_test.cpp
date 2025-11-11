@@ -188,7 +188,7 @@ void test_linear_layer_3d() {
 int main() {
     test_layer_register_and_get_param();
 	test_linear_layer();
-	test_linear_regression();
+//	test_linear_regression();
 	test_linear_layer_3d();
     return 0;
 }

@@ -77,6 +77,21 @@ static std::string _default_cache_dir() {
 #endif
 }
 
+static std::filesystem::path get_cache_file_path(const std::string& file_name) {
+    // 캐시 루트
+    std::string cache = _default_cache_dir();
+    cache = _expand_user(cache);
+
+    std::filesystem::path cache_dir(cache);
+    std::error_code ec;
+    std::filesystem::create_directories(cache_dir, ec); // 이미 있으면 OK
+    if (ec) {
+        throw std::runtime_error("Failed to create cache dir: " + cache_dir.string());
+    }
+
+    return cache_dir / file_name;
+}
+
 /**
  * URL에서 파일을 캐시에 내려받고, 절대 경로를 반환한다.
  * 이미 존재하면 다운로드 생략.
@@ -85,18 +100,9 @@ static std::string _default_cache_dir() {
  * @param file_name 빈 문자열이면 URL의 마지막 세그먼트를 파일명으로 사용
  */
 static std::string get_file(std::string url, std::string file_name = "") {
-    // 캐시 루트
-    std::string cache = _default_cache_dir();
-    cache = _expand_user(cache);
-
-    std::filesystem::path cache_dir(cache);
-    std::error_code ec;
-    std::filesystem::create_directories(cache_dir, ec); // 이미 있으면 OK
-    if (ec) throw std::runtime_error("Failed to create cache dir: " + cache_dir.string());
-
     // 파일명 결정
     if (file_name.empty()) file_name = _basename_from_url(url);
-    std::filesystem::path out_path = cache_dir / file_name;
+    std::filesystem::path out_path = get_cache_file_path(file_name);
 
     // 이미 있으면 그대로 반환
     if (std::filesystem::exists(out_path)) {
@@ -138,6 +144,7 @@ static std::string get_file(std::string url, std::string file_name = "") {
 
     std::fclose(fp);
     curl_easy_cleanup(curl);
+    std::error_code ec;
 
     if (res != CURLE_OK) {
         std::filesystem::remove(tmp_path, ec);

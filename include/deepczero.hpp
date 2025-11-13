@@ -1,6 +1,8 @@
 #pragma once
 
 #include "config/config.hpp"
+#include "utils/utils_all.hpp"
+
 #include "container/tensor/tensor_all.hpp"
 #include "container/container_all.hpp"
 #include "graph/graph.hpp"

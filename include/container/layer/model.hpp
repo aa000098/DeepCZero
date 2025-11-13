@@ -72,5 +72,6 @@ private:
 public:
 	VGG16(bool pretrained = false);
 
+	void load_weights(const std::string wegiths_path);
 	Variable forward(const std::vector<Variable>& xs) override;
 };

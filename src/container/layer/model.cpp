@@ -55,7 +55,12 @@ VGG16::VGG16(bool pretrained) {
    
 	if (pretrained) {
 		std::string weights_path = get_file(this->WEIGHTS_PATH);
+		this->load_weights(weights_path);
 	}
+}
+
+void VGG16::load_weights(const std::string weights_path) {
+
 }
              
 Variable VGG16::forward(const std::vector<Variable>& xs) {

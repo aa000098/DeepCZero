@@ -7,7 +7,7 @@
 #include <filesystem>
 
 
-std::string get_file(const std::string& url);
+std::string get_dataset_file(const std::string& url);
 
 std::string gunzip_file(const std::string& gz_path);
 

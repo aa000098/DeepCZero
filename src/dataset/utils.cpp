@@ -4,7 +4,7 @@
 #include <filesystem>
 
 
-std::string get_file(const std::string& url) {
+std::string get_dataset_file(const std::string& url) {
     const char* home = std::getenv("HOME");
     if (!home) throw std::runtime_error("HOME environment variable not set");
 

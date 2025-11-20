@@ -183,9 +183,9 @@ void MNISTDataset::init_dataset() {
 
 	const auto& files = train ? train_files : test_files;
 
-	// get_file, gunzip_file - dataset/utils.hpp
-	std::string data_gz_path = get_file(base_url + files.at("target"));
-	std::string label_gz_path = get_file(base_url + files.at("label"));
+	// get_dataset_file, gunzip_file - dataset/utils.hpp
+	std::string data_gz_path = get_dataset_file(base_url + files.at("target"));
+	std::string label_gz_path = get_dataset_file(base_url + files.at("label"));
 
 	std::string data_path = gunzip_file(data_gz_path);
 	std::string label_path = gunzip_file(label_gz_path);

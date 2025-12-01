@@ -5,8 +5,7 @@
 #include <vector>
 #include <iostream>
 
-
-int main() {
+void load_yolo_weight_test() {
 
 	std::string filename = "/home/user/project/DeepCZero/models/yolov8n.pt";
     std::string pkl_output_path = "/home/user/project/DeepCZero/models/yolov8n/data.pkl";  // 저장 위치
@@ -64,4 +63,8 @@ int main() {
     zip_close(archive);
 
 
+}
+
+int main() {
+	load_yolo_weight_test();	
 }

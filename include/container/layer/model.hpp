@@ -49,7 +49,7 @@ public:
 
 class VGG16 : public Model {
 private:
-	std::string WEIGHTS_PATH = "https://github.com/koki0702/dezero-models/releases/download/v0.1/vgg16.npz";
+	const std::string WEIGHTS_PATH = "https://github.com/koki0702/dezero-models/releases/download/v0.1/vgg16.npz";
 		
 private:
 	std::shared_ptr<Layer> conv1_1;
@@ -72,6 +72,6 @@ private:
 public:
 	VGG16(bool pretrained = false);
 
-	void load_weights(const std::string wegiths_path);
+	void load_weights(const std::string& wegiths_path);
 	Variable forward(const std::vector<Variable>& xs) override;
 };

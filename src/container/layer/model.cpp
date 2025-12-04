@@ -59,7 +59,7 @@ VGG16::VGG16(bool pretrained) {
 	}
 }
 
-void VGG16::load_weights(const std::string weights_path) {
+void VGG16::load_weights(const std::string& weights_path) {
 
 }
              

@@ -1,13 +1,18 @@
-# compiler and flags
+# compiler
 CXX = g++
-CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp
-LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
    
 # directory
 SRC_DIR = src
 TEST_DIR = test
 BUILD_DIR = build
 BIN_DIR = bin
+
+THIRD_PARTY_DIR = third_party
+CNPY_DIR = $(THIRD_PARTY_DIR)/cnpy
+
+# flags 
+CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp -I$(CNPY_DIR)
+LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
 
 # src and objs
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
@@ -22,6 +27,10 @@ DEPS := $(OBJS:.o=.d)
 LIB_NAME = libdeepczero.so
 LIB_TARGET = $(BIN_DIR)/$(LIB_NAME)
 
+# third party
+CNPY_SRC = $(CNPY_DIR)/cnpy.cpp
+CNPY_OBJ = $(BUILD_DIR)/cnpy.o
+OBJS += $(CNPY_OBJ)
 
 
 # default rules
@@ -42,6 +51,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(CNPY_OBJ): $(CNPY_SRC)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 
 # test auto exec
 test: $(TEST_BINS)

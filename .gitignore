@@ -4,6 +4,8 @@ bin/
 models/
 venv/
 
+third_party/*
+
 tags
 
 *.o

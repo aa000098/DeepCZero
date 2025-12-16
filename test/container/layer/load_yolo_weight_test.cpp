@@ -14,7 +14,7 @@ void load_yolo_weight_test() {
     zip_t* archive = zip_open(filename.c_str(), ZIP_RDONLY, &err);
     if (!archive) {
         std::cerr << "Failed to open .pt file as zip (err=" << err << ")\n";
-        return 1;
+        return ;
     }
 
 
@@ -23,14 +23,14 @@ void load_yolo_weight_test() {
     if (zip_stat(archive, target_file.c_str(), 0, &st) != 0) {
         std::cerr << "Failed to stat: " << target_file << "\n";
         zip_close(archive);
-        return 1;
+        return ;
     }
 
     zip_file_t* zf = zip_fopen(archive, target_file.c_str(), 0);
     if (!zf) {
         std::cerr << "Failed to open: " << target_file << "\n";
         zip_close(archive);
-        return 1;
+        return ;
     }
 
     std::vector<char> buffer(st.size);

@@ -10,7 +10,7 @@
 
 #include <curl/curl.h>
 
-static std::string _expand_user(const std::string& p) {
+inline std::string _expand_user(const std::string& p) {
     if (!p.empty() && p[0] == '~') {
 #ifdef _WIN32
         const char* home = std::getenv("USERPROFILE");
@@ -25,7 +25,7 @@ static std::string _expand_user(const std::string& p) {
     return p;
 }
 
-static std::string _basename_from_url(const std::string& url) {
+inline std::string _basename_from_url(const std::string& url) {
     // strip query/fragment
     size_t end = url.find_first_of("?#");
     std::string path = (end == std::string::npos) ? url : url.substr(0, end);
@@ -36,11 +36,11 @@ static std::string _basename_from_url(const std::string& url) {
     return name;
 }
 
-static size_t _write_file(void* ptr, size_t size, size_t nmemb, void* stream) {
+inline size_t _write_file(void* ptr, size_t size, size_t nmemb, void* stream) {
     return std::fwrite(ptr, size, nmemb, static_cast<FILE*>(stream));
 }
 
-static int _progress_cb(void* /*clientp*/,
+inline int _progress_cb(void* /*clientp*/,
                         curl_off_t dltotal, curl_off_t dlnow,
                         curl_off_t /*ultotal*/, curl_off_t /*ulnow*/) {
     if (dltotal > 0) {
@@ -57,7 +57,7 @@ static int _progress_cb(void* /*clientp*/,
 }
 
 // 환경변수 DEEPCZERO_CACHE 가 있으면 그 경로 사용, 없으면 "~/.deepczero"
-static std::string _default_cache_dir() {
+inline std::string _default_cache_dir() {
     const char* env = std::getenv("DEEPCZERO_CACHE");
     if (env && *env) return env;
 #ifdef _WIN32
@@ -77,7 +77,7 @@ static std::string _default_cache_dir() {
 #endif
 }
 
-static std::filesystem::path get_cache_file_path(const std::string& file_name) {
+inline std::filesystem::path get_cache_file_path(const std::string& file_name) {
     // 캐시 루트
     std::string cache = _default_cache_dir();
     cache = _expand_user(cache);
@@ -99,7 +99,7 @@ static std::filesystem::path get_cache_file_path(const std::string& file_name) {
  * @param url       다운로드 URL
  * @param file_name 빈 문자열이면 URL의 마지막 세그먼트를 파일명으로 사용
  */
-static std::string get_file(std::string url, std::string file_name = "") {
+inline std::string get_file(std::string url, std::string file_name = "") {
     // 파일명 결정
     if (file_name.empty()) file_name = _basename_from_url(url);
     std::filesystem::path out_path = get_cache_file_path(file_name);

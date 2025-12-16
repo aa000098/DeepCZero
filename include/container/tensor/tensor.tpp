@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <cstdlib>
 #include <filesystem>
+#include <functional>
 
 namespace tensor {
 

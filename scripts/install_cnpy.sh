@@ -8,10 +8,10 @@ THIRD_PARTY_DIR="$ROOT_DIR/third_party"
 mkdir -p "$THIRD_PARTY_DIR"
 cd "$ROOT_DIR"
 
-# 이미 서브모듈이 있으면 스킵
-if [ ! -d "$THIRD_PARTY_DIR/cnpy" ]; then
-    git submodule add https://github.com/rogersce/cnpy.git third_party/cnpy
-else
-    echo "cnpy already exists at third_party/cnpy, skipping git submodule add"
-fi
+echo "[submodule] syncing..."
+git submodule sync --recursive
 
+echo "[submodule] init/update..."
+git submodule update --init --recursive
+
+echo "[submodule] done."

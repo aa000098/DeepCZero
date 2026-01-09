@@ -41,7 +41,7 @@ namespace layer {
 
 
 	Variable Layer::operator()(const Variable& input) {
-		this->inputs = {inputs};
+		this->inputs = {input};
 		return (*this)({input});
 	}
 

@@ -2,6 +2,7 @@
 #include "function/function.hpp"
 #include "function/activation_functions.hpp"
 #include "utils/io.hpp"
+#include "cnpy.h"
 
 using function::Sigmoid;
 
@@ -10,6 +11,15 @@ namespace layer {
 		auto it = params.find(name);
 		if (it != params.end()) return it->second;
 		else throw std::runtime_error("Parameter not found: " + name);
+	}
+
+	void Layer::set_param_data(const std::string& name, const Tensor<>& data) {
+		auto it = params.find(name);
+		if (it != params.end()) {
+			it->second.data() = data;
+		} else {
+			throw std::runtime_error("Parameter not found: " + name);
+		}
 	}
 
 	std::shared_ptr<Layer> Layer::get_sublayer(const std::string& name) const {
@@ -241,8 +251,33 @@ namespace layer {
 		}
 	}
 
+	void Layer::load_params_from_npz(const std::string& npz_path, const std::string& layer_name) {
+		cnpy::npz_t npz = cnpy::npz_load(npz_path);
+		load_params_from_npz(npz, layer_name);
+	}
 
-	
+	void Layer::load_params_from_npz(const cnpy::npz_t& npz, const std::string& layer_name) {
+		// Load weight (W)
+		std::string w_key = layer_name + ".W";
+		auto w_it = npz.find(w_key);
+		if (w_it != npz.end()) {
+			const cnpy::NpyArray& w_arr = w_it->second;
+			std::vector<float> w_data = w_arr.as_vec<float>();
+			Tensor<> w_tensor(w_arr.shape, w_data);
+			set_param_data("W", w_tensor);
+		}
+
+		// Load bias (b)
+		std::string b_key = layer_name + ".b";
+		auto b_it = npz.find(b_key);
+		if (b_it != npz.end()) {
+			const cnpy::NpyArray& b_arr = b_it->second;
+			std::vector<float> b_data = b_arr.as_vec<float>();
+			Tensor<> b_tensor(b_arr.shape, b_data);
+			set_param_data("b", b_tensor);
+		}
+	}
+
 // [Linear]
 	Linear::Linear( size_t out_size, 
 					bool nobias,

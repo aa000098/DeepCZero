@@ -5,12 +5,18 @@
 #include "utils/utils.hpp"
 
 #include <unordered_map>
+#include <map>
 #include <string>
 #include <memory>
 #include <vector>
 #include <cassert>
 
 class Parameter;
+
+namespace cnpy {
+	struct NpyArray;
+	using npz_t = std::map<std::string, NpyArray>;
+}
 
 namespace layer {
 
@@ -38,6 +44,7 @@ namespace layer {
 		virtual Variable forward(const std::vector<Variable>& xs) = 0;
 	
 		Parameter get_param(const std::string& name) const;
+		void set_param_data(const std::string& name, const Tensor<>& data);
 		std::shared_ptr<Layer> get_sublayer(const std::string& name) const;
 
 		Variable operator()(const std::vector<Variable>& inputs);
@@ -53,6 +60,10 @@ namespace layer {
 		void save_weights(const std::string& path);
 
 		void load_weights(const std::string& path);
+
+		// Load W and b from npz file for this layer
+		void load_params_from_npz(const std::string& npz_path, const std::string& layer_name);
+		void load_params_from_npz(const cnpy::npz_t& npz, const std::string& layer_name);
 
 	};
 

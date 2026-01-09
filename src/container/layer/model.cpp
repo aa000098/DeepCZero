@@ -1,6 +1,9 @@
 #include "container/layer/model.hpp"
 #include "graph/utils/utils.hpp"
 #include "utils/io.hpp"
+#include "cnpy.h"
+
+#include <iostream>
 
 void Model::plot(std::vector<Variable> inputs,
 				std::string to_file) {
@@ -60,8 +63,31 @@ VGG16::VGG16(bool pretrained) {
 }
 
 void VGG16::load_weights(const std::string& weights_path) {
-	std::string path = weights_path;
+	// std::cerr << "[VGG16] Loading weights from: " << weights_path << std::endl;
 
+	cnpy::npz_t npz = cnpy::npz_load(weights_path);
+
+	// Conv layers
+	conv1_1->load_params_from_npz(npz, "conv1_1");
+	conv1_2->load_params_from_npz(npz, "conv1_2");
+	conv2_1->load_params_from_npz(npz, "conv2_1");
+	conv2_2->load_params_from_npz(npz, "conv2_2");
+	conv3_1->load_params_from_npz(npz, "conv3_1");
+	conv3_2->load_params_from_npz(npz, "conv3_2");
+	conv3_3->load_params_from_npz(npz, "conv3_3");
+	conv4_1->load_params_from_npz(npz, "conv4_1");
+	conv4_2->load_params_from_npz(npz, "conv4_2");
+	conv4_3->load_params_from_npz(npz, "conv4_3");
+	conv5_1->load_params_from_npz(npz, "conv5_1");
+	conv5_2->load_params_from_npz(npz, "conv5_2");
+	conv5_3->load_params_from_npz(npz, "conv5_3");
+
+	// FC layers
+	fc6->load_params_from_npz(npz, "fc6");
+	fc7->load_params_from_npz(npz, "fc7");
+	fc8->load_params_from_npz(npz, "fc8");
+
+	// std::cerr << "[VGG16] Weights loaded successfully" << std::endl;
 }
              
 Variable VGG16::forward(const std::vector<Variable>& xs) {

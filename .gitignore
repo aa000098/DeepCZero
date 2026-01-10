@@ -4,6 +4,8 @@ bin/
 models/
 venv/
 
+.vscode/
+
 tags
 
 *.o

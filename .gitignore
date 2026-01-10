@@ -3,7 +3,6 @@ build/
 bin/
 models/
 venv/
-.claude
 
 tags
 

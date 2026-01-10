@@ -104,6 +104,9 @@ inline std::string get_file(std::string url, std::string file_name = "") {
     if (file_name.empty()) file_name = _basename_from_url(url);
     std::filesystem::path out_path = get_cache_file_path(file_name);
 
+    // 중간 디렉토리 생성 (weights/ 등)
+    std::filesystem::create_directories(out_path.parent_path());
+
     // 이미 있으면 그대로 반환
     if (std::filesystem::exists(out_path)) {
         return std::filesystem::absolute(out_path).string();

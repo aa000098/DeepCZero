@@ -1,5 +1,6 @@
 #include "graph/utils/utils.hpp"
 #include "graph/graph.hpp"
+#include "utils/io.hpp"
 
 #include <fstream>
 #include <cstdlib>
@@ -77,15 +78,15 @@ std::string get_dot_graph(Variable output, bool verbose) {
 
 
 void plot_dot_graph(
-		Variable output, 
-		bool verbose, 
+		Variable output,
+		bool verbose,
 		std::string to_file) {
-	const std::string home = std::getenv("HOME");
-	const std::string dir = home + "/.deepczero";
-	const std::string dot_path = dir + "/" + to_file + ".dot";
-	const std::string img_path = dir + "/" + to_file + ".png";
+	// graphs 디렉토리 생성
+	std::filesystem::path graphs_dir = get_cache_file_path("graphs");
+	std::filesystem::create_directories(graphs_dir);
 
-	std::filesystem::create_directories(dir);
+	const std::string dot_path = (graphs_dir / (to_file + ".dot")).string();
+	const std::string img_path = (graphs_dir / (to_file + ".png")).string();
 
 	std::ofstream ofs(dot_path);
 	if (!ofs.is_open()) {

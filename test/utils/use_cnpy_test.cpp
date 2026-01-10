@@ -18,7 +18,7 @@ static std::filesystem::path get_home_dir() {
 void test_load_weights_npz() {
 	VGG16 model(true);
 
-	const std::filesystem::path weights_path = get_home_dir() / ".deepczero" / "vgg16.npz";
+	const std::filesystem::path weights_path = get_home_dir() / ".deepczero" / "weights" / "vgg16.npz";
 
     if (!std::filesystem::exists(weights_path)) {
         throw std::runtime_error("Weight file not found: " + weights_path.string());

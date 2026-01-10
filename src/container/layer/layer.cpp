@@ -110,10 +110,14 @@ namespace layer {
 		// 1) 모든 파라미터 평탄화
 		std::unordered_map<std::string, Parameter> params_dict = flatten_params();
 
-		std::string out_path = get_cache_file_path(path).string();
+		// weights 디렉토리 생성
+		std::filesystem::path weights_dir = get_cache_file_path("weights");
+		std::filesystem::create_directories(weights_dir);
+
+		std::string out_path = (weights_dir / path).string();
 		std::ofstream fout(out_path, std::ios::binary);
 		if (!fout.is_open()) {
-			throw std::runtime_error("Cannot open file for writing: " + path);
+			throw std::runtime_error("Cannot open file for writing: " + out_path);
 		}
 
 		// 2) magic + 파라미터 개수 기록

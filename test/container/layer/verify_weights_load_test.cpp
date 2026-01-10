@@ -55,7 +55,7 @@ void test_mlp_save_load_verify() {
     // forward 한번 호출해서 weight shape 초기화
     Variable dummy = model_loaded(x);
 
-    std::filesystem::path full_path = get_cache_file_path(weight_path);
+    std::filesystem::path full_path = get_cache_file_path("weights/" + weight_path);
     model_loaded.load_weights(full_path.string());
     std::cout << "  Loaded weights from: " << full_path << std::endl;
 
@@ -118,7 +118,7 @@ void test_linear_save_load_verify() {
     layer::Linear linear_loaded(5);
     Variable dummy = linear_loaded(x);  // shape 초기화
 
-    std::filesystem::path full_path = get_cache_file_path(weight_path);
+    std::filesystem::path full_path = get_cache_file_path("weights/" + weight_path);
     linear_loaded.load_weights(full_path.string());
     std::cout << "  Loaded weights" << std::endl;
 
@@ -163,7 +163,7 @@ void test_conv2d_save_load_verify() {
     layer::Conv2d conv_loaded(8, {3, 3}, {1, 1}, {1, 1}, false, 3);
     Variable dummy = conv_loaded(x);  // shape 초기화
 
-    std::filesystem::path full_path = get_cache_file_path(weight_path);
+    std::filesystem::path full_path = get_cache_file_path("weights/" + weight_path);
     conv_loaded.load_weights(full_path.string());
     std::cout << "  Loaded weights" << std::endl;
 
@@ -220,7 +220,7 @@ void test_trained_model_save_load_verify() {
     MLP model_loaded({4, 3});
     Variable dummy = model_loaded(x);  // shape 초기화
 
-    std::filesystem::path full_path = get_cache_file_path(weight_path);
+    std::filesystem::path full_path = get_cache_file_path("weights/" + weight_path);
     model_loaded.load_weights(full_path.string());
     std::cout << "  Loaded weights into new model" << std::endl;
 

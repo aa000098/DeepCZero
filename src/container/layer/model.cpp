@@ -57,7 +57,7 @@ VGG16::VGG16(bool pretrained) {
 	fc8 = std::make_shared<Linear>(1000);
    
 	if (pretrained) {
-		std::string weights_path = get_file(this->WEIGHTS_PATH);
+		std::string weights_path = get_file(this->WEIGHTS_PATH, "weights/vgg16.npz");
 		this->load_weights(weights_path);
 	}
 }

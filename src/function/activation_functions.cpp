@@ -55,18 +55,18 @@ std::vector<Variable> function::ReLU::backward(const Variable& gy) {
 
 
 Variable function::Dropout::forward(const std::vector<Variable>& xs) {
-	const Tensor<>& x = xs[0].data();
+	const Variable& x = xs[0];
 
 	if (dcz::Config::get().train) {
-		Tensor<> mask(x.get_shape());
-		Tensor<> random = rand(x.get_shape());
-		for (size_t i = 0; i < x.size(); i++)
+		Tensor<> mask(x.data().get_shape());
+		Tensor<> random = rand(x.data().get_shape());
+		for (size_t i = 0; i < x.data().size(); i++)
 			mask.raw_data()[i] = random.raw_data()[i] > dropout_rate ? 1.0f : 0.0f;
 		float scale = 1 - dropout_rate;
-		Tensor<> result = x * mask / scale;
+		Tensor<> result = x.data() * mask / scale;
 		return Variable(result);
 	} else {
-		return Variable(x);
+		return x;  // 그래프 유지를 위해 입력 Variable 그대로 반환
 	}
 }
 

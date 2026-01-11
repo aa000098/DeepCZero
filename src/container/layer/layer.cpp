@@ -261,9 +261,13 @@ namespace layer {
 	}
 
 	void Layer::load_params_from_npz(const cnpy::npz_t& npz, const std::string& layer_name) {
-		// Load weight (W)
-		std::string w_key = layer_name + ".W";
+		// Load weight (W) - "layer/W" 또는 "layer.W" 둘 다 지원
+		std::string w_key = layer_name + "/W";
 		auto w_it = npz.find(w_key);
+		if (w_it == npz.end()) {
+			w_key = layer_name + ".W";
+			w_it = npz.find(w_key);
+		}
 		if (w_it != npz.end()) {
 			const cnpy::NpyArray& w_arr = w_it->second;
 			std::vector<float> w_data = w_arr.as_vec<float>();
@@ -271,9 +275,13 @@ namespace layer {
 			set_param_data("W", w_tensor);
 		}
 
-		// Load bias (b)
-		std::string b_key = layer_name + ".b";
+		// Load bias (b) - "layer/b" 또는 "layer.b" 둘 다 지원
+		std::string b_key = layer_name + "/b";
 		auto b_it = npz.find(b_key);
+		if (b_it == npz.end()) {
+			b_key = layer_name + ".b";
+			b_it = npz.find(b_key);
+		}
 		if (b_it != npz.end()) {
 			const cnpy::NpyArray& b_arr = b_it->second;
 			std::vector<float> b_data = b_arr.as_vec<float>();
@@ -315,7 +323,14 @@ namespace layer {
 			in_size = x.shape().back();
 			init_W();
 		}
-		
+
+		// DEBUG: shape 출력
+		// std::cerr << "[Linear] x: (";
+		// for (auto s : x.shape()) std::cerr << s << ",";
+		// std::cerr << ") W: (";
+		// for (auto s : W.shape()) std::cerr << s << ",";
+		// std::cerr << ")" << std::endl;
+
 		Variable y = linear(x, W, b);
 		return y;
 	}

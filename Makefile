@@ -9,9 +9,10 @@ BIN_DIR = bin
 
 THIRD_PARTY_DIR = third_party
 CNPY_DIR = $(THIRD_PARTY_DIR)/cnpy
+STB_DIR = $(THIRD_PARTY_DIR)/stb
 
-# flags 
-CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp -I$(CNPY_DIR)
+# flags
+CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp -I$(CNPY_DIR) -I$(STB_DIR)
 LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
 
 # src and objs

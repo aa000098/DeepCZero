@@ -5,6 +5,7 @@
 
 #include <string>
 #include <memory>
+#include <map>
 
 using tensor::Tensor;
 
@@ -69,4 +70,14 @@ public:
 	MNISTDataset(bool train = true);
 	void init_dataset();
 	void show(size_t index = 0);
+};
+
+class ImageNetDataset : public Dataset {
+private:
+	std::map<int, std::string> labels_map;
+
+public:
+	ImageNetDataset(bool train = true);
+	void init_dataset();
+	std::string labels(int class_id) const;
 };

@@ -1,11 +1,13 @@
 #include "dataset/dataset.hpp"
 #include "dataset/utils.hpp"
 #include "container/tensor/tensor_all.hpp"
+#include "utils/io.hpp"
 
 #include <cmath>
 #include <random>
 #include <string>
 #include <map>
+#include <fstream>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -220,4 +222,69 @@ void MNISTDataset::show(size_t index) {
         std::cout << "\n";
     }
 
+}
+
+// [ImageNetDataset]
+ImageNetDataset::ImageNetDataset(bool train) {
+	train = false;
+	init_dataset();
+}
+
+void ImageNetDataset::init_dataset() {
+	std::string label_url = "https://gist.githubusercontent.com/yrevar/942d3a0ac09ec9e5eb3a/raw/238f720ff059c1f82f368259d1ca4ffa5dd8f9f5/imagenet1000_clsidx_to_labels.txt";
+	std::string label_path = get_file(label_url, "data/imagenet_labels.txt");
+
+	// 레이블 파일 파싱
+	labels_map.clear();
+	std::ifstream file(label_path);
+	if (!file) throw std::runtime_error("Cannot open labels file: " + label_path);
+
+	std::string line;
+	while (std::getline(file, line)) {
+		// 형식: " 0: 'tench, Tinca tinca'," 또는 "{0: 'tench, Tinca tinca',"
+		size_t colon_pos = line.find(':');
+		if (colon_pos == std::string::npos) continue;
+
+		// 인덱스 추출 (숫자만)
+		std::string idx_str = line.substr(0, colon_pos);
+		// 공백, 탭, {, } 제거
+		idx_str.erase(0, idx_str.find_first_not_of(" \t{"));
+		idx_str.erase(idx_str.find_last_not_of(" \t}") + 1);
+
+		// 빈 문자열이나 숫자가 아닌 경우 건너뛰기
+		if (idx_str.empty() || !std::isdigit(idx_str[0])) continue;
+
+		int idx = std::stoi(idx_str);
+
+		// 레이블 추출 (따옴표 사이 - 작은따옴표 또는 큰따옴표)
+		// 어느 따옴표가 먼저 나오는지 확인
+		size_t single_quote = line.find('\'', colon_pos);
+		size_t double_quote = line.find('"', colon_pos);
+
+		size_t first_quote, last_quote;
+		if (double_quote != std::string::npos && (single_quote == std::string::npos || double_quote < single_quote)) {
+			// 큰따옴표 사용
+			first_quote = double_quote;
+			last_quote = line.rfind('"');
+		} else {
+			// 작은따옴표 사용
+			first_quote = single_quote;
+			last_quote = line.rfind('\'');
+		}
+
+		if (first_quote != std::string::npos && last_quote != std::string::npos && first_quote < last_quote) {
+			std::string label = line.substr(first_quote + 1, last_quote - first_quote - 1);
+			labels_map[idx] = label;
+		}
+	}
+
+	std::cerr << "[ImageNetDataset] Loaded " << labels_map.size() << " labels" << std::endl;
+}
+
+std::string ImageNetDataset::labels(int class_id) const {
+	auto it = labels_map.find(class_id);
+	if (it != labels_map.end()) {
+		return it->second;
+	}
+	return "Unknown class: " + std::to_string(class_id);
 }

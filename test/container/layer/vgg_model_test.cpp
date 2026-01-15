@@ -14,7 +14,7 @@ void test_vgg_forward_backward() {
 	// y.show();
 	model.plot({x}, "vgg16");
 }
-                
+
 int main() {
 	test_vgg_forward_backward();
 }

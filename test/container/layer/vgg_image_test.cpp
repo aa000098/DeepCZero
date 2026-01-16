@@ -53,7 +53,7 @@ void test_vgg_forward_with_image() {
 	}
 }
                 
-
+ 
 int main() {
 	test_vgg_forward_with_image();
 }

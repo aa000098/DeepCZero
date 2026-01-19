@@ -24,11 +24,17 @@ tensor::Tensor<> preprocess_vgg16(const std::string& image_path) {
     const int target_size = 224;
     unsigned char* resized_data = new unsigned char[target_size * target_size * 3];
 
-    stbir_resize_uint8_linear(
+    // stb의 easy API는 다운샘플링에 Mitchell 필터 사용 (PIL BICUBIC과 유사)
+    STBIR_RESIZE resize;
+    stbir_resize_init(&resize,
         img_data, width, height, 0,
         resized_data, target_size, target_size, 0,
-        STBIR_RGB
-    );
+        STBIR_RGB, STBIR_TYPE_UINT8);
+
+    // Catmull-Rom 필터 사용 (PIL BICUBIC과 유사)
+    stbir_set_filters(&resize, STBIR_FILTER_CATMULLROM, STBIR_FILTER_CATMULLROM);
+
+    stbir_resize_extended(&resize);
 
     stbi_image_free(img_data);
 

@@ -271,7 +271,19 @@ namespace layer {
 		if (w_it != npz.end()) {
 			const cnpy::NpyArray& w_arr = w_it->second;
 			std::vector<float> w_data = w_arr.as_vec<float>();
-			Tensor<> w_tensor(w_arr.shape, w_data);
+
+			Tensor<> w_tensor;
+			if (w_arr.fortran_order && w_arr.shape.size() == 2) {
+				// F-contiguous: raw data is in column-major order
+				// Create tensor with transposed shape, then transpose back
+				std::vector<size_t> transposed_shape = {w_arr.shape[1], w_arr.shape[0]};
+				w_tensor = Tensor<>(transposed_shape, w_data);
+				w_tensor = w_tensor.transpose({1, 0});
+			} else {
+				// C-contiguous: use as-is
+				w_tensor = Tensor<>(w_arr.shape, w_data);
+			}
+
 			set_param_data("W", w_tensor);
 		}
 

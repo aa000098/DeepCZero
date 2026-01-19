@@ -74,4 +74,38 @@ public:
 
 	void load_weights(const std::string& wegiths_path);
 	Variable forward(const std::vector<Variable>& xs) override;
+
+	// Getter for sublayers
+	std::shared_ptr<Layer> get_layer(const std::string& name) const {
+		if (name == "conv1_1") return conv1_1;
+		if (name == "conv1_2") return conv1_2;
+		if (name == "conv2_1") return conv2_1;
+		if (name == "conv2_2") return conv2_2;
+		if (name == "conv3_1") return conv3_1;
+		if (name == "conv3_2") return conv3_2;
+		if (name == "conv3_3") return conv3_3;
+		if (name == "conv4_1") return conv4_1;
+		if (name == "conv4_2") return conv4_2;
+		if (name == "conv4_3") return conv4_3;
+		if (name == "conv5_1") return conv5_1;
+		if (name == "conv5_2") return conv5_2;
+		if (name == "conv5_3") return conv5_3;
+		if (name == "fc6") return fc6;
+		if (name == "fc7") return fc7;
+		if (name == "fc8") return fc8;
+		return nullptr;
+	}
 };
+
+class RNN : public Model {
+private:
+	std::shared_ptr<Layer> x2h;
+	std::shared_ptr<Layer> h2h;
+	size_t hidden_size;
+
+public:
+	RNN(size_t hidden_size, size_t input_size = 0);
+
+	Variable forward(const std::vector<Variable>& xs) override;
+
+}

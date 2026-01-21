@@ -97,15 +97,13 @@ public:
 	}
 };
 
-class RNN : public Model {
+class SimpleRNN : public Model {
 private:
-	std::shared_ptr<Layer> x2h;
-	std::shared_ptr<Layer> h2h;
-	size_t hidden_size;
+	std::shared_ptr<Layer> rnn;
+	std::shared_ptr<Layer> fc;
 
 public:
-	RNN(size_t hidden_size, size_t input_size = 0);
-
+	SimpleRNN(size_t hidden_size, size_t output_size);
+	void reset_state();
 	Variable forward(const std::vector<Variable>& xs) override;
-
-}
+};

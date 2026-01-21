@@ -55,6 +55,23 @@ VGG16::VGG16(bool pretrained) {
 	fc6 = std::make_shared<Linear>(4096);
 	fc7 = std::make_shared<Linear>(4096);
 	fc8 = std::make_shared<Linear>(1000);
+
+	register_sublayers("conv1_1", conv1_1);
+	register_sublayers("conv1_2", conv1_2);
+	register_sublayers("conv2_1", conv2_1);
+	register_sublayers("conv2_2", conv2_2);
+	register_sublayers("conv3_1", conv3_1);
+	register_sublayers("conv3_2", conv3_2);
+	register_sublayers("conv3_3", conv3_3);
+	register_sublayers("conv4_1", conv4_1);
+	register_sublayers("conv4_2", conv4_2);
+	register_sublayers("conv4_3", conv4_3);
+	register_sublayers("conv5_1", conv5_1);
+	register_sublayers("conv5_2", conv5_2);
+	register_sublayers("conv5_3", conv5_3);
+	register_sublayers("fc6", fc6);
+	register_sublayers("fc7", fc7);
+	register_sublayers("fc8", fc8);
    
 	if (pretrained) {
 		std::string weights_path = get_file(this->WEIGHTS_PATH, "weights/vgg16.npz");
@@ -141,4 +158,22 @@ Variable VGG16::forward(const std::vector<Variable>& xs) {
 	x = (*fc8)(x);
 
 	return x;
+}
+
+SimpleRNN::SimpleRNN(size_t hidden_size, size_t output_size) {
+	rnn = std::make_shared<layer::RNN>(hidden_size);
+	fc = std::make_shared<layer::Linear>(output_size);
+
+	register_sublayers("rnn", rnn);
+	register_sublayers("fc", fc);
+}
+
+void SimpleRNN::reset_state() {
+	std::dynamic_pointer_cast<layer::RNN>(rnn)->reset_state();
+}
+
+Variable SimpleRNN::forward(const std::vector<Variable>& xs) {
+	Variable h = (*rnn)({xs[0]});
+	Variable y = (*fc)({h});
+	return y;
 }

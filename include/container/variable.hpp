@@ -119,6 +119,14 @@ public:
 		return reinterpret_cast<std::uintptr_t>(impl.get());
 	}
 	void debug_refs();
+	void unchain() {
+		impl->creator = nullptr;
+	};
+	void unchain_backward() {
+		if (impl) {
+			impl->creator = nullptr;
+		}
+	}
 
 // shape functions
 	Variable reshape(std::vector<size_t> shape) const { 

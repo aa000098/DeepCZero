@@ -122,4 +122,21 @@ namespace layer {
 		Variable forward(const std::vector<Variable>& xs) override;
 
 	};
+
+	class RNN : public Layer {
+	private:
+		std::shared_ptr<Layer> x2h;
+		std::shared_ptr<Layer> h2h;
+		Variable hidden_state;
+
+	public:
+		RNN(size_t hidden_size, size_t input_size = 0);
+		void reset_state() {
+			hidden_state = Variable();
+		}
+		Variable forward(const std::vector<Variable>& xs) override;
+
+	};
 }	
+
+

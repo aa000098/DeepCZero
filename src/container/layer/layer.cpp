@@ -401,4 +401,25 @@ namespace layer {
 		Variable y = conv2d(x, W, b, stride, pad);
 		return y;
 	}
+
+	RNN::RNN(size_t hidden_size, size_t input_size) {
+		x2h = std::make_shared<Linear>(hidden_size, false, input_size);
+		h2h = std::make_shared<Linear>(hidden_size, true, input_size);
+		register_sublayers("x2h", x2h);
+		register_sublayers("h2h", h2h);
+	}
+
+	Variable RNN::forward(const std::vector<Variable>& xs) {
+		Variable x = xs[0];
+
+		Variable h_new;
+		if (this->hidden_state.empty()) { 
+			h_new = tanh((*x2h)(x));
+		} else {
+			h_new = tanh((*x2h)(x) + (*h2h)(this->hidden_state));
+		}
+		this->hidden_state = h_new;
+		return h_new;
+	}
+
 }

@@ -313,3 +313,4 @@ int main() {
     // test_simplrnn_sin_wave_prediction();
     return 0;
 }
+ 

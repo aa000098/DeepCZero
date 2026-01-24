@@ -86,8 +86,7 @@ public:
 
 // retain_grad : for Learning
 // create_graph : for Higher order differential
-    void backward(bool retain_grad, bool create_graph=false);
-	inline void backward() { backward(false, false); };
+    void backward(bool retain_grad=false, bool create_graph=false, bool debug=false);
 
 public:
 // operator functions
@@ -122,11 +121,8 @@ public:
 	void unchain() {
 		impl->creator = nullptr;
 	};
-	void unchain_backward() {
-		if (impl) {
-			impl->creator = nullptr;
-		}
-	}
+	void unchain_backward();
+	void unchain_backward(std::unordered_set<std::uintptr_t>& visited);
 
 // shape functions
 	Variable reshape(std::vector<size_t> shape) const { 

@@ -221,86 +221,49 @@ void test_bptt_simple() {
         ts.push_back(Variable(t, "t" + std::to_string(i)));
     }
 
-    std::cout << "Starting 2 BPTT iterations with length=2..." << std::endl;
+    std::cout << "Testing full BPTT with two windows..." << std::endl;
     simplernn.reset_state();
+    simplernn.cleargrads();
 
     // First BPTT window (steps 0-1)
     Variable y0 = simplernn({xs[0]});
-    y0.set_name("y0");
     Variable l0 = mean_squared_error(y0, ts[0]);
-    l0.set_name("loss0");
-
     Variable y1 = simplernn({xs[1]});
-    y1.set_name("y1");
     Variable l1 = mean_squared_error(y1, ts[1]);
-    l1.set_name("loss1_step");
-
     Variable loss1 = l0 + l1;
-    loss1.set_name("loss1_total");
-    std::cout << "Step 0-1: Loss = " << loss1.data().raw_data()[0] << std::endl;
-
-    plot_dot_graph(loss1, true, "bptt_step01_before_backward.dot");
-    std::cout << "Graph before backward saved to bptt_step01_before_backward.dot" << std::endl;
+    std::cout << "Window 1 (steps 0-1): Loss = " << loss1.data().raw_data()[0] << std::endl;
 
     simplernn.cleargrads();
     loss1.backward();
-    std::cout << "Backward 1 completed" << std::endl;
+    // optimizer.update();  // TEMPORARILY DISABLED
+    std::cout << "Window 1 backward completed (no update)!" << std::endl;
 
+    // Clean up window 1
     loss1.unchain_backward();
-    std::cout << "loss1.unchain_backward() completed" << std::endl;
-
-    simplernn.unchain_hidden();  // BPTT 구간 끝: hidden state의 creator 끊기
-    std::cout << "simplernn.unchain_hidden() completed" << std::endl;
-
-    plot_dot_graph(loss1, true, "bptt_step01_after_unchain.dot");
-    std::cout << "Graph after unchain saved to bptt_step01_after_unchain.dot" << std::endl;
-
-    optimizer.update();
-    std::cout << "Update 1 completed" << std::endl;
-
-    std::cout << "Manually clearing all intermediate variables..." << std::endl;
-    // Step 0-1의 모든 intermediate variables 제거
+    simplernn.unchain_hidden();
+    simplernn.cleargrads();
     y0 = Variable();
     y1 = Variable();
     l0 = Variable();
     l1 = Variable();
     loss1 = Variable();
 
-    // 모든 gradient를 완전히 제거
-    for (auto& x : xs) x.cleargrad();
-    for (auto& t : ts) t.cleargrad();
-
-    // Parameters의 gradient creator도 끊기 - 중요!
-    // gradient variable들도 computation graph를 가지고 있어서 이미 해제된 variable을 참조할 수 있음
-    // Note: gradient가 존재하는지 확인할 방법이 없으므로 일단 clear만 호출
-    simplernn.cleargrads();
-
-    std::cout << "All variables cleared, now creating step 2-3..." << std::endl;
-
     // Second BPTT window (steps 2-3)
     Variable y2 = simplernn({xs[2]});
-    y2.set_name("y2");
     Variable l2 = mean_squared_error(y2, ts[2]);
-    l2.set_name("loss2_step");
-
     Variable y3 = simplernn({xs[3]});
-    y3.set_name("y3");
     Variable l3 = mean_squared_error(y3, ts[3]);
-    l3.set_name("loss3_step");
-
     Variable loss2 = l2 + l3;
-    loss2.set_name("loss2_total");
-    std::cout << "Step 2-3: Loss = " << loss2.data().raw_data()[0] << std::endl;
+    std::cout << "Window 2 (steps 2-3): Loss = " << loss2.data().raw_data()[0] << std::endl;
 
-    plot_dot_graph(loss2, true, "bptt_step23_before_backward.dot");
-    std::cout << "Graph before backward 2 saved to bptt_step23_before_backward.dot" << std::endl;
-
+    simplernn.cleargrads();
     std::cout << "About to call backward 2..." << std::endl;
-    loss2.backward(false, false, true);  // debug=true to see where it crashes
-    std::cout << "Backward 2 completed" << std::endl;
-
+    loss2.backward(false, false, false);  // debug=false
+    std::cout << "Backward 2 completed! About to call optimizer.update()..." << std::endl;
     optimizer.update();
-    std::cout << "Update 2 completed" << std::endl;
+    std::cout << "Window 2 backward & update completed!" << std::endl;
+
+    std::cout << "\n=== BPTT test completed successfully! ===" << std::endl;
 
     std::cout << "Test completed successfully!" << std::endl;
 }

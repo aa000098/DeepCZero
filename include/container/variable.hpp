@@ -108,6 +108,7 @@ public:
 	const Tensor<>& data() const {return impl->data;};
 	Variable& grad() {return *(impl->grad);};
 	const Variable& grad() const {return *(impl->grad);};
+	bool has_grad() const {return impl->grad != nullptr;};
 	void set_grad(Variable& grad) const {impl->grad = std::make_unique<Variable>(grad);};
 	void cleargrad() {impl->grad.reset();};
 	void detach() {impl->creator.reset();};

@@ -147,7 +147,9 @@ namespace tensor {
 
 // Tensor functions
 		Tensor<T> clone() const {
-			return Tensor<T>(this->get_shape(), this->raw_data()); };
+			// CRITICAL FIX: contiguous() already creates a new Tensor with deep copied data
+			return this->contiguous();
+		}
 		Tensor<T> reshape_like(const Tensor<T>& other) const;
 		Tensor<T> reshape(const std::vector<size_t>& new_shape) const;
 		Tensor<T> transpose(const std::vector<size_t>& axes={}) const;

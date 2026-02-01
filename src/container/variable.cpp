@@ -55,13 +55,31 @@ void Variable::backward(bool retain_grad, bool create_graph, bool debug) {
 				const Variable& gx = gxs[i];
 
 				if (debug) std::cout << "[DEBUG]   Input " << i << " - gradient accumulation" << std::endl;
+				// Skip empty gradients (e.g., bias gradient when no bias exists)
+				if (gx.empty()) {
+					if (debug) std::cout << "[DEBUG]     Skipping empty gradient" << std::endl;
+					continue;
+				}
 
 				if (!input->grad) {
 					if (debug) std::cout << "[DEBUG]     Creating new gradient" << std::endl;
-					input->grad = std::make_unique<Variable>(gx);
+					if (create_graph) {
+						// For higher-order derivatives, keep computation graph
+						input->grad = std::make_unique<Variable>(gx);
+					} else {
+						// CRITICAL FIX: Use clone() for deep copy (now properly handles TensorView)
+						input->grad = std::make_unique<Variable>(gx.data().clone());
+					}
 				} else {
 					if (debug) std::cout << "[DEBUG]     Adding to existing gradient" << std::endl;
-					(*input->grad) = (*input->grad) + gx;
+					Variable new_grad = (*input->grad) + gx;
+					if (create_graph) {
+						// For higher-order derivatives, preserve the computation graph
+						input->grad = std::make_unique<Variable>(new_grad);
+					} else {
+						// CRITICAL FIX: Use clone() for deep copy
+						input->grad = std::make_unique<Variable>(new_grad.data().clone());
+					}
 				}
 
 				if (debug) std::cout << "[DEBUG]     Gradient accumulation done" << std::endl;

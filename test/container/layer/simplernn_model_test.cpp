@@ -269,11 +269,11 @@ void test_bptt_simple() {
 }
 
 int main() {
-    // test_simplernn_forward_only();
-    // test_simplernn_single_backward();
-    // test_simplernn_model();
+    test_simplernn_forward_only();
+    test_simplernn_single_backward();
+    test_simplernn_model();
     test_bptt_simple();
-    // test_simplrnn_sin_wave_prediction();
+    test_simplrnn_sin_wave_prediction();
     return 0;
 }
          

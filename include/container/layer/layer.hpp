@@ -134,15 +134,6 @@ namespace layer {
 		void reset_state() {
 			hidden_state = Variable();
 		}
-		void unchain_hidden() {
-			// BPTT 구간 끝에 호출: hidden state의 데이터는 유지하되 creator는 끊음
-			std::cout << "[RNN] unchain_hidden() called, hidden_state.empty()=" << hidden_state.empty() << std::endl;
-			if (!hidden_state.empty()) {
-				std::cout << "[RNN] Before unchain: has creator? " << (hidden_state.get_creator() ? "yes" : "no") << std::endl;
-				hidden_state.unchain();  // 직접 unchain 호출
-				std::cout << "[RNN] After unchain: has creator? " << (hidden_state.get_creator() ? "yes" : "no") << std::endl;
-			}
-		}
 		Variable forward(const std::vector<Variable>& xs) override;
 
 	};

@@ -105,6 +105,5 @@ private:
 public:
 	SimpleRNN(size_t hidden_size, size_t output_size);
 	void reset_state();
-	void unchain_hidden();
 	Variable forward(const std::vector<Variable>& xs) override;
 };

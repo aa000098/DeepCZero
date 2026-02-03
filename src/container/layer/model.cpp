@@ -172,9 +172,6 @@ void SimpleRNN::reset_state() {
 	std::dynamic_pointer_cast<layer::RNN>(rnn)->reset_state();
 }
 
-void SimpleRNN::unchain_hidden() {
-	std::dynamic_pointer_cast<layer::RNN>(rnn)->unchain_hidden();
-}
 
 Variable SimpleRNN::forward(const std::vector<Variable>& xs) {
 	Variable h = (*rnn)({xs[0]});

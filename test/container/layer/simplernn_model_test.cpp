@@ -81,30 +81,35 @@ void test_simplernn_model() {
     Variable loss;
     size_t count = 0;
 
-    for (size_t i = 0; i < seqlen; ++i) {
+    for (size_t i = 0; i < seqlen - 1; ++i) {  // -1 because dataset_t is shorter
         // BPTT에서는 reset_state를 호출하지 않음 (hidden state 유지)
         // Python DeZero처럼 epoch 시작 시에만 reset
 
-        std::vector<Variable> x_vec = {dataset_x[i]};
         Variable x = dataset_x[i];
         Variable y = simplernn({x});
         Variable t = dataset_t[i];
 
+        Variable curr_loss = mean_squared_error(y, t);
 
-        loss += mean_squared_error(y, t);
+        // 첫 번째 iteration이거나 loss가 reset된 경우
+        if (count == 0) {
+            loss = curr_loss;
+        } else {
+            loss = loss + curr_loss;
+        }
         count++;
 
         // bptt_length마다 또는 마지막에 backward
-        if (count == bptt_length || i == seqlen - 1) {
+        if (count == bptt_length || i == seqlen - 2) {
             float avg_loss = loss.data().raw_data()[0] / count;
             std::cout << "   Step " << i << " - Avg Loss: " << avg_loss << std::endl;
 
             simplernn.cleargrads();
             loss.backward();
-            // loss.backward(false, false, true);  // debug mode disabled for speed
-            // loss.unchain_backward();  // 재귀적으로 graph 끊기
+            loss.unchain_backward();  // graph 끊기
 
             count = 0;
+            loss = Variable();  // Reset loss
         }
     }
 
@@ -147,18 +152,27 @@ void test_simplrnn_sin_wave_prediction() {
 
     // 순전파 및 역전파 테스트
     std::cout << "3. Training on sine wave..." << std::endl;
-    for (size_t i = 0; i < seqlen - 1; ++i) {
-        // Reset state to avoid graph accumulation
-        simplernn.reset_state();
+    simplernn.reset_state();  // epoch 시작시 한번만 reset
+    Variable loss;
 
-        std::vector<Variable> x_vec = {dataset_x[i]};
-        Variable y = simplernn(x_vec);
-        Variable loss = mean_squared_error(y, dataset_t[i]);
+    for (size_t i = 0; i < seqlen - 1; ++i) {
+        Variable x = dataset_x[i];
+        Variable y = simplernn({x});
+        Variable t = dataset_t[i];
+        Variable curr_loss = mean_squared_error(y, t);
+
+        // loss 누적
+        if (count == 0) {
+            loss = curr_loss;
+        } else {
+            loss = loss + curr_loss;
+        }
+        count++;
 
         if (i % 10 == 0) {
-            std::cout << "   Step " << i << " - Loss: " << loss.data().raw_data()[0] << std::endl;
+            std::cout << "   Step " << i << " - Current Loss: " << curr_loss.data().raw_data()[0] << std::endl;
         }
-        
+
         // bptt_length마다 backward & update
         if (count == bptt_length || i == seqlen - 2) {
             float avg_loss = loss.data().raw_data()[0] / count;
@@ -171,11 +185,8 @@ void test_simplrnn_sin_wave_prediction() {
             optimizer.update();
 
             count = 0;
+            loss = Variable();  // Reset loss
         }
-
-        simplernn.cleargrads();
-        loss.backward();
-        loss.unchain_backward();
     }
     std::cout << "4. Training completed!" << std::endl;
 
@@ -240,7 +251,6 @@ void test_bptt_simple() {
 
     // Clean up window 1
     loss1.unchain_backward();
-    simplernn.unchain_hidden();
     simplernn.cleargrads();
     y0 = Variable();
     y1 = Variable();

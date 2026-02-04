@@ -2,7 +2,6 @@
 #include <iostream>
 #include <chrono>
 #include <iomanip>
-#include <fstream>
 #include <vector>
 
 using namespace tensor;
@@ -27,63 +26,15 @@ double measure_time_ms(Func&& func, int warmup = 3, int iterations = 10) {
     return total_ms / iterations;  // Average time per iteration
 }
 
-struct BenchmarkResult {
-    size_t M, K, N;
-    double time_ms;
-    double gflops;
-    bool is_batched;
-    size_t batch_size;
-};
-
-void save_results(const std::string& filename, const std::vector<BenchmarkResult>& results, bool use_mkl) {
-    std::ofstream outfile(filename);
-    if (!outfile.is_open()) {
-        std::cerr << "Failed to open output file: " << filename << std::endl;
-        return;
-    }
-
-    outfile << "{\n";
-    outfile << "  \"use_mkl\": " << (use_mkl ? "true" : "false") << ",\n";
-    outfile << "  \"results\": [\n";
-
-    for (size_t i = 0; i < results.size(); ++i) {
-        const auto& r = results[i];
-        outfile << "    {\n";
-        outfile << "      \"M\": " << r.M << ",\n";
-        outfile << "      \"K\": " << r.K << ",\n";
-        outfile << "      \"N\": " << r.N << ",\n";
-        outfile << "      \"time_ms\": " << std::fixed << std::setprecision(4) << r.time_ms << ",\n";
-        outfile << "      \"gflops\": " << std::fixed << std::setprecision(4) << r.gflops << ",\n";
-        outfile << "      \"is_batched\": " << (r.is_batched ? "true" : "false");
-        if (r.is_batched) {
-            outfile << ",\n      \"batch_size\": " << r.batch_size;
-        }
-        outfile << "\n    }";
-        if (i < results.size() - 1) {
-            outfile << ",";
-        }
-        outfile << "\n";
-    }
-
-    outfile << "  ]\n";
-    outfile << "}\n";
-    outfile.close();
-
-    std::cout << "Results saved to: " << filename << std::endl;
-}
-
 // Performance benchmark for different matrix sizes
-std::vector<BenchmarkResult> run_benchmarks() {
-    std::vector<BenchmarkResult> results;
+void run_benchmarks() {
 
     std::cout << "\n=== Performance Benchmark ===" << std::endl;
 
 #ifdef USE_MKL
     std::cout << "MKL is ENABLED" << std::endl;
-    bool use_mkl = true;
 #else
     std::cout << "MKL is DISABLED (using naive implementation)" << std::endl;
-    bool use_mkl = false;
 #endif
 
     std::cout << "\nMatrix multiplication: C = A @ B" << std::endl;
@@ -132,20 +83,16 @@ std::vector<BenchmarkResult> run_benchmarks() {
                   << std::setw(15) << std::fixed << std::setprecision(2) << gflops
                   << std::endl;
 
-        results.push_back({M, K, N, time_ms, gflops, false, 0});
-
         // Don't test too large matrices if they take too long
         if (time_ms > 5000.0) {
             std::cout << "(Skipping larger matrices due to time)" << std::endl;
             break;
         }
     }
-
-    return results;
 }
 
 // Test batched matrix multiplication
-void run_batched_benchmark(std::vector<BenchmarkResult>& results) {
+void run_batched_benchmark() {
     std::cout << "\n=== Batched Matrix Multiplication Test ===" << std::endl;
 
     size_t batch = 4;
@@ -171,8 +118,6 @@ void run_batched_benchmark(std::vector<BenchmarkResult>& results) {
 
     std::cout << "Time: " << std::fixed << std::setprecision(2) << time_ms << " ms" << std::endl;
     std::cout << "Performance: " << std::fixed << std::setprecision(2) << gflops << " GFLOPS" << std::endl;
-
-    results.push_back({M, K, N, time_ms, gflops, true, batch});
 }
 
 int main(int argc, char* argv[]) {

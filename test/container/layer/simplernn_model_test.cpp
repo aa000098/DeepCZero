@@ -197,7 +197,10 @@ void test_simplrnn_sin_wave_prediction() {
     std::cout << "5. Testing predictions..." << std::endl;
     simplernn.reset_state();
     float test_error = 0;
+    float warmup_error = 0;  // 처음 10 스텝 (warmup)
+    float stable_error = 0;   // 나머지 스텝
     size_t test_samples = 50;
+    size_t warmup_steps = 10;
 
     for (size_t i = 0; i < test_samples; ++i) {
         Variable x = dataset_x[i];
@@ -209,11 +212,21 @@ void test_simplrnn_sin_wave_prediction() {
         float error = std::abs(pred - target);
         test_error += error;
 
-        if (i % 10 == 0) {
+        if (i < warmup_steps) {
+            warmup_error += error;
+        } else {
+            stable_error += error;
+        }
+
+        if (i % 5 == 0) {  // 더 자주 출력
             std::cout << "   Step " << i << " - Pred: " << pred
                       << ", Target: " << target << ", Error: " << error << std::endl;
         }
     }
+
+    std::cout << "\n=== Test Results ===" << std::endl;
+    std::cout << "   Warmup error (steps 0-9): " << (warmup_error / warmup_steps) << std::endl;
+    std::cout << "   Stable error (steps 10+): " << (stable_error / (test_samples - warmup_steps)) << std::endl;
 
     std::cout << "6. Average test error: " << test_error / test_samples << std::endl;
 }

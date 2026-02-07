@@ -169,15 +169,18 @@ void test_simplrnn_sin_wave_prediction() {
         }
         count++;
 
-        if (i % 10 == 0) {
-            std::cout << "   Step " << i << " - Current Loss: " << curr_loss.data().raw_data()[0] << std::endl;
-        }
-
         // bptt_length마다 backward & update
         if (count == bptt_length || i == seqlen - 2) {
             float avg_loss = loss.data().raw_data()[0] / count;
             total_loss += avg_loss;
             loss_count++;
+
+            // 매 update마다 평균 loss 출력 (accumulated loss를 사용)
+            if (loss_count % 10 == 0) {
+                float running_avg = total_loss / loss_count;
+                std::cout << "   Update " << loss_count << " (Step " << i << ") - Avg Loss: " << avg_loss
+                          << ", Running Avg: " << running_avg << std::endl;
+            }
 
             simplernn.cleargrads();
             loss.backward();

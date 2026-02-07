@@ -120,28 +120,13 @@ void run_batched_benchmark() {
     std::cout << "Performance: " << std::fixed << std::setprecision(2) << gflops << " GFLOPS" << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int main() {
     std::cout << "==================================================" << std::endl;
-    std::cout << "  DeepCZero Matrix Multiplication Comparison     " << std::endl;
+    std::cout << "  DeepCZero Matrix Multiplication Benchmark      " << std::endl;
     std::cout << "==================================================" << std::endl;
 
-#ifdef USE_MKL
-    bool use_mkl = true;
-    std::string output_file = "benchmark_mkl.json";
-#else
-    bool use_mkl = false;
-    std::string output_file = "benchmark_no_mkl.json";
-#endif
-
-    // Allow custom output file from command line
-    if (argc > 1) {
-        output_file = argv[1];
-    }
-
-    std::vector<BenchmarkResult> results = run_benchmarks();
-    run_batched_benchmark(results);
-
-    save_results(output_file, results, use_mkl);
+    run_benchmarks();
+    run_batched_benchmark();
 
     std::cout << "\n==================================================" << std::endl;
     std::cout << "              Benchmark Complete                  " << std::endl;

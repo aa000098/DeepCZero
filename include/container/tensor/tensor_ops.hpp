@@ -305,16 +305,9 @@ Tensor<T> tanh(const Tensor<T>& x) {
 	return Tensor<T>(x.get_shape(), result_data);
 }
 
+// Naive (non-MKL) matrix multiplication implementation
 template<typename T>
-Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
-
-#ifdef USE_MKL
-	// Use MKL-optimized version for float and double
-	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
-		return dot_mkl(a, b);
-	}
-#endif
-
+Tensor<T> dot_naive(const Tensor<T>& a, const Tensor<T>& b) {
 	// Fallback to naive implementation
 	std::vector<size_t> a_shape = a.get_shape();
 	std::vector<size_t> b_shape = b.get_shape();
@@ -407,7 +400,19 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
     }
 */
     return Tensor<T>(result_shape, result_data);
+}
 
+// Main dot function that dispatches to appropriate implementation
+template<typename T>
+Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_MKL
+	// Use MKL-optimized version for float and double
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return dot_mkl(a, b);
+	}
+#endif
+	// Fallback to naive implementation
+	return dot_naive(a, b);
 }
 
 template<typename T>

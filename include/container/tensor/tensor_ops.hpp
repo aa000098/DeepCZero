@@ -10,13 +10,14 @@
 #include "container/tensor/tensor_ops_mkl.hpp"
 #endif
 
+#include "config/backend_config.hpp"
+
 namespace tensor {
 
+// Naive implementations of element-wise operations
+
 template<typename T>
-Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
-
-	// TODO: SIMD optimization needed
-
+Tensor<T> add_naive(const Tensor<T>& a, const Tensor<T>& b) {
 	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
 
     Tensor<T> result(broadcast_shape, T{});
@@ -36,14 +37,12 @@ Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
     }
 
 	return result;
-
 }
 
 template<typename T>
-Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
+Tensor<T> sub_naive(const Tensor<T>& a, const Tensor<T>& b) {
 	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
 
-	// TODO: SIMD optimization needed
     Tensor<T> result(broadcast_shape, T{});
     size_t total = result.size();
     size_t ndim_result = broadcast_shape.size();
@@ -64,10 +63,9 @@ Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
 }
 
 template<typename T>
-Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
+Tensor<T> mul_naive(const Tensor<T>& a, const Tensor<T>& b) {
 	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
 
-	// TODO: SIMD optimization needed
     Tensor<T> result(broadcast_shape, T{});
     size_t total = result.size();
     size_t ndim_result = broadcast_shape.size();
@@ -85,14 +83,12 @@ Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
     }
 
 	return result;
-
 }
 
 template<typename T>
-Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
+Tensor<T> div_naive(const Tensor<T>& a, const Tensor<T>& b) {
 	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
 
-	// TODO: SIMD optimization needed
     Tensor<T> result(broadcast_shape, T{});
     size_t total = result.size();
     size_t ndim_result = broadcast_shape.size();
@@ -107,12 +103,62 @@ Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
         }
 
 		if (b_bc(idx) == 0)
-			throw std::runtime_error("Tensor Div: Division by zero");	
+			throw std::runtime_error("Tensor Div: Division by zero");
         result(idx) = a_bc(idx) / b_bc(idx);
     }
 
 	return result;
+}
 
+// Dispatcher functions that use MKL when available and shapes match
+
+template<typename T>
+Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_MKL
+	// Use MKL if shapes match (no broadcasting needed)
+	if (a.get_shape() == b.get_shape()) {
+		if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+			return add_mkl(a, b);
+		}
+	}
+#endif
+	return add_naive(a, b);
+}
+
+template<typename T>
+Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_MKL
+	if (a.get_shape() == b.get_shape()) {
+		if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+			return sub_mkl(a, b);
+		}
+	}
+#endif
+	return sub_naive(a, b);
+}
+
+template<typename T>
+Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_MKL
+	if (a.get_shape() == b.get_shape()) {
+		if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+			return mul_mkl(a, b);
+		}
+	}
+#endif
+	return mul_naive(a, b);
+}
+
+template<typename T>
+Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_MKL
+	if (a.get_shape() == b.get_shape()) {
+		if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+			return div_mkl(a, b);
+		}
+	}
+#endif
+	return div_naive(a, b);
 }
 
 template<typename T>
@@ -240,8 +286,10 @@ void div_scalar_inplace(Tensor<T>& a, T scalar) {
 }
 
 
+// Naive implementations of math functions
+
 template<typename T>
-Tensor<T> pow(const Tensor<T>& x, const T scalar) {
+Tensor<T> pow_naive(const Tensor<T>& x, const T scalar) {
 	std::vector<T> result_data(x.raw_data());
 	const std::vector<T>& x_data = x.raw_data();
 	for (size_t i = 0; i < result_data.size(); i++)
@@ -251,7 +299,7 @@ Tensor<T> pow(const Tensor<T>& x, const T scalar) {
 }
 
 template<typename T>
-Tensor<T> exp(const Tensor<T>& x) {
+Tensor<T> exp_naive(const Tensor<T>& x) {
 	std::vector<T> result_data(x.raw_data());
 	const std::vector<T>& x_data = x.raw_data();
 	for (size_t i = 0; i < result_data.size(); i++)
@@ -261,7 +309,7 @@ Tensor<T> exp(const Tensor<T>& x) {
 }
 
 template<typename T>
-Tensor<T> log(const Tensor<T>& x) {
+Tensor<T> log_naive(const Tensor<T>& x) {
     const std::vector<T>& x_data = x.raw_data();
     std::vector<T> result_data(x_data.size());
 
@@ -274,9 +322,8 @@ Tensor<T> log(const Tensor<T>& x) {
     return Tensor<T>(x.get_shape(), result_data);
 }
 
-
 template<typename T>
-Tensor<T> sin(const Tensor<T>& x) {
+Tensor<T> sin_naive(const Tensor<T>& x) {
 	std::vector<T> result_data(x.raw_data());
 	const std::vector<T>& x_data = x.raw_data();
 	for (size_t i = 0; i < result_data.size(); i++)
@@ -286,7 +333,7 @@ Tensor<T> sin(const Tensor<T>& x) {
 }
 
 template<typename T>
-Tensor<T> cos(const Tensor<T>& x) {
+Tensor<T> cos_naive(const Tensor<T>& x) {
 	std::vector<T> result_data(x.raw_data());
 	const std::vector<T>& x_data = x.raw_data();
 	for (size_t i = 0; i < result_data.size(); i++)
@@ -296,13 +343,75 @@ Tensor<T> cos(const Tensor<T>& x) {
 }
 
 template<typename T>
-Tensor<T> tanh(const Tensor<T>& x) {
+Tensor<T> tanh_naive(const Tensor<T>& x) {
 	std::vector<T> result_data(x.raw_data());
 	const std::vector<T>& x_data = x.raw_data();
 	for (size_t i = 0; i < result_data.size(); i++)
 		result_data[i] = std::tanh(x_data[i]);
 
 	return Tensor<T>(x.get_shape(), result_data);
+}
+
+// Dispatcher functions that use MKL when available
+
+template<typename T>
+Tensor<T> pow(const Tensor<T>& x, const T scalar) {
+#ifdef USE_MKL
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return pow_mkl(x, scalar);
+	}
+#endif
+	return pow_naive(x, scalar);
+}
+
+template<typename T>
+Tensor<T> exp(const Tensor<T>& x) {
+#ifdef USE_MKL
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return exp_mkl(x);
+	}
+#endif
+	return exp_naive(x);
+}
+
+template<typename T>
+Tensor<T> log(const Tensor<T>& x) {
+#ifdef USE_MKL
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return log_mkl(x);
+	}
+#endif
+	return log_naive(x);
+}
+
+template<typename T>
+Tensor<T> sin(const Tensor<T>& x) {
+#ifdef USE_MKL
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return sin_mkl(x);
+	}
+#endif
+	return sin_naive(x);
+}
+
+template<typename T>
+Tensor<T> cos(const Tensor<T>& x) {
+#ifdef USE_MKL
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return cos_mkl(x);
+	}
+#endif
+	return cos_naive(x);
+}
+
+template<typename T>
+Tensor<T> tanh(const Tensor<T>& x) {
+#ifdef USE_MKL
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		return tanh_mkl(x);
+	}
+#endif
+	return tanh_naive(x);
 }
 
 // Naive (non-MKL) matrix multiplication implementation
@@ -406,12 +515,12 @@ Tensor<T> dot_naive(const Tensor<T>& a, const Tensor<T>& b) {
 template<typename T>
 Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 #ifdef USE_MKL
-	// Use MKL-optimized version for float and double
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
-		return dot_mkl(a, b);
+		if (dcz::BackendConfig::get().use_mkl) {
+			return dot_mkl(a, b);
+		}
 	}
 #endif
-	// Fallback to naive implementation
 	return dot_naive(a, b);
 }
 

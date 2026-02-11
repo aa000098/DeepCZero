@@ -57,7 +57,7 @@ void benchmark_comparison() {
         {128, 128, 128},
         {256, 256, 256},
         {512, 512, 512},
-        {1024, 1024, 1024},
+        // {1024, 1024, 1024},
         // {2048, 2048, 2048},  // Uncomment if you want to test larger sizes
     };
 

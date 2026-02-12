@@ -2,15 +2,90 @@
 # This file is included when USE_MKL=1 (default)
 # To disable MKL: make USE_MKL=0
 
-# MKL installation path
-MKL_ROOT ?= /opt/intel/oneapi/mkl/latest
+# Try to auto-detect MKL using pkg-config
+MKL_PKG := $(shell pkg-config --exists mkl-dynamic-lp64-gomp 2>/dev/null && echo "yes")
 
-# MKL include and library paths
-MKL_INC = $(MKL_ROOT)/include
-MKL_LIB = $(MKL_ROOT)/lib
+ifeq ($(MKL_PKG), yes)
+    # Use pkg-config for automatic detection
+    MKL_CFLAGS := $(shell pkg-config --cflags mkl-dynamic-lp64-gomp)
+    MKL_LDFLAGS := $(shell pkg-config --libs mkl-dynamic-lp64-gomp)
+    MKL_LIB_DIR := $(shell pkg-config --variable=libdir mkl-dynamic-lp64-gomp)
 
-# Add MKL flags to compiler and linker
-CXXFLAGS += -I$(MKL_INC) -DUSE_MKL
-LDFLAGS += -L$(MKL_LIB) -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+    CXXFLAGS += $(MKL_CFLAGS) -DUSE_MKL
+    LDFLAGS += $(MKL_LDFLAGS) -Wl,-rpath,$(MKL_LIB_DIR)
 
-$(info [MKL] Building with Intel MKL support from $(MKL_ROOT))
+    $(info [MKL] Auto-detected Intel MKL via pkg-config)
+else
+    # Fallback to manual path specification
+    MKL_ROOT ?= /opt/intel/oneapi/mkl/latest
+
+    # Check if MKL_ROOT exists
+    ifneq ($(wildcard $(MKL_ROOT)/include),)
+        MKL_INC = $(MKL_ROOT)/include
+        MKL_LIB = $(MKL_ROOT)/lib
+
+        CXXFLAGS += -I$(MKL_INC) -DUSE_MKL
+        LDFLAGS += -L$(MKL_LIB) -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+
+#         $(info [MKL] Building with Intel MKL from $(MKL_ROOT))
+    else
+        $(warning [MKL] Intel MKL not found. Building without MKL support.)
+        $(warning [MKL] To install MKL, visit: https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html)
+        override USE_MKL = 0
+    endif
+endif
+
+# Intel oneDNN (DNNL) Configuration
+# Optional: Enable oneDNN for optimized convolution operations
+# To enable: make USE_MKL=1 USE_DNNL=1
+USE_DNNL ?= 0
+
+ifeq ($(USE_DNNL), 1)
+    # Try to auto-detect oneDNN using pkg-config
+    DNNL_PKG := $(shell pkg-config --exists dnnl 2>/dev/null && echo "yes")
+
+    ifeq ($(DNNL_PKG), yes)
+        # Use pkg-config for automatic detection
+        DNNL_CFLAGS := $(shell pkg-config --cflags dnnl)
+        DNNL_LDFLAGS := $(shell pkg-config --libs dnnl)
+
+        CXXFLAGS += $(DNNL_CFLAGS) -DUSE_DNNL
+        LDFLAGS += $(DNNL_LDFLAGS)
+
+        $(info [DNNL] Auto-detected Intel oneDNN via pkg-config)
+    else
+        # Fallback to manual path specification
+        DNNL_ROOT ?= /opt/intel/oneapi/dnnl/latest
+
+        # Check if DNNL_ROOT exists
+        ifneq ($(wildcard $(DNNL_ROOT)/include),)
+            DNNL_INC = $(DNNL_ROOT)/include
+            DNNL_LIB = $(DNNL_ROOT)/lib
+
+            CXXFLAGS += -I$(DNNL_INC) -DUSE_DNNL
+            LDFLAGS += -L$(DNNL_LIB) -ldnnl
+
+            # oneDNN additional dependencies
+            TBB_ROOT ?= /opt/intel/oneapi/tbb/latest
+            COMPILER_ROOT ?= /opt/intel/oneapi/compiler/latest
+
+            ifneq ($(wildcard $(TBB_ROOT)/lib),)
+                LDFLAGS += -L$(TBB_ROOT)/lib -ltbb
+                LDFLAGS += -Wl,-rpath,$(TBB_ROOT)/lib
+            endif
+
+            ifneq ($(wildcard $(COMPILER_ROOT)/lib),)
+                LDFLAGS += -L$(COMPILER_ROOT)/lib -lsycl
+                LDFLAGS += -Wl,-rpath,$(COMPILER_ROOT)/lib
+            endif
+
+            LDFLAGS += -Wl,-rpath,$(DNNL_LIB)
+
+            $(info [DNNL] Building with Intel oneDNN from $(DNNL_ROOT))
+        else
+            $(warning [DNNL] Intel oneDNN not found. Building without DNNL support.)
+            $(warning [DNNL] To install oneDNN, visit: https://github.com/oneapi-src/oneDNN)
+            override USE_DNNL = 0
+        endif
+    endif
+endif

@@ -21,7 +21,7 @@ tensor::Tensor<> preprocess_vgg16(const std::string& image_path) {
     std::cerr << "[preprocess] Loaded image: " << width << "x" << height << " (channels: " << channels << ")" << std::endl;
 
     // 2. 224x224 리사이즈
-    const int target_size = 224;
+    const size_t target_size = 224;
     unsigned char* resized_data = new unsigned char[target_size * target_size * 3];
 
     // stb의 easy API는 다운샘플링에 Mitchell 필터 사용 (PIL BICUBIC과 유사)
@@ -47,9 +47,9 @@ tensor::Tensor<> preprocess_vgg16(const std::string& image_path) {
     const float mean_g = 116.779f;
     const float mean_r = 123.68f;
 
-    for (int h = 0; h < target_size; ++h) {
-        for (int w = 0; w < target_size; ++w) {
-            int idx = (h * target_size + w) * 3;
+    for (size_t h = 0; h < target_size; ++h) {
+        for (size_t w = 0; w < target_size; ++w) {
+            size_t idx = (h * target_size + w) * 3;
 
             // RGB → BGR 변환 및 mean 빼기
             float r = static_cast<float>(resized_data[idx + 0]);

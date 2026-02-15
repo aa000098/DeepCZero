@@ -1,3 +1,6 @@
+# Limit parallel jobs to avoid OOM
+MAKEFLAGS += -j2
+
 # compiler
 CXX = g++
 
@@ -26,12 +29,14 @@ endif
 
 # src and objs
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
-TESTS := $(shell find $(TEST_DIR) -name '*.cpp')
+TESTS := $(shell find $(TEST_DIR) -name '*.cpp' -not -path '$(TEST_DIR)/benchmark/*')
+BENCHMARKS := $(shell find $(TEST_DIR)/benchmark -name '*.cpp' 2>/dev/null)
 
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(TESTS))
 
 TEST_BINS = $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(TESTS))
+BENCH_BINS = $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(BENCHMARKS))
 DEPS := $(OBJS:.o=.d)
 
 LIB_NAME = libdeepczero.so
@@ -69,8 +74,16 @@ $(CNPY_OBJ): $(CNPY_SRC)
 
 # test auto exec
 test: $(TEST_BINS)
-	@echo "Running all test..."
+	@echo "Running all tests..."
 	@for bin in $(TEST_BINS); do \
+		echo "Running $$bin"; \
+		./$$bin || exit 1; \
+	done
+
+# benchmark
+bench: $(BENCH_BINS)
+	@echo "Running all benchmarks..."
+	@for bin in $(BENCH_BINS); do \
 		echo "Running $$bin"; \
 		./$$bin || exit 1; \
 	done

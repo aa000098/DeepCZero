@@ -54,6 +54,22 @@ std::vector<Variable> function::ReLU::backward(const Variable& gy) {
 }
 
 
+Variable function::SiLU::forward(const std::vector<Variable>& xs) {
+	const Tensor<>& x = xs[0].data();
+	const Tensor<> sig = tanh(x * 0.5f) * 0.5f + 0.5f;
+	const Tensor<> result = x * sig;
+	return Variable(result);
+}
+
+std::vector<Variable> function::SiLU::backward(const Variable& gy) {
+	Variable x(inputs[0]);
+	Variable y = output.lock();
+	Variable sig_x = sigmoid(x);
+	Variable gx = gy * (sig_x + y * (1.0f - sig_x));
+	return { gx };
+}
+
+
 Variable function::Dropout::forward(const std::vector<Variable>& xs) {
 	const Variable& x = xs[0];
 

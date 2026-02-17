@@ -33,6 +33,14 @@ public:
 };
 
 
+class SiLU : public Function {
+public:
+	Variable forward(const std::vector<Variable>& xs) override;
+	std::vector<Variable> backward(const Variable& gy) override;
+	~SiLU() = default;
+};
+
+
 class Dropout  {
 private:
 	float dropout_rate;

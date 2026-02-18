@@ -16,3 +16,15 @@ Variable transpose(const Variable &x, const std::vector<size_t> axes) {
 	std::shared_ptr<Function> f = std::make_shared<Transpose>(axes);
 	return (*f)({x});
 }
+
+Variable concat(const std::vector<Variable>& xs, int axis) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<Concat>(axis);
+	return (*f)(xs);
+}
+
+Variable upsample(const Variable& x, size_t scale_factor) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<Upsample>(scale_factor);
+	return (*f)({x});
+}

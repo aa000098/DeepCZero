@@ -92,7 +92,7 @@ namespace tensor {
 		const T& operator()(const std::vector<size_t>& indices) const {
 			return (*impl)(indices); };
 	
-		Tensor<T> slice(size_t dim, size_t start, size_t end) {
+		Tensor<T> slice(size_t dim, size_t start, size_t end) const {
 			std::shared_ptr<TensorBase<T>> sliced_tensor = impl->slice(dim, start, end);
 			return Tensor<T>(sliced_tensor);
 		};

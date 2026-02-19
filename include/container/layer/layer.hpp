@@ -123,6 +123,28 @@ namespace layer {
 
 	};
 
+	class BatchNorm2d : public Layer {
+	private:
+		size_t num_features;
+		float momentum;
+		float eps;
+		Tensor<> running_mean;
+		Tensor<> running_var;
+
+	public:
+		BatchNorm2d() = default;
+		BatchNorm2d(size_t num_features,
+					float momentum = 0.1f,
+					float eps = 1e-5f);
+
+		Variable forward(const std::vector<Variable>& xs) override;
+
+		const Tensor<>& get_running_mean() const { return running_mean; }
+		const Tensor<>& get_running_var() const { return running_var; }
+		void set_running_mean(const Tensor<>& t) { running_mean = t; }
+		void set_running_var(const Tensor<>& t) { running_var = t; }
+	};
+
 	class RNN : public Layer {
 	private:
 		std::shared_ptr<Layer> x2h;
@@ -137,6 +159,6 @@ namespace layer {
 		Variable forward(const std::vector<Variable>& xs) override;
 
 	};
-}	
+}
 
 

@@ -1,6 +1,8 @@
 #include "container/layer/layer.hpp"
 #include "function/function.hpp"
 #include "function/activation_functions.hpp"
+#include "function/normalization_functions.hpp"
+#include "config/config.hpp"
 #include "utils/io.hpp"
 #include "cnpy.h"
 
@@ -413,13 +415,68 @@ namespace layer {
 		Variable x = xs[0];
 
 		Variable h_new;
-		if (this->hidden_state.empty()) { 
+		if (this->hidden_state.empty()) {
 			h_new = tanh((*x2h)(x));
 		} else {
 			h_new = tanh((*x2h)(x) + (*h2h)(this->hidden_state));
 		}
 		this->hidden_state = h_new;
 		return h_new;
+	}
+
+// [BatchNorm2d]
+	BatchNorm2d::BatchNorm2d(size_t num_features, float momentum, float eps)
+		: num_features(num_features), momentum(momentum), eps(eps) {
+		// gamma (weight): initialized to 1
+		Tensor<> gamma_data(num_features, 1.0f);
+		Parameter gamma(gamma_data, "weight");
+		register_params("weight", gamma);
+
+		// beta (bias): initialized to 0
+		Tensor<> beta_data(num_features, 0.0f);
+		Parameter beta(beta_data, "bias");
+		register_params("bias", beta);
+
+		// Running stats: not Parameters (no gradient needed)
+		running_mean = Tensor<>(num_features, 0.0f);
+		running_var = Tensor<>(num_features, 1.0f);
+	}
+
+	Variable BatchNorm2d::forward(const std::vector<Variable>& xs) {
+		const Variable& x = xs[0];
+		const Parameter& weight = get_param("weight");  // gamma
+		const Parameter& bias = get_param("bias");       // beta
+
+		bool training = dcz::Config::get().train;
+
+		// Wrap running stats as non-gradient Variables
+		Variable rm(running_mean, "", false);
+		Variable rv(running_var, "", false);
+
+		// Create and call the BatchNorm2d Function
+		auto f = std::make_shared<function::BatchNorm2dFunc>(eps, training);
+		Variable y = (*f)({x, weight, bias, rm, rv});
+
+		// Update running stats if training
+		if (training) {
+			const Tensor<>& batch_mean = f->get_saved_mean();
+			const Tensor<>& batch_inv_std = f->get_saved_inv_std();
+
+			for (size_t c = 0; c < num_features; ++c) {
+				// Recover batch variance: var = 1/(inv_std^2) - eps
+				float is = batch_inv_std.raw_data()[c];
+				float batch_var = 1.0f / (is * is) - eps;
+
+				running_mean.raw_data()[c] =
+					(1.0f - momentum) * running_mean.raw_data()[c]
+					+ momentum * batch_mean.raw_data()[c];
+				running_var.raw_data()[c] =
+					(1.0f - momentum) * running_var.raw_data()[c]
+					+ momentum * batch_var;
+			}
+		}
+
+		return y;
 	}
 
 }

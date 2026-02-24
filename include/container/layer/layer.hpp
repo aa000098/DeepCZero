@@ -143,6 +143,9 @@ namespace layer {
 		const Tensor<>& get_running_var() const { return running_var; }
 		void set_running_mean(const Tensor<>& t) { running_mean = t; }
 		void set_running_var(const Tensor<>& t) { running_var = t; }
+
+		// Load weight, bias, running_mean, running_var from npz
+		void load_from_npz(const cnpy::npz_t& npz, const std::string& prefix);
 	};
 
 	class RNN : public Layer {

@@ -424,6 +424,30 @@ namespace layer {
 		return h_new;
 	}
 
+	void BatchNorm2d::load_from_npz(const cnpy::npz_t& npz, const std::string& prefix) {
+		auto load_tensor = [&](const std::string& key) -> Tensor<> {
+			auto it = npz.find(key);
+			if (it == npz.end()) return Tensor<>();
+			const cnpy::NpyArray& arr = it->second;
+			std::vector<float> data = arr.as_vec<float>();
+			return Tensor<>(arr.shape, data);
+		};
+
+		// weight (gamma) and bias (beta)
+		Tensor<> w = load_tensor(prefix + ".weight");
+		if (!w.empty()) set_param_data("weight", w);
+
+		Tensor<> b = load_tensor(prefix + ".bias");
+		if (!b.empty()) set_param_data("bias", b);
+
+		// running stats
+		Tensor<> rm = load_tensor(prefix + ".running_mean");
+		if (!rm.empty()) running_mean = rm;
+
+		Tensor<> rv = load_tensor(prefix + ".running_var");
+		if (!rv.empty()) running_var = rv;
+	}
+
 // [BatchNorm2d]
 	BatchNorm2d::BatchNorm2d(size_t num_features, float momentum, float eps)
 		: num_features(num_features), momentum(momentum), eps(eps) {

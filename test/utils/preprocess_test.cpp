@@ -1,5 +1,5 @@
 #include "deepczero.hpp"
-#include "utils/image.hpp"
+#include "utils/preprocess.hpp"
 
 void test_preprocess_only() {
 	std::cout << "=== Test: VGG16 Preprocessing (C++) ===" << std::endl;

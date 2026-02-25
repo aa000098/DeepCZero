@@ -1,5 +1,5 @@
 #include "deepczero.hpp"
-#include "utils/image.hpp"
+#include "utils/preprocess.hpp"
 
 #include <string>
 #include <vector>

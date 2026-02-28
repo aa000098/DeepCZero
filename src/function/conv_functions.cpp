@@ -24,7 +24,7 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 		y += b;
 	
 	// [N, OC, OH, OW]
-	y = y.transpose({0, 3, 1, 2});
+	y = y.transpose({0, 3, 1, 2}).contiguous();
 
 	return Variable(y);
 }
@@ -87,8 +87,8 @@ Variable function::Deconv2d::forward(const std::vector<Variable>& xs) {
 	// [OC, KH, KW, N, H, W]
 	Tensor<> gcol = tensordot(W, x, {{0}, {1}});
 	// [N, OC, KH, KW, H, W]
-	gcol = gcol.transpose({3, 0, 1, 2, 4, 5});
-	
+	gcol = gcol.transpose({3, 0, 1, 2, 4, 5}).contiguous();
+
 	// [N, OC, OH, OW]
 	Tensor<> y = col2im_array(gcol, output_shape, {KH, KW}, stride, pad, false);
 

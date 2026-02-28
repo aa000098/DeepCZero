@@ -14,7 +14,7 @@ CBS::CBS(size_t in_channels, size_t out_channels,
 		 std::pair<size_t, size_t> pad) {
 	conv = std::make_shared<Conv2d>(out_channels, kernel_size, stride, pad,
 									/*no_bias=*/true, in_channels);
-	bn = std::make_shared<BatchNorm2d>(out_channels);
+	bn = std::make_shared<BatchNorm2d>(out_channels, 0.03f, 0.001f);
 
 	register_sublayers("conv", conv);
 	register_sublayers("bn", bn);

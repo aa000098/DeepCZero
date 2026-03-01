@@ -1,0 +1,108 @@
+#include "deepczero.hpp"
+#include "utils/preprocess.hpp"
+#include "utils/postprocess.hpp"
+#include "cnpy.h"
+
+#include <string>
+#include <iostream>
+#include <chrono>
+
+void test_yolov5_detection() {
+	// Eval mode + no backprop
+	dcz::UsingConfig eval_mode("train", false);
+	dcz::UsingConfig no_grad("enable_backprop", false);
+
+	// 1. Load PyTorch-preprocessed input
+	std::string img_path = "sample/dog_bike_car.jpg";
+	std::cout << "Image: " << img_path << std::endl;
+
+	cnpy::npz_t inp_npz = cnpy::npz_load("/tmp/yolov5_input.npz");
+	const cnpy::NpyArray& inp_arr = inp_npz["input"];
+	std::vector<float> inp_data = inp_arr.as_vec<float>();
+	Tensor<> img_tensor(inp_arr.shape, inp_data);
+	Variable x(img_tensor);
+
+	LetterboxInfo info;
+	info.scale = 0.833333f;
+	info.pad_left = 0;
+	info.pad_top = 80;
+	info.orig_width = 768;
+	info.orig_height = 576;
+
+	std::cout << "Input shape: [";
+	for (size_t i = 0; i < x.shape().size(); ++i)
+		std::cout << x.shape()[i] << (i < x.shape().size()-1 ? ", " : "");
+	std::cout << "]" << std::endl;
+
+	// 2. Load model
+	std::cout << "\nLoading YOLOv5s model..." << std::endl;
+	YOLOv5 model(80, 0.33f, 0.50f);
+
+	std::string weights_path = std::string(getenv("HOME") ? getenv("HOME") : ".") +
+							   "/.deepczero/weights/yolov5s.npz";
+	std::ifstream weight_check(weights_path);
+	if (weight_check.good()) {
+		weight_check.close();
+		std::cout << "Loading weights from: " << weights_path << std::endl;
+		model.load_weights(weights_path);
+	} else {
+		std::cout << "WARNING: Weights not found at " << weights_path << std::endl;
+		std::cout << "Run: python scripts/convert_yolov5_weights.py" << std::endl;
+		return;
+	}
+
+	// 3. Forward pass
+	std::cout << "\nRunning forward pass..." << std::endl;
+	auto start = std::chrono::high_resolution_clock::now();
+	auto outputs = model.forward_detect(x);
+	auto end = std::chrono::high_resolution_clock::now();
+	double ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
+
+	std::cout << "Forward pass: " << ms << " ms" << std::endl;
+	for (size_t i = 0; i < outputs.size(); ++i) {
+		std::cout << "  Output " << i << " shape: [";
+		for (size_t j = 0; j < outputs[i].shape().size(); ++j)
+			std::cout << outputs[i].shape()[j] << (j < outputs[i].shape().size()-1 ? ", " : "");
+		std::cout << "]" << std::endl;
+	}
+
+	// 4. Decode + NMS
+	std::cout << "\nPost-processing..." << std::endl;
+	auto detections = decode_yolov5_outputs(outputs, 80, 0.45f);
+	std::cout << "Detections before NMS: " << detections.size() << std::endl;
+
+	detections = nms(detections, 0.45f);
+	std::cout << "Detections after NMS: " << detections.size() << std::endl;
+
+	// 5. Rescale to original image coordinates
+	rescale_detections(detections, info);
+
+	// 6. Print results
+	std::cout << "\n=== Detection Results ===" << std::endl;
+	for (size_t i = 0; i < detections.size(); ++i) {
+		const auto& det = detections[i];
+		std::string cls_name = (det.class_id >= 0 &&
+			det.class_id < static_cast<int>(COCO_CLASSES.size()))
+			? COCO_CLASSES[det.class_id] : "unknown";
+
+		std::cout << "  [" << i << "] " << cls_name
+				  << " (conf: " << det.confidence << ")"
+				  << " bbox: [" << det.x1 << ", " << det.y1
+				  << ", " << det.x2 << ", " << det.y2 << "]"
+				  << std::endl;
+	}
+
+	// 7. Draw and save output image
+	if (!detections.empty()) {
+		std::string output_path = "sample/yolov5_output.jpg";
+		draw_detections(img_path, detections, output_path);
+		std::cout << "\nOutput image saved to: " << output_path << std::endl;
+	}
+}
+
+int main() {
+	std::cout << "=== YOLOv5 End-to-End Detection Test ===" << std::endl;
+	test_yolov5_detection();
+	std::cout << "\nDone!" << std::endl;
+	return 0;
+}

@@ -1,45 +1,41 @@
 #include "deepczero.hpp"
 #include "utils/preprocess.hpp"
 #include "utils/postprocess.hpp"
-#include "cnpy.h"
 
 #include <string>
 #include <iostream>
 #include <chrono>
 
-void test_yolov5_detection() {
+void test_yolov5_detection(const std::string& variant,
+						   float depth_multiple, float width_multiple) {
 	// Eval mode + no backprop
 	dcz::UsingConfig eval_mode("train", false);
 	dcz::UsingConfig no_grad("enable_backprop", false);
 
-	// 1. Load PyTorch-preprocessed input
+	// 1. Preprocess image (letterbox)
 	std::string img_path = "sample/dog_bike_car.jpg";
 	std::cout << "Image: " << img_path << std::endl;
 
-	cnpy::npz_t inp_npz = cnpy::npz_load("/tmp/yolov5_input.npz");
-	const cnpy::NpyArray& inp_arr = inp_npz["input"];
-	std::vector<float> inp_data = inp_arr.as_vec<float>();
-	Tensor<> img_tensor(inp_arr.shape, inp_data);
-	Variable x(img_tensor);
-
 	LetterboxInfo info;
-	info.scale = 0.833333f;
-	info.pad_left = 0;
-	info.pad_top = 80;
-	info.orig_width = 768;
-	info.orig_height = 576;
+	Tensor<> img_tensor = preprocess_yolov5(img_path, 640, &info);
+	Variable x(img_tensor);
 
 	std::cout << "Input shape: [";
 	for (size_t i = 0; i < x.shape().size(); ++i)
 		std::cout << x.shape()[i] << (i < x.shape().size()-1 ? ", " : "");
 	std::cout << "]" << std::endl;
+	std::cout << "Letterbox: scale=" << info.scale
+			  << " pad=(" << info.pad_left << "," << info.pad_top << ")"
+			  << " orig=" << info.orig_width << "x" << info.orig_height << std::endl;
 
 	// 2. Load model
-	std::cout << "\nLoading YOLOv5s model..." << std::endl;
-	YOLOv5 model(80, 0.33f, 0.50f);
+	std::cout << "\nLoading YOLOv5" << variant << " model..."
+			  << " (depth=" << depth_multiple
+			  << ", width=" << width_multiple << ")" << std::endl;
+	YOLOv5 model(80, depth_multiple, width_multiple);
 
 	std::string weights_path = std::string(getenv("HOME") ? getenv("HOME") : ".") +
-							   "/.deepczero/weights/yolov5s.npz";
+							   "/.deepczero/weights/yolov5" + variant + ".npz";
 	std::ifstream weight_check(weights_path);
 	if (weight_check.good()) {
 		weight_check.close();
@@ -47,7 +43,8 @@ void test_yolov5_detection() {
 		model.load_weights(weights_path);
 	} else {
 		std::cout << "WARNING: Weights not found at " << weights_path << std::endl;
-		std::cout << "Run: python scripts/convert_yolov5_weights.py" << std::endl;
+		std::cout << "Run: python scripts/convert_yolov5_weights.py yolov5"
+				  << variant << ".pt" << std::endl;
 		return;
 	}
 
@@ -68,7 +65,7 @@ void test_yolov5_detection() {
 
 	// 4. Decode + NMS
 	std::cout << "\nPost-processing..." << std::endl;
-	auto detections = decode_yolov5_outputs(outputs, 80, 0.45f);
+	auto detections = decode_yolov5_outputs(outputs, 80, 0.60f);
 	std::cout << "Detections before NMS: " << detections.size() << std::endl;
 
 	detections = nms(detections, 0.45f);
@@ -102,7 +99,13 @@ void test_yolov5_detection() {
 
 int main() {
 	std::cout << "=== YOLOv5 End-to-End Detection Test ===" << std::endl;
-	test_yolov5_detection();
+
+	// YOLOv5s
+	// test_yolov5_detection("s", 0.33f, 0.50f);
+
+	// YOLOv5m
+	test_yolov5_detection("m", 0.67f, 0.75f);
+
 	std::cout << "\nDone!" << std::endl;
 	return 0;
 }

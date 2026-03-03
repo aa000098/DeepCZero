@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Convert ultralytics YOLOv5s weights (.pt) to numpy (.npz) format
-for DeepCZero framework.
+Convert ultralytics YOLOv5 weights (.pt) to numpy (.npz) format
+for DeepCZero framework. Supports all variants (s, m, l, x).
+Auto-downloads .pt weights if not found locally.
 
 Usage:
     pip install torch
-    python scripts/convert_yolov5_weights.py [yolov5s.pt]
+    python scripts/convert_yolov5_weights.py m        # download + convert YOLOv5m
+    python scripts/convert_yolov5_weights.py s        # download + convert YOLOv5s
+    python scripts/convert_yolov5_weights.py yolov5m.pt  # use existing .pt file
 
-Requires yolov5s.pt in current directory (or specify path).
-Downloads YOLOv5 source via torch.hub for model class definitions.
-
-Output: ~/.deepczero/weights/yolov5s.npz
+Output: ~/.deepczero/weights/yolov5{s,m,l,x}.npz
 """
 
 import sys
@@ -18,23 +18,53 @@ import os
 import numpy as np
 
 
-def convert_yolov5s(pt_path="yolov5s.pt", output_path=None):
+VARIANTS = {"s", "m", "l", "x"}
+
+
+def detect_variant(pt_path):
+    """Detect variant from filename (e.g. 'yolov5m.pt' -> 'm')."""
+    base = os.path.basename(pt_path).replace(".pt", "")
+    for v in VARIANTS:
+        if base.endswith(v):
+            return v
+    return None
+
+
+def convert_yolov5(pt_path, output_path=None):
     try:
         import torch
     except ImportError:
         print("Error: PyTorch is required. Install with: pip install torch")
         sys.exit(1)
 
+    cache_dir = os.path.join(os.path.expanduser("~"), ".deepczero", "weights")
+    os.makedirs(cache_dir, exist_ok=True)
+
+    variant = detect_variant(pt_path)
+    if variant is None:
+        print(f"Warning: Could not detect variant from '{pt_path}', assuming 's'")
+        variant = "s"
+
+    # If pt_path is just a filename (no directory), look in cache_dir first
+    if not os.path.dirname(pt_path):
+        cached_pt = os.path.join(cache_dir, pt_path)
+        if os.path.exists(cached_pt):
+            pt_path = cached_pt
+        elif not os.path.exists(pt_path):
+            pt_path = cached_pt
+
+    print(f"Converting YOLOv5{variant} weights...")
+
     if not os.path.exists(pt_path):
-        print(f"Error: {pt_path} not found.")
-        print("Download from: https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt")
-        sys.exit(1)
+        url = f"https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5{variant}.pt"
+        print(f"Downloading {url} ...")
+        import urllib.request
+        urllib.request.urlretrieve(url, pt_path)
+        print(f"Saved to {pt_path}")
 
     # Default output path
     if output_path is None:
-        cache_dir = os.path.join(os.path.expanduser("~"), ".deepczero", "weights")
-        os.makedirs(cache_dir, exist_ok=True)
-        output_path = os.path.join(cache_dir, "yolov5s.npz")
+        output_path = os.path.join(cache_dir, f"yolov5{variant}.npz")
 
     # Ensure YOLOv5 hub source is available (needed to unpickle the .pt)
     print("Ensuring YOLOv5 source is available...")
@@ -120,6 +150,11 @@ def convert_yolov5s(pt_path="yolov5s.pt", output_path=None):
 
 
 if __name__ == "__main__":
-    pt = sys.argv[1] if len(sys.argv) > 1 else "yolov5s.pt"
+    arg = sys.argv[1] if len(sys.argv) > 1 else "s"
+    # Accept both "m" and "yolov5m.pt"
+    if arg in VARIANTS:
+        pt = f"yolov5{arg}.pt"
+    else:
+        pt = arg
     out = sys.argv[2] if len(sys.argv) > 2 else None
-    convert_yolov5s(pt, out)
+    convert_yolov5(pt, out)

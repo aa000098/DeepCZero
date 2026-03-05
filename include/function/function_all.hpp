@@ -11,3 +11,4 @@
 #include "function/conv_functions.hpp"
 #include "function/pooling_functions.hpp"
 #include "function/normalization_functions.hpp"
+#include "function/rmsnorm_functions.hpp"

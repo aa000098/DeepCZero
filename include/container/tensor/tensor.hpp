@@ -147,7 +147,11 @@ namespace tensor {
 
 // Tensor functions
 		Tensor<T> clone() const {
-			// CRITICAL FIX: contiguous() already creates a new Tensor with deep copied data
+			// Deep copy: always create new tensor with copied data
+			auto shape = get_shape();
+			if (is_contiguous()) {
+				return Tensor<T>(shape, std::vector<T>(raw_data()));
+			}
 			return this->contiguous();
 		}
 		Tensor<T> reshape_like(const Tensor<T>& other) const;
@@ -164,6 +168,7 @@ namespace tensor {
 	
 		Tensor<T> pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) const;
 
+		bool is_contiguous() const;
 		Tensor<T> contiguous() const;
 		Tensor<T> ravel() const;
 		Tensor<T> flatten() const;

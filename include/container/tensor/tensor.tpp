@@ -384,13 +384,38 @@ Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, 
 }
 
 template<typename T>
+bool Tensor<T>::is_contiguous() const {
+    auto shape = get_shape();
+    auto strides = get_strides();
+    auto expected = compute_contiguous_strides(shape);
+    return strides == expected && get_offset() == 0;
+}
+
+template<typename T>
 Tensor<T> Tensor<T>::contiguous() const {
-    Tensor<T> result(get_shape());
+    // Fast path: already contiguous, return shallow copy
+    if (is_contiguous()) {
+        return *this;
+    }
+
+    // Fast path: contiguous strides but with offset (e.g., slice of contiguous data)
+    auto shape = get_shape();
+    auto strides = get_strides();
+    auto expected = compute_contiguous_strides(shape);
+    size_t total = impl->size();
+
+    if (strides == expected) {
+        // Contiguous layout but with offset — bulk copy
+        const T* src = raw_data().data() + get_offset();
+        std::vector<T> new_data(src, src + total);
+        return Tensor<T>(shape, new_data);
+    }
+
+    // Slow path: non-contiguous (transpose, broadcast, etc.)
+    Tensor<T> result(shape);
     std::vector<T>& result_data = result.raw_data();
-    std::vector<size_t> shape = get_shape();
     std::vector<size_t> indices(shape.size(), 0);
 
-    size_t total = impl->size();
     for (size_t i = 0; i < total; ++i) {
         result_data[i] = (*this)(indices);
         for (size_t j = shape.size() - 1; j < shape.size(); --j) {

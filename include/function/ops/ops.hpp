@@ -39,6 +39,12 @@ Variable matmul(const Variable& x, const Variable& w);
 // loss
 Variable mean_squared_error(const Variable& x0, const Variable& x1);
 Variable softmax_cross_entropy_error(const Variable& x, const Variable& t);
+Variable binary_cross_entropy(const Variable& x, const Variable& t, float pos_weight = 1.0f);
+Variable ciou_loss(const Variable& pred, const Variable& target);
+
+// element-wise
+Variable abs(const Variable& x);
+Variable clamp(const Variable& x, float min_val, float max_val);
 
 // layers
 Variable linear(const Variable& x, const Variable& w, const Variable& b);

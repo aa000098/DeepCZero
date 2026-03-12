@@ -24,6 +24,7 @@ Variable add(const Variable &a, const Variable &b) {
 Variable add(const Variable &a, const float& b) {
 	using namespace function;
 	Tensor b_tensor(a.shape(), b);
+	if (a.is_device()) b_tensor = b_tensor.to(a.device());
 	Variable b_var(b_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Add>();
 	return (*f)({a, b_var});
@@ -32,6 +33,7 @@ Variable add(const Variable &a, const float& b) {
 Variable add(const float& a, const Variable &b) {
 	using namespace function;
 	Tensor a_tensor(b.shape(), a);
+	if (b.is_device()) a_tensor = a_tensor.to(b.device());
 	Variable a_var(a_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Add>();
 	return (*f)({a_var, b});
@@ -45,6 +47,7 @@ Variable mul(const Variable &a, const Variable &b) {
 Variable mul(const Variable &a, const float& b) {
 	using namespace function;
 	Tensor b_tensor(a.shape(), b);
+	if (a.is_device()) b_tensor = b_tensor.to(a.device());
 	Variable b_var(b_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Mul>();
 	return (*f)({a, b_var});
@@ -53,6 +56,7 @@ Variable mul(const Variable &a, const float& b) {
 Variable mul(const float& a, const Variable &b) {
 	using namespace function;
 	Tensor a_tensor(b.shape(), a);
+	if (b.is_device()) a_tensor = a_tensor.to(b.device());
 	Variable a_var(a_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Mul>();
 	return (*f)({a_var, b});
@@ -71,6 +75,7 @@ Variable sub(const Variable &a, const Variable &b) {
 Variable sub(const Variable &a, const float &b) {
 	using namespace function;
 	Tensor b_tensor(a.shape(), b);
+	if (a.is_device()) b_tensor = b_tensor.to(a.device());
 	Variable b_var(b_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Sub>();
 	return (*f)({a, b_var});
@@ -78,6 +83,7 @@ Variable sub(const Variable &a, const float &b) {
 Variable sub(const float &a, const Variable &b) {
 	using namespace function;
 	Tensor a_tensor(b.shape(), a);
+	if (b.is_device()) a_tensor = a_tensor.to(b.device());
 	Variable a_var(a_tensor);
 	std::shared_ptr<Function> f = std::make_shared<Sub>();
 	return (*f)({a_var, b});
@@ -139,7 +145,30 @@ Variable softmax_cross_entropy_error(const Variable& x, const Variable& t) {
 	using namespace function;
 	std::shared_ptr<Function> f = std::make_shared<SoftmaxCrossEntropyError>();
 	return (*f)({x, t});
+}
 
+Variable binary_cross_entropy(const Variable& x, const Variable& t, float pos_weight) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<BinaryCrossEntropy>(pos_weight);
+	return (*f)({x, t});
+}
+
+Variable abs(const Variable& x) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<Abs>();
+	return (*f)({x});
+}
+
+Variable clamp(const Variable& x, float min_val, float max_val) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<Clamp>(min_val, max_val);
+	return (*f)({x});
+}
+
+Variable ciou_loss(const Variable& pred, const Variable& target) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<CIoU>();
+	return (*f)({pred, target});
 }
 
 // layer

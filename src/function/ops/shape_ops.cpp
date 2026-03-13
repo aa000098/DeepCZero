@@ -28,3 +28,9 @@ Variable upsample(const Variable& x, size_t scale_factor) {
 	std::shared_ptr<Function> f = std::make_shared<Upsample>(scale_factor);
 	return (*f)({x});
 }
+
+Variable gather(const Variable& x, const std::vector<size_t>& indices) {
+	using namespace function;
+	std::shared_ptr<Function> f = std::make_shared<Gather>(indices);
+	return (*f)({x});
+}

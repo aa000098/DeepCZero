@@ -56,4 +56,16 @@ public:
 	~Upsample() = default;
 };
 
+class Gather : public Function {
+private:
+	std::vector<size_t> indices;
+	size_t src_rows;
+
+public:
+	Gather(const std::vector<size_t>& indices) : indices(indices) {};
+	Variable forward(const std::vector<Variable>& xs) override;
+	std::vector<Variable> backward(const Variable& gy) override;
+	~Gather() = default;
+};
+
 }

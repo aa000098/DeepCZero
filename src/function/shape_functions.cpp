@@ -7,6 +7,8 @@ Variable function::Concat::forward(const std::vector<Variable>& xs) {
 	if (n == 0)
 		throw std::runtime_error("Concat: empty input list");
 
+	dcz::Device orig_device = xs[0].device();
+
 	const auto& base_shape = xs[0].data().get_shape();
 	size_t ndim = base_shape.size();
 	int ax = axis;
@@ -18,8 +20,9 @@ Variable function::Concat::forward(const std::vector<Variable>& xs) {
 	std::vector<Tensor<>> tensors;
 	tensors.reserve(n);
 	for (size_t i = 0; i < n; i++) {
-		tensors.push_back(xs[i].data());
-		split_sizes.push_back(xs[i].data().get_shape()[ax]);
+		Tensor<> t = !orig_device.is_cpu() ? xs[i].data().cpu() : xs[i].data();
+		tensors.push_back(t);
+		split_sizes.push_back(t.get_shape()[ax]);
 	}
 
 	// Compute output shape
@@ -58,13 +61,17 @@ Variable function::Concat::forward(const std::vector<Variable>& xs) {
 		}
 	}
 
-	return Variable(Tensor<>(out_shape, out_data));
+	Tensor<> result(out_shape, out_data);
+	if (!orig_device.is_cpu()) result = result.to(orig_device);
+	return Variable(result);
 }
 
 std::vector<Variable> function::Concat::backward(const Variable& gy) {
 	size_t n = split_sizes.size();
-	const auto& gy_shape = gy.data().get_shape();
-	size_t ndim = gy_shape.size();
+	dcz::Device orig_device = gy.device();
+	Tensor<> gy_cpu = !orig_device.is_cpu() ? gy.data().cpu() : gy.data();
+
+	size_t ndim = gy_cpu.get_shape().size();
 	int ax = axis;
 	if (ax < 0) ax += static_cast<int>(ndim);
 
@@ -74,8 +81,9 @@ std::vector<Variable> function::Concat::backward(const Variable& gy) {
 	size_t start = 0;
 	for (size_t i = 0; i < n; i++) {
 		size_t end = start + split_sizes[i];
-		Variable gi(gy.data().slice(ax, start, end).contiguous());
-		grads.push_back(gi);
+		Tensor<> gi = gy_cpu.slice(ax, start, end).contiguous();
+		if (!orig_device.is_cpu()) gi = gi.to(orig_device);
+		grads.push_back(Variable(gi));
 		start = end;
 	}
 
@@ -87,7 +95,9 @@ Variable function::Reshape::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x_data = xs[0].data();
 	x_shape = x_data.get_shape();
 
-	Tensor<> result = x_data.reshape(shape);
+	// Ensure contiguous before reshape (transpose results may be non-contiguous)
+	Tensor<> contiguous_data = x_data.is_contiguous() ? x_data : x_data.contiguous();
+	Tensor<> result = contiguous_data.reshape(shape);
 	return Variable(result);
 }
 
@@ -115,7 +125,8 @@ std::vector<Variable> function::Transpose::backward(const Variable& gy) {
 
 
 Variable function::Upsample::forward(const std::vector<Variable>& xs) {
-	const Tensor<>& x = xs[0].data();
+	dcz::Device orig_device = xs[0].device();
+	const Tensor<> x = !orig_device.is_cpu() ? xs[0].data().cpu() : xs[0].data();
 	input_shape = x.get_shape();
 
 	// Input: [N, C, H, W]
@@ -145,11 +156,14 @@ Variable function::Upsample::forward(const std::vector<Variable>& xs) {
 		}
 	}
 
-	return Variable(Tensor<>(out_shape, out_data));
+	Tensor<> result(out_shape, out_data);
+	if (!orig_device.is_cpu()) result = result.to(orig_device);
+	return Variable(result);
 }
 
 std::vector<Variable> function::Upsample::backward(const Variable& gy) {
-	const Tensor<>& gy_data = gy.data();
+	dcz::Device orig_device = gy.device();
+	const Tensor<> gy_data = !orig_device.is_cpu() ? gy.data().cpu() : gy.data();
 
 	size_t N = input_shape[0];
 	size_t C = input_shape[1];
@@ -174,6 +188,55 @@ std::vector<Variable> function::Upsample::backward(const Variable& gy) {
 		}
 	}
 
+	if (!orig_device.is_cpu()) {
+		Tensor<> result = gx.to(orig_device);
+		return { Variable(result) };
+	}
+	return { Variable(gx) };
+}
+
+
+// Gather: select rows by indices from [N, D] → [N_sel, D]
+Variable function::Gather::forward(const std::vector<Variable>& xs) {
+	dcz::Device orig_device = xs[0].device();
+	const Tensor<> x = !orig_device.is_cpu() ? xs[0].data().cpu() : xs[0].data();
+	const auto& shape = x.get_shape();
+	src_rows = shape[0];
+
+	size_t D = x.size() / src_rows;
+	size_t N_sel = indices.size();
+	const auto& x_data = x.raw_data();
+
+	std::vector<float> out_data(N_sel * D);
+	for (size_t i = 0; i < N_sel; i++) {
+		const float* src = x_data.data() + indices[i] * D;
+		std::copy(src, src + D, out_data.data() + i * D);
+	}
+
+	std::vector<size_t> out_shape = shape;
+	out_shape[0] = N_sel;
+	Tensor<> result(out_shape, out_data);
+	if (!orig_device.is_cpu()) result = result.to(orig_device);
+	return Variable(result);
+}
+
+std::vector<Variable> function::Gather::backward(const Variable& gy) {
+	dcz::Device orig_device = gy.device();
+	Tensor<> gy_cpu = !orig_device.is_cpu() ? gy.data().cpu() : gy.data();
+	const auto& gy_data = gy_cpu.raw_data();
+	size_t D = gy.size() / indices.size();
+
+	Variable x_orig = inputs[0];
+	std::vector<size_t> src_shape = x_orig.shape();
+	Tensor<> gx(src_shape, 0.0f);
+
+	for (size_t i = 0; i < indices.size(); i++) {
+		for (size_t d = 0; d < D; d++) {
+			gx({indices[i], d}) += gy_data[i * D + d];
+		}
+	}
+
+	if (!orig_device.is_cpu()) gx = gx.to(orig_device);
 	return { Variable(gx) };
 }
 

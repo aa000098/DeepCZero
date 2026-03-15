@@ -5,9 +5,11 @@
 
 Variable function::Pooling::forward(
 		const std::vector<Variable>& xs) {
-	const Tensor<> &x = xs[0].data();
-	input_shape = x.get_shape();
+	const Tensor<> &x_orig = xs[0].data();
+	input_shape = x_orig.get_shape();
 
+	// CPU fallback: im2col_array requires raw_data() access
+	Tensor<> x = x_orig.is_device() ? x_orig.cpu() : x_orig;
 	Tensor<> col = im2col_array(x, kernel_size, stride, pad, false);
 
 	std::vector<size_t> col_shape = col.get_shape();
@@ -23,6 +25,8 @@ Variable function::Pooling::forward(
 
 	indexes = col.argmax(2);
 	Tensor<> y = col.max({2});
+	if (x_orig.is_device())
+		y = y.to(x_orig.device());
 	return Variable(y);
 }
 

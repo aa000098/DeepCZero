@@ -3,6 +3,7 @@
 #include "container/tensor/tensorbase.hpp"
 #include "container/tensor/tensor1D.hpp"
 #include "container/tensor/tensorND.hpp"
+#include "config/device.hpp"
 
 #include <memory>
 
@@ -11,6 +12,12 @@ namespace tensor {
 	class Tensor {
 	private:
 		std::shared_ptr<TensorBase<T>> impl;
+
+		// Device support: CPU tensors use impl, device tensors use device_buf_
+		dcz::Device device_;
+		std::shared_ptr<dcz::DeviceBuffer<T>> device_buf_;
+		std::vector<size_t> device_shape_;
+		std::vector<size_t> device_strides_;
 
 	public:
 		Tensor() : impl(std::make_shared<TensorND<T>>()) {};
@@ -109,9 +116,8 @@ namespace tensor {
 			return result;
 		}
 
-		Tensor<T> gather_rows(const std::vector<size_t>& indices) const { 
-			return Tensor<T>(impl->gather_rows(indices)); };
-		Tensor<T> gather_rows(const Tensor<size_t>& indices) const { 
+		Tensor<T> gather_rows(const std::vector<size_t>& indices) const;
+		Tensor<T> gather_rows(const Tensor<size_t>& indices) const {
 			return this->gather_rows(indices.raw_data()); };
 
 		Tensor<T>& operator=(const TensorView<T>& view) {
@@ -121,26 +127,34 @@ namespace tensor {
 
 // common functions
 		TensorView<T> view() const;
-		std::vector<size_t> get_shape() const { 
+		std::vector<size_t> get_shape() const {
+			if (is_device()) return device_shape_;
 			return impl->get_shape(); };
 		std::vector<size_t> get_strides() const {
+			if (is_device()) return device_strides_;
 			return impl->get_strides(); };
 		size_t get_offset() const {
+			if (is_device()) return 0;
 			return impl->get_offset(); };
 		size_t size() const {
+			if (is_device()) return device_buf_ ? device_buf_->size() : 0;
 			return impl->size(); };
 		size_t ndim() const {
-			return impl->get_shape().size(); };
-		bool empty() const { 
+			return get_shape().size(); };
+		bool empty() const {
+			if (is_device()) return !device_buf_ || device_buf_->size() == 0;
 			if (!impl) return true;
 			else return impl->empty(); };
 		std::vector<T> data() const;
 
 		std::shared_ptr<std::vector<T>> shared_data() const {
+			if (is_device()) throw std::runtime_error("Cannot access shared_data() on device tensor");
 			return impl->shared_data(); };
 		std::vector<T>& raw_data() {
+			if (is_device()) throw std::runtime_error("Cannot access raw_data() on device tensor. Use .cpu() first");
 			return impl->raw_data(); };
 		const std::vector<T>& raw_data() const {
+			if (is_device()) throw std::runtime_error("Cannot access raw_data() on device tensor. Use .cpu() first");
 			return impl->raw_data(); };
 
 		std::vector<T> view_data() const;
@@ -148,6 +162,11 @@ namespace tensor {
 // Tensor functions
 		Tensor<T> clone() const {
 			// Deep copy: always create new tensor with copied data
+			if (is_device()) {
+				auto host_data = device_buf_->to_host();
+				Tensor<T> cpu_tensor(device_shape_, host_data);
+				return cpu_tensor.to(device_);
+			}
 			auto shape = get_shape();
 			if (is_contiguous()) {
 				return Tensor<T>(shape, std::vector<T>(raw_data()));
@@ -196,6 +215,31 @@ namespace tensor {
 		void show() const {
 			if (!impl) std::cout << "[  ]" << std::endl;
 			else impl->show(); };
+
+// device functions
+		dcz::Device device() const { return device_; }
+		bool is_cpu() const { return device_.is_cpu(); }
+		bool is_device() const { return !device_.is_cpu(); }
+
+		Tensor<T> to(const dcz::Device& target) const;
+		Tensor<T> cpu() const { return to(dcz::cpu()); }
+
+		// Access device buffer (for GPU kernel dispatch)
+		std::shared_ptr<dcz::DeviceBuffer<T>> device_buffer() const { return device_buf_; }
+
+		// Static factory for device tensors
+		static Tensor<T> from_device(const dcz::Device& dev,
+									 std::shared_ptr<dcz::DeviceBuffer<T>> buf,
+									 const std::vector<size_t>& shape,
+									 const std::vector<size_t>& strides) {
+			Tensor<T> t;
+			t.impl = nullptr;
+			t.device_ = dev;
+			t.device_buf_ = std::move(buf);
+			t.device_shape_ = shape;
+			t.device_strides_ = strides;
+			return t;
+		}
 	};
 }
 

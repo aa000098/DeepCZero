@@ -9,6 +9,7 @@ namespace dcz {
 	public:
 		bool enable_backprop = true;
 		bool train = true;
+		bool profile = false;
 
 		static Config& get() {
 			static Config instance;
@@ -29,6 +30,9 @@ namespace dcz {
 			} else if (name == "train") {
 				old_val = Config::get().train;
 				Config::get().train = new_val;
+			} else if (name == "profile") {
+				old_val = Config::get().profile;
+				Config::get().profile = new_val;
 			} else {
 				throw std::invalid_argument("Unknown config name: " + name);
 			}
@@ -39,6 +43,8 @@ namespace dcz {
 				Config::get().enable_backprop = old_val;
 			else if (name == "train")
 				Config::get().train = old_val;
+			else if (name == "profile")
+				Config::get().profile = old_val;
 		}
 	};
 

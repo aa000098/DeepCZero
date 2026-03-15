@@ -3,6 +3,16 @@
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensor_utils.hpp"
 
+#ifdef USE_SYCL
+#include "config/device_sycl.hpp"
+// Forward declarations for SYCL ops (defined in tensor_ops_sycl_*.hpp, included later via tensor_ops.hpp)
+namespace tensor {
+template<typename T> Tensor<T> sum_sycl(const Tensor<T>& x, const std::vector<int>& axes, bool keepdims);
+template<typename T> Tensor<T> contiguous_sycl(const Tensor<T>& x);
+template<typename T> Tensor<T> gather_rows_sycl(const Tensor<T>& x, const std::vector<size_t>& indices);
+}
+#endif
+
 #include <set>
 #include <algorithm>
 #include <fstream>
@@ -47,12 +57,20 @@ Tensor<T> Tensor<T>::reshape_like(const Tensor<T>& other) const {
 
 template<typename T>
 Tensor<T> Tensor<T>::reshape(const std::vector<size_t>& new_shape) const {
-	size_t old_size = impl->size();
+	size_t old_size = this->size();
 	size_t new_size = 1;
 	for (size_t d : new_shape) new_size *= d;
 
-	if (old_size != new_size) 
+	if (old_size != new_size)
 		throw std::runtime_error("reshape error: size mismatch");
+
+	// Device tensor path: metadata-only reshape (must be contiguous)
+	if (is_device()) {
+		if (!is_contiguous())
+			throw std::runtime_error("reshape on non-contiguous device tensor; call contiguous() first");
+		auto new_strides = compute_contiguous_strides(new_shape);
+		return from_device(device_, device_buf_, new_shape, new_strides);
+	}
 
 	auto data_ptr = impl->shared_data();
 	size_t offset = impl->get_offset();
@@ -63,14 +81,24 @@ Tensor<T> Tensor<T>::reshape(const std::vector<size_t>& new_shape) const {
 
 	Tensor<T> result;
 	result.impl = view_impl;
-	
+
 	return result;
 }
 
 template<typename T>
+Tensor<T> Tensor<T>::gather_rows(const std::vector<size_t>& indices) const {
+#ifdef USE_SYCL
+	if (is_device()) {
+		return gather_rows_sycl(*this, indices);
+	}
+#endif
+	return Tensor<T>(impl->gather_rows(indices));
+}
+
+template<typename T>
 Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
-    std::vector<size_t> old_shape = impl->get_shape();
-    std::vector<size_t> old_strides = impl->get_strides();
+    std::vector<size_t> old_shape = get_shape();
+    std::vector<size_t> old_strides = get_strides();
 
     std::vector<size_t> actual_axes = axes;
     if (actual_axes.empty()) {
@@ -90,6 +118,11 @@ Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
         new_strides[i] = old_strides[actual_axes[i]];
     }
 
+    // Device tensor path: metadata-only view with permuted shape/strides
+    if (is_device()) {
+        return from_device(device_, device_buf_, new_shape, new_strides);
+    }
+
     auto view_impl = std::make_shared<TensorView<T>>(
         new_shape,
         impl->shared_data(),
@@ -104,6 +137,11 @@ Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
 
 template<typename T>
 Tensor<T> Tensor<T>::sum(const std::vector<int>& axis, bool keepdims) const {
+#ifdef USE_SYCL
+    if (is_device()) {
+        return sum_sycl(*this, axis, keepdims);
+    }
+#endif
 
     const auto& src_shape = impl->get_shape();
     const auto& src_strides = impl->get_strides();
@@ -195,6 +233,12 @@ Tensor<T> max_along_axis(const Tensor<T>& x, int axis, bool keepdims) {
 template <typename T>
 Tensor<T> Tensor<T>::max(const std::vector<int>& axes,
 						bool keepdims) const {
+#ifdef USE_SYCL
+	if (is_device()) {
+		return max_sycl(*this, axes, keepdims);
+	}
+#endif
+
 	Tensor<T> result = *this;
 	std::vector<int> sorted_axes;
 
@@ -202,10 +246,10 @@ Tensor<T> Tensor<T>::max(const std::vector<int>& axes,
 		// 모든 축을 대상으로 수행
 		for (int i = 0; i < static_cast<int>(this->ndim()); ++i)
 			sorted_axes.push_back(i);
-	} else 
+	} else
 		sorted_axes = axes;
 
-	std::sort(sorted_axes.begin(), 
+	std::sort(sorted_axes.begin(),
 				sorted_axes.end(),
 				std::greater<int>());
 
@@ -354,6 +398,12 @@ std::vector<T> Tensor<T>::view_data() const {
 
 template <typename T>
 Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) const {
+#ifdef USE_SYCL
+	if (is_device()) {
+		dcz::Device dev = device();
+		return cpu().pad(padding, pad_value).to(dev);
+	}
+#endif
 	auto old_shape = this->get_shape();
 	size_t ndim = old_shape.size();
 
@@ -397,6 +447,11 @@ Tensor<T> Tensor<T>::contiguous() const {
     if (is_contiguous()) {
         return *this;
     }
+#ifdef USE_SYCL
+    if (is_device()) {
+        return contiguous_sycl(*this);
+    }
+#endif
 
     // Fast path: contiguous strides but with offset (e.g., slice of contiguous data)
     auto shape = get_shape();
@@ -553,6 +608,32 @@ Tensor<T> Tensor<T>::from_csv(const std::string& filename, bool index, bool head
 	std::vector<size_t> shape = (num_cols == 1) ? std::vector<size_t>{num_rows} : std::vector<size_t> {num_rows, num_cols};
 
 	return Tensor<T>(shape, values);
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::to(const dcz::Device& target) const {
+	// Same device: shallow copy
+	if (device_ == target)
+		return *this;
+
+	// Device -> CPU
+	if (target.is_cpu() && is_device()) {
+		auto host_data = device_buf_->to_host();
+		return Tensor<T>(device_shape_, host_data);
+	}
+
+	// CPU -> Device: requires backend-specific DeviceBuffer creation
+	// Each backend (SYCL, CUDA, etc.) provides a transfer function.
+	// For now, use the backend registry pattern via #ifdef.
+
+#ifdef USE_SYCL
+	if (target.type == dcz::DeviceType::SYCL) {
+		return to_sycl(*this, target);
+	}
+#endif
+
+	throw std::runtime_error("Tensor::to: unsupported device transfer: "
+		+ device_.str() + " -> " + target.str());
 }
 
 }

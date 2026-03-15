@@ -10,11 +10,23 @@
 #include <stdexcept>
 #include <omp.h>
 
+#ifdef USE_SYCL
+namespace tensor {
+template<typename T> Tensor<T> broadcast_to_sycl(const Tensor<T>& x, const std::vector<size_t>& target_shape);
+}
+#endif
+
 namespace tensor {
 
 
 template<typename T>
 Tensor<T> broadcast_to(const Tensor<T>& src, const std::vector<size_t>& target_shape) {
+#ifdef USE_SYCL
+	if (src.is_device()) {
+		if (src.get_shape() == target_shape) return src;
+		return broadcast_to_sycl(src, target_shape);
+	}
+#endif
 
 	const auto& src_shape = src.get_shape();
 	const auto& src_strides = src.get_strides();
@@ -183,15 +195,21 @@ Tensor<T> im2col_array(	const Tensor<T> &img,
 						std::pair<size_t, size_t> stride,
 						std::pair<size_t, size_t> pad,
 						bool to_matrix) {
+#ifdef USE_SYCL
+	if (img.is_device()) {
+		dcz::Device dev = img.device();
+		return im2col_array(img.cpu(), kernel_size, stride, pad, to_matrix).to(dev);
+	}
+#endif
 	std::vector<size_t> shape = img.get_shape();
 	size_t N = shape[0];
 	size_t C = shape[1];
 	size_t H = shape[2];
 	size_t W = shape[3];
 
-	auto [KH, KW] = kernel_size;
-	auto [SH, SW] = stride;
-	auto [PH, PW] = pad;
+	size_t KH = kernel_size.first, KW = kernel_size.second;
+	size_t SH = stride.first, SW = stride.second;
+	size_t PH = pad.first, PW = pad.second;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
 	size_t OW = get_conv_outsize(W, KW, SW, PW);
 
@@ -233,14 +251,20 @@ Tensor<T> col2im_array(	const Tensor<T> &col,
 						std::pair<size_t, size_t> stride,
 						std::pair<size_t, size_t> pad,
 						bool to_matrix) {
+#ifdef USE_SYCL
+	if (col.is_device()) {
+		dcz::Device dev = col.device();
+		return col2im_array(col.cpu(), img_shape, kernel_size, stride, pad, to_matrix).to(dev);
+	}
+#endif
 	size_t N = img_shape[0];
 	size_t C = img_shape[1];
 	size_t H = img_shape[2];
 	size_t W = img_shape[3];
 
-	auto [KH, KW] = kernel_size;
-	auto [SH, SW] = stride;
-	auto [PH, PW] = pad;
+	size_t KH = kernel_size.first, KW = kernel_size.second;
+	size_t SH = stride.first, SW = stride.second;
+	size_t PH = pad.first, PW = pad.second;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
 	size_t OW = get_conv_outsize(W, KW, SW, PW);
 

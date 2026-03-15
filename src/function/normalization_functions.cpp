@@ -6,9 +6,10 @@
 using namespace tensor;
 
 Variable function::BatchNorm2dFunc::forward(const std::vector<Variable>& xs) {
-	const Tensor<>& x = xs[0].data();     // [N,C,H,W]
-	const Tensor<>& gamma = xs[1].data();  // [C]
-	const Tensor<>& beta = xs[2].data();   // [C]
+	dcz::Device orig_device = xs[0].device();
+	const Tensor<> x = !orig_device.is_cpu() ? xs[0].data().cpu() : xs[0].data();
+	const Tensor<> gamma = !orig_device.is_cpu() ? xs[1].data().cpu() : xs[1].data();
+	const Tensor<> beta = !orig_device.is_cpu() ? xs[2].data().cpu() : xs[2].data();
 
 	auto shape = x.get_shape();
 	N = shape[0]; C = shape[1]; H = shape[2]; W = shape[3];
@@ -26,8 +27,8 @@ Variable function::BatchNorm2dFunc::forward(const std::vector<Variable>& xs) {
 		Tensor<> diff_sq = diff * diff;
 		var = diff_sq.sum({0, 2, 3}) / M;  // [C]
 	} else {
-		mu = xs[3].data();   // running_mean [C]
-		var = xs[4].data();  // running_var  [C]
+		mu = !orig_device.is_cpu() ? xs[3].data().cpu() : xs[3].data();
+		var = !orig_device.is_cpu() ? xs[4].data().cpu() : xs[4].data();
 	}
 
 	// Compute inv_std per channel
@@ -55,13 +56,15 @@ Variable function::BatchNorm2dFunc::forward(const std::vector<Variable>& xs) {
 	// y = gamma * x_hat + beta
 	Tensor<> y = gamma_bc * x_hat + beta_bc;
 
+	if (!orig_device.is_cpu()) y = y.to(orig_device);
 	return Variable(y);
 }
 
 std::vector<Variable> function::BatchNorm2dFunc::backward(const Variable& gy) {
-	const Tensor<>& x = inputs[0]->data;
-	const Tensor<>& gamma = inputs[1]->data;
-	const Tensor<>& gy_data = gy.data();
+	dcz::Device orig_device = gy.device();
+	const Tensor<> x = !orig_device.is_cpu() ? inputs[0]->data.cpu() : inputs[0]->data;
+	const Tensor<> gamma = !orig_device.is_cpu() ? inputs[1]->data.cpu() : inputs[1]->data;
+	const Tensor<> gy_data = !orig_device.is_cpu() ? gy.data().cpu() : gy.data();
 
 	float M = static_cast<float>(N * H * W);
 
@@ -95,5 +98,10 @@ std::vector<Variable> function::BatchNorm2dFunc::backward(const Variable& gy) {
 	// dx = inv_std/M * (M*dx_hat - sum(dx_hat) - x_hat*sum(dx_hat*x_hat))
 	Tensor<> dx = inv_std_bc / M * (dx_hat * M - s1_bc - x_hat * s2_bc);
 
+	if (!orig_device.is_cpu()) {
+		dx = dx.to(orig_device);
+		dgamma = dgamma.to(orig_device);
+		dbeta = dbeta.to(orig_device);
+	}
 	return { Variable(dx), Variable(dgamma), Variable(dbeta) };
 }

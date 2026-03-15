@@ -47,15 +47,21 @@ Variable apply_rope(const Variable& x,
 
 	// x: [batch, seq_len, num_heads, head_dim]
 	auto shape = x.data().get_shape();
+	dcz::Device orig_device = x.device();
 	size_t batch = shape[0];
 	size_t seq_len = shape[1];
 	size_t num_heads = shape[2];
 	size_t head_dim = shape[3];
 	size_t half_dim = head_dim / 2;
 
-	const auto& x_data = x.data().raw_data();
-	const auto& cos_data = cos_cache.raw_data();
-	const auto& sin_data = sin_cache.raw_data();
+	// CPU fallback: raw_data() not available on device tensors
+	// Must store CPU copies in locals to avoid dangling references from temporaries
+	Tensor<> x_cpu = orig_device.is_cpu() ? x.data() : x.data().cpu();
+	Tensor<> cos_cpu = cos_cache.is_cpu() ? cos_cache : cos_cache.cpu();
+	Tensor<> sin_cpu = sin_cache.is_cpu() ? sin_cache : sin_cache.cpu();
+	const auto& x_data = x_cpu.raw_data();
+	const auto& cos_data = cos_cpu.raw_data();
+	const auto& sin_data = sin_cpu.raw_data();
 
 	std::vector<float> out_data(batch * seq_len * num_heads * head_dim);
 
@@ -83,5 +89,6 @@ Variable apply_rope(const Variable& x,
 	}
 
 	Tensor<> result(shape, out_data);
+	if (!orig_device.is_cpu()) result = result.to(orig_device);
 	return Variable(result);
 }

@@ -34,7 +34,7 @@ namespace tensor {
 		const std::shared_ptr<TensorBase<T>> operator[](size_t idx) const;
 		
 		T& operator()(	
-				const std::vector<size_t>& indices) {
+				const std::vector<size_t>& indices) override {
 			return (*data_ptr)[flatten_index(indices, strides)]; };
 		const T& operator()(
 				const std::vector<size_t>& indices) const { 
@@ -48,7 +48,7 @@ namespace tensor {
 		std::vector<size_t> get_strides() const override {
 			return strides; };
 
-		std::shared_ptr<std::vector<T>> shared_data() const {
+		std::shared_ptr<std::vector<T>> shared_data() const override {
 			return data_ptr; };
 
 		// TensorBase override

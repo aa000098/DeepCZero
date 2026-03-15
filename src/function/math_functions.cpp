@@ -116,7 +116,8 @@ std::vector<Variable> function::Div::backward(const Variable& gy) {
 
 Variable function::Pow::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& base = xs[0].data();
-	float scalar = xs[1].data().raw_data()[0];
+	Tensor<> scalar_t = xs[1].data().is_device() ? xs[1].data().cpu() : xs[1].data();
+	float scalar = scalar_t.raw_data()[0];
 
 	Tensor result = pow(base, scalar);
 	return Variable(result);
@@ -125,7 +126,8 @@ Variable function::Pow::forward(const std::vector<Variable>& xs) {
 std::vector<Variable> function::Pow::backward(const Variable& gy) {
 	const Variable& a = inputs[0];
 	const Variable& b = inputs[1];
-    float scalar = b.data().raw_data()[0];
+	Tensor<> b_cpu = b.data().is_device() ? b.data().cpu() : b.data();
+    float scalar = b_cpu.raw_data()[0];
 
 	Variable result = gy * scalar * (a^(scalar-1));
     return {result};

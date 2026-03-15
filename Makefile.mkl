@@ -14,6 +14,13 @@ ifeq ($(MKL_PKG), yes)
     CXXFLAGS += $(MKL_CFLAGS) -DUSE_MKL
     LDFLAGS += $(MKL_LDFLAGS) -Wl,-rpath,$(MKL_LIB_DIR)
 
+    # Link Intel SVML if available (needed for vectorized math like powf)
+    COMPILER_ROOT ?= /opt/intel/oneapi/compiler/2024.2
+    ifneq ($(wildcard $(COMPILER_ROOT)/lib/libsvml.so),)
+        LDFLAGS += -L$(COMPILER_ROOT)/lib -lsvml -lintlc -Wl,-rpath,$(COMPILER_ROOT)/lib
+        LDFLAGS += -Wl,--allow-shlib-undefined
+    endif
+
     $(info [MKL] Auto-detected Intel MKL via pkg-config)
 else
     # Fallback to manual path specification

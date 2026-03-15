@@ -21,16 +21,26 @@ NLOHMANN_DIR = $(THIRD_PARTY_DIR)/nlohmann
 
 # base flags
 CXXFLAGS = -std=c++17 -Iinclude -Wall -Wextra -O2 -fPIC -MMD -MP -fopenmp -I$(CNPY_DIR) -I$(STB_DIR) -I$(NLOHMANN_DIR)
-LDFLAGS = -L$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
+LDFLAGS = -L$(BIN_DIR) -Wl,-rpath,$(CURDIR)/$(BIN_DIR) -ldeepczero -lcurl -lz -fopenmp -lzip
 
 # Include Intel MKL configuration if enabled
 ifeq ($(USE_MKL), 1)
     -include Makefile.mkl
 endif
 
+# Optional: Enable SYCL for GPU operations
+# To enable: make USE_SYCL=1
+USE_SYCL ?= 0
+ifeq ($(USE_SYCL), 1)
+    -include Makefile.sycl
+endif
+
 # src and objs
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
-TESTS := $(shell find $(TEST_DIR) -name '*.cpp' -not -path '$(TEST_DIR)/benchmark/*')
+TESTS := $(shell find $(TEST_DIR) -name '*.cpp' -not -path '$(TEST_DIR)/benchmark/*' -not -name '*_sycl_*')
+ifeq ($(USE_SYCL), 1)
+    TESTS += $(shell find $(TEST_DIR) -name '*_sycl_*.cpp' 2>/dev/null)
+endif
 BENCHMARKS := $(shell find $(TEST_DIR)/benchmark -name '*.cpp' 2>/dev/null)
 
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))

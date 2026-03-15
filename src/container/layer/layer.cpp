@@ -336,6 +336,12 @@ namespace layer {
 		if (W.data().empty()) {
 			in_size = x.shape().back();
 			init_W();
+			// Move lazily-initialized weights to the same device as input
+			if (x.is_device()) {
+				params["W"].data() = params["W"].data().to(x.device());
+				if (!params["b"].data().empty())
+					params["b"].data() = params["b"].data().to(x.device());
+			}
 		}
 
 		// DEBUG: shape 출력
@@ -389,6 +395,12 @@ namespace layer {
 		if (W.data().empty()) {
 			in_channels = x.shape()[1];
 			init_W();
+			// Move lazily-initialized weights to the same device as input
+			if (x.is_device()) {
+				params["W"].data() = params["W"].data().to(x.device());
+				if (!params["b"].data().empty())
+					params["b"].data() = params["b"].data().to(x.device());
+			}
 		}
 /*		for (size_t i =0; i < x.shape().size(); i++) 
 			std::cout << x.shape()[i] << " ";
@@ -483,8 +495,17 @@ namespace layer {
 
 		// Update running stats if training
 		if (training) {
-			const Tensor<>& batch_mean = f->get_saved_mean();
-			const Tensor<>& batch_inv_std = f->get_saved_inv_std();
+			Tensor<> batch_mean = f->get_saved_mean();
+			Tensor<> batch_inv_std = f->get_saved_inv_std();
+
+			// Running stats update is done on CPU
+			bool on_device = running_mean.is_device();
+			if (on_device) {
+				running_mean = running_mean.cpu();
+				running_var = running_var.cpu();
+				batch_mean = batch_mean.cpu();
+				batch_inv_std = batch_inv_std.cpu();
+			}
 
 			for (size_t c = 0; c < num_features; ++c) {
 				// Recover batch variance: var = 1/(inv_std^2) - eps
@@ -497,6 +518,11 @@ namespace layer {
 				running_var.raw_data()[c] =
 					(1.0f - momentum) * running_var.raw_data()[c]
 					+ momentum * batch_var;
+			}
+
+			if (on_device) {
+				running_mean = running_mean.to(y.device());
+				running_var = running_var.to(y.device());
 			}
 		}
 

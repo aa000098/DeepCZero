@@ -132,12 +132,27 @@ public:
 		return ::transpose(*this, axes); };
 
 public:
+// device functions
+	dcz::Device device() const {
+		return impl->data.device(); }
+	bool is_cpu() const {
+		return impl->data.is_cpu(); }
+	bool is_device() const {
+		return impl->data.is_device(); }
+	Variable to(const dcz::Device& dev) const {
+		if (impl->data.device() == dev) return *this;
+		return Variable(impl->data.to(dev), impl->name, impl->requires_grad);
+	}
+	Variable cpu() const {
+		return to(dcz::cpu()); }
+
+public:
 // override functions
-	std::vector<size_t> shape() { 
+	std::vector<size_t> shape() {
 		return impl->data.get_shape(); };
-	std::vector<size_t> shape() const { 
+	std::vector<size_t> shape() const {
 		return impl->data.get_shape(); };
-	bool empty() const { 
+	bool empty() const {
 		return impl->data.empty(); };
 	size_t size() const {
 		return impl->data.size(); };

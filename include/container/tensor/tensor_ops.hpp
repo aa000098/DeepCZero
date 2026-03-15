@@ -10,6 +10,14 @@
 #include "container/tensor/tensor_ops_mkl.hpp"
 #endif
 
+#ifdef USE_SYCL
+#include "container/tensor/tensor_ops_sycl.hpp"
+#include "container/tensor/tensor_ops_sycl_misc.hpp"
+#include "container/tensor/tensor_ops_sycl_reduce.hpp"
+#include "container/tensor/tensor_ops_sycl_activation.hpp"
+#include "container/tensor/tensor_ops_sycl_nn.hpp"
+#endif
+
 #include "config/backend_config.hpp"
 
 namespace tensor {
@@ -112,8 +120,24 @@ Tensor<T> div_naive(const Tensor<T>& a, const Tensor<T>& b) {
 
 // Dispatcher functions that use MKL when available and shapes match
 
+// Device mismatch check helper
+template<typename T>
+void check_same_device(const Tensor<T>& a, const Tensor<T>& b) {
+	if (a.device() != b.device())
+		throw std::runtime_error("Tensors must be on the same device: "
+			+ a.device().str() + " vs " + b.device().str());
+}
+
 template<typename T>
 Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
+	check_same_device(a, b);
+#ifdef USE_SYCL
+	if (a.is_device()) {
+		if (a.get_shape() == b.get_shape()) return add_sycl(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
+		return add_sycl(a_bc, b_bc);
+	}
+#endif
 #ifdef USE_MKL
 	// Use MKL if shapes match (no broadcasting needed)
 	if (a.get_shape() == b.get_shape()) {
@@ -127,6 +151,14 @@ Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
 
 template<typename T>
 Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
+	check_same_device(a, b);
+#ifdef USE_SYCL
+	if (a.is_device()) {
+		if (a.get_shape() == b.get_shape()) return sub_sycl(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
+		return sub_sycl(a_bc, b_bc);
+	}
+#endif
 #ifdef USE_MKL
 	if (a.get_shape() == b.get_shape()) {
 		if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -139,6 +171,14 @@ Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
 
 template<typename T>
 Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
+	check_same_device(a, b);
+#ifdef USE_SYCL
+	if (a.is_device()) {
+		if (a.get_shape() == b.get_shape()) return mul_sycl(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
+		return mul_sycl(a_bc, b_bc);
+	}
+#endif
 #ifdef USE_MKL
 	if (a.get_shape() == b.get_shape()) {
 		if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -151,6 +191,14 @@ Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
 
 template<typename T>
 Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
+	check_same_device(a, b);
+#ifdef USE_SYCL
+	if (a.is_device()) {
+		if (a.get_shape() == b.get_shape()) return div_sycl(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
+		return div_sycl(a_bc, b_bc);
+	}
+#endif
 #ifdef USE_MKL
 	if (a.get_shape() == b.get_shape()) {
 		if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -163,6 +211,9 @@ Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
 
 template<typename T>
 Tensor<T> neg(const Tensor<T>& a) {
+#ifdef USE_SYCL
+	if (a.is_device()) return neg_sycl(a);
+#endif
 	std::vector<T> result_data(a.raw_data());
 	for (auto& val : result_data)
 		val = -val;
@@ -173,6 +224,13 @@ Tensor<T> neg(const Tensor<T>& a) {
 // inplace
 template<typename T>
 void add_inplace(Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_SYCL
+	if (a.is_device()) {
+		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_sycl(b, a.get_shape());
+		add_inplace_sycl(a, b_bc);
+		return;
+	}
+#endif
 	const auto& shape_a = a.get_shape();
 	Tensor<T> b_bc = (shape_a == b.get_shape()) ? b : broadcast_to(b, shape_a);
 
@@ -193,6 +251,13 @@ void add_inplace(Tensor<T>& a, const Tensor<T>& b) {
 
 template<typename T>
 void sub_inplace(Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_SYCL
+	if (a.is_device()) {
+		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_sycl(b, a.get_shape());
+		sub_inplace_sycl(a, b_bc);
+		return;
+	}
+#endif
 	const auto& shape_a = a.get_shape();
 	Tensor<T> b_bc = (shape_a == b.get_shape()) ? b : broadcast_to(b, shape_a);
 
@@ -213,6 +278,13 @@ void sub_inplace(Tensor<T>& a, const Tensor<T>& b) {
 
 template<typename T>
 void mul_inplace(Tensor<T>& a, const Tensor<T>& b) {
+#ifdef USE_SYCL
+	if (a.is_device()) {
+		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_sycl(b, a.get_shape());
+		mul_inplace_sycl(a, b_bc);
+		return;
+	}
+#endif
 	const auto& shape_a = a.get_shape();
 	Tensor<T> b_bc = (shape_a == b.get_shape()) ? b : broadcast_to(b, shape_a);
 
@@ -256,6 +328,9 @@ void div_inplace(Tensor<T>& a, const Tensor<T>& b) {
 // Tensor ⊕ Scalar
 template<typename T>
 void add_scalar_inplace(Tensor<T>& a, T scalar) {
+#ifdef USE_SYCL
+	if (a.is_device()) { add_scalar_inplace_sycl(a, scalar); return; }
+#endif
 	auto& data = a.raw_data();
 	for (auto& val : data)
 		val += scalar;
@@ -264,6 +339,9 @@ void add_scalar_inplace(Tensor<T>& a, T scalar) {
 // Tensor<T> -= scalar
 template<typename T>
 void sub_scalar_inplace(Tensor<T>& a, T scalar) {
+#ifdef USE_SYCL
+	if (a.is_device()) { sub_scalar_inplace_sycl(a, scalar); return; }
+#endif
 	auto& data = a.raw_data();
 	for (auto& val : data)
 		val -= scalar;
@@ -271,6 +349,9 @@ void sub_scalar_inplace(Tensor<T>& a, T scalar) {
 
 template<typename T>
 void mul_scalar_inplace(Tensor<T>& a, T scalar) {
+#ifdef USE_SYCL
+	if (a.is_device()) { mul_scalar_inplace_sycl(a, scalar); return; }
+#endif
 	auto& data = a.raw_data();
 	for (auto& val : data)
 		val *= scalar;
@@ -278,9 +359,12 @@ void mul_scalar_inplace(Tensor<T>& a, T scalar) {
 
 template<typename T>
 void div_scalar_inplace(Tensor<T>& a, T scalar) {
+#ifdef USE_SYCL
+	if (a.is_device()) { div_scalar_inplace_sycl(a, scalar); return; }
+#endif
 	auto& data = a.raw_data();
 	if (scalar == static_cast<T>(0))
-		throw std::runtime_error("div_scalar_inplace: division by zero detected");	
+		throw std::runtime_error("div_scalar_inplace: division by zero detected");
 	for (auto& val : data)
 		val /= scalar;
 }
@@ -356,6 +440,9 @@ Tensor<T> tanh_naive(const Tensor<T>& x) {
 
 template<typename T>
 Tensor<T> pow(const Tensor<T>& x, const T scalar) {
+#ifdef USE_SYCL
+	if (x.is_device()) return pow_sycl(x, scalar);
+#endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
 		return pow_mkl(x, scalar);
@@ -366,6 +453,9 @@ Tensor<T> pow(const Tensor<T>& x, const T scalar) {
 
 template<typename T>
 Tensor<T> exp(const Tensor<T>& x) {
+#ifdef USE_SYCL
+	if (x.is_device()) return exp_sycl(x);
+#endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
 		return exp_mkl(x);
@@ -376,6 +466,9 @@ Tensor<T> exp(const Tensor<T>& x) {
 
 template<typename T>
 Tensor<T> log(const Tensor<T>& x) {
+#ifdef USE_SYCL
+	if (x.is_device()) return log_sycl(x);
+#endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
 		return log_mkl(x);
@@ -386,6 +479,9 @@ Tensor<T> log(const Tensor<T>& x) {
 
 template<typename T>
 Tensor<T> sin(const Tensor<T>& x) {
+#ifdef USE_SYCL
+	if (x.is_device()) return sin_sycl(x);
+#endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
 		return sin_mkl(x);
@@ -396,6 +492,9 @@ Tensor<T> sin(const Tensor<T>& x) {
 
 template<typename T>
 Tensor<T> cos(const Tensor<T>& x) {
+#ifdef USE_SYCL
+	if (x.is_device()) return cos_sycl(x);
+#endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
 		return cos_mkl(x);
@@ -406,6 +505,9 @@ Tensor<T> cos(const Tensor<T>& x) {
 
 template<typename T>
 Tensor<T> tanh(const Tensor<T>& x) {
+#ifdef USE_SYCL
+	if (x.is_device()) return tanh_sycl(x);
+#endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
 		return tanh_mkl(x);
@@ -514,6 +616,10 @@ Tensor<T> dot_naive(const Tensor<T>& a, const Tensor<T>& b) {
 // Main dot function that dispatches to appropriate implementation
 template<typename T>
 Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
+	check_same_device(a, b);
+#ifdef USE_SYCL
+	if (a.is_device()) return dot_sycl(a, b);
+#endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
 		if (dcz::BackendConfig::get().use_mkl) {
@@ -593,17 +699,82 @@ Tensor<T> tensordot(const Tensor<T> &A,
 
 template<typename T>
 Tensor<T> maximum(const Tensor<T>& input, T scalar) {
+#ifdef USE_SYCL
+	if (input.is_device()) return maximum_sycl(input, scalar);
+#endif
 	std::vector<T> out_data(input.size());
 	const auto& in_data = input.data();
 
-	for (size_t i = 0; i < input.size(); i++) 
+	for (size_t i = 0; i < input.size(); i++)
 		out_data[i] = std::max(in_data[i], scalar);
 
 	return Tensor<T>(input.get_shape(), out_data);
 }
 
 template<typename T>
+Tensor<T> minimum(const Tensor<T>& input, T scalar) {
+#ifdef USE_SYCL
+	if (input.is_device()) return minimum_sycl(input, scalar);
+#endif
+	std::vector<T> out_data(input.size());
+	const auto& in_data = input.data();
+
+	for (size_t i = 0; i < input.size(); i++)
+		out_data[i] = std::min(in_data[i], scalar);
+
+	return Tensor<T>(input.get_shape(), out_data);
+}
+
+template<typename T>
+Tensor<T> abs(const Tensor<T>& input) {
+#ifdef USE_SYCL
+	if (input.is_device()) return abs_sycl(input);
+#endif
+	std::vector<T> out_data(input.size());
+	const auto& in_data = input.data();
+
+	for (size_t i = 0; i < input.size(); i++)
+		out_data[i] = std::abs(in_data[i]);
+
+	return Tensor<T>(input.get_shape(), out_data);
+}
+
+template<typename T>
+Tensor<T> sign(const Tensor<T>& input) {
+#ifdef USE_SYCL
+	if (input.is_device()) return sign_sycl(input);
+#endif
+	std::vector<T> out_data(input.size());
+	const auto& in_data = input.data();
+
+	for (size_t i = 0; i < input.size(); i++) {
+		if (in_data[i] > T(0)) out_data[i] = T(1);
+		else if (in_data[i] < T(0)) out_data[i] = T(-1);
+		else out_data[i] = T(0);
+	}
+
+	return Tensor<T>(input.get_shape(), out_data);
+}
+
+template<typename T>
+Tensor<T> clamp(const Tensor<T>& input, T min_val, T max_val) {
+#ifdef USE_SYCL
+	if (input.is_device()) return clamp_sycl(input, min_val, max_val);
+#endif
+	std::vector<T> out_data(input.size());
+	const auto& in_data = input.data();
+
+	for (size_t i = 0; i < input.size(); i++)
+		out_data[i] = std::clamp(in_data[i], min_val, max_val);
+
+	return Tensor<T>(input.get_shape(), out_data);
+}
+
+template<typename T>
 Tensor<T> greater(const Tensor<T>& x, T scalar) {
+#ifdef USE_SYCL
+	if (x.is_device()) return greater_sycl(x, scalar);
+#endif
 	const auto& x_data = x.data();
 	std::vector<T> out_data(x.size());
 

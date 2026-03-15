@@ -79,6 +79,7 @@ Variable function::Dropout::forward(const std::vector<Variable>& xs) {
 		for (size_t i = 0; i < x.data().size(); i++)
 			mask.raw_data()[i] = random.raw_data()[i] > dropout_rate ? 1.0f : 0.0f;
 		float scale = 1 - dropout_rate;
+		if (x.is_device()) mask = mask.to(x.device());
 		Tensor<> result = x.data() * mask / scale;
 		return Variable(result);
 	} else {

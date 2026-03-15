@@ -37,8 +37,8 @@ Tensor<T> arrange(size_t start, size_t end, size_t step) {
 	if (step == 0) throw std::runtime_error("arrange: step must be non-zero");
 
 	std::vector<T> v;
-	if ((step > 0 && start < step) || (step < 0 && start > step)) {
-		for (T x = start; (step > 0) ? (x < step) : (x > step); x = static_cast<T>(x + step))
+	if ((step > 0 && start < end) || (step < 0 && start > end)) {
+		for (T x = start; (step > 0) ? (x < end) : (x > end); x = static_cast<T>(x + step))
 			v.push_back(x);
 	}
 	return Tensor<T>({v.size()}, v);

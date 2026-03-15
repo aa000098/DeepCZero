@@ -28,6 +28,7 @@ namespace layer {
 		Variable output;
 
 	public:
+		virtual ~Layer() = default;
 
 		void register_params(
 				const std::string& name, 
@@ -57,6 +58,13 @@ namespace layer {
 
 		std::unordered_map<std::string, Parameter> flatten_params(const std::string& parent_key = "");
 		
+		virtual void to(const dcz::Device& device) {
+			for (auto& [name, param] : params)
+				param.data() = param.data().to(device);
+			for (auto& [name, sublayer] : sublayers)
+				sublayer->to(device);
+		}
+
 		void save_weights(const std::string& path);
 
 		void load_weights(const std::string& path);
@@ -144,6 +152,12 @@ namespace layer {
 		void set_running_mean(const Tensor<>& t) { running_mean = t; }
 		void set_running_var(const Tensor<>& t) { running_var = t; }
 
+		void to(const dcz::Device& device) override {
+			Layer::to(device);
+			if (!running_mean.empty()) running_mean = running_mean.to(device);
+			if (!running_var.empty()) running_var = running_var.to(device);
+		}
+
 		// Load weight, bias, running_mean, running_var from npz
 		void load_from_npz(const cnpy::npz_t& npz, const std::string& prefix);
 	};
@@ -163,5 +177,4 @@ namespace layer {
 
 	};
 }
-
 

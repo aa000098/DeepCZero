@@ -30,7 +30,7 @@ namespace tensor {
 
 		std::shared_ptr<TensorBase<T>> slice(size_t dim, size_t start, size_t end) const override;
 
-		std::shared_ptr<TensorBase<T>> gather_rows(const std::vector<size_t>& indices) const;
+		std::shared_ptr<TensorBase<T>> gather_rows(const std::vector<size_t>& indices) const override;
 
 		std::vector<size_t> get_shape() const override { return {data_ptr->size()}; };
 		std::vector<size_t> get_strides() const override {

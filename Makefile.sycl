@@ -1,0 +1,48 @@
+# Intel SYCL/oneAPI GPU Configuration
+# This file is included when USE_SYCL=1
+# To enable: make USE_SYCL=1
+#
+# Requires: Intel oneAPI with DPC++ compiler (icpx)
+# Install: sudo bash scripts/install_sycl.sh
+
+# Try to detect icpx: first PATH, then known install locations
+ICPX_PATH := $(shell which icpx 2>/dev/null)
+
+ifeq ($(ICPX_PATH),)
+    # Try oneAPI default install paths
+    ICPX_PATH := $(shell ls /opt/intel/oneapi/compiler/latest/bin/icpx 2>/dev/null)
+endif
+
+ifneq ($(ICPX_PATH),)
+    # Found icpx - configure SYCL build
+    ONEAPI_ROOT ?= $(shell echo "$(ICPX_PATH)" | sed 's|/compiler/.*||')
+    CXX = $(ICPX_PATH)
+    CXXFLAGS += -fsycl -DUSE_SYCL
+
+    # icpx prefers -qopenmp over -fopenmp
+    CXXFLAGS := $(subst -fopenmp,-qopenmp,$(CXXFLAGS))
+    LDFLAGS := $(subst -fopenmp,-qopenmp,$(LDFLAGS))
+    LDFLAGS += -fsycl
+
+    # Use latest MKL to match compiler version.
+    # Prepend latest MKL lib path so linker finds it before any older pkg-config paths.
+    MKL_SYCL_ROOT := $(ONEAPI_ROOT)/mkl/latest
+    ifneq ($(wildcard $(MKL_SYCL_ROOT)/lib),)
+        CXXFLAGS += -I$(MKL_SYCL_ROOT)/include
+        LDFLAGS := -L$(MKL_SYCL_ROOT)/lib -Wl,-rpath,$(MKL_SYCL_ROOT)/lib $(LDFLAGS)
+    endif
+    LDFLAGS += -lmkl_sycl
+
+    # Add compiler library paths
+    ifneq ($(wildcard $(ONEAPI_ROOT)/compiler/latest/lib),)
+        LDFLAGS := -L$(ONEAPI_ROOT)/compiler/latest/lib -Wl,-rpath,$(ONEAPI_ROOT)/compiler/latest/lib $(LDFLAGS)
+    endif
+
+    $(info [SYCL] Building with Intel SYCL/oneAPI GPU support)
+    $(info [SYCL] icpx: $(ICPX_PATH))
+else
+    $(warning [SYCL] icpx compiler not found.)
+    $(warning [SYCL] Install: sudo bash scripts/install_sycl.sh)
+    $(warning [SYCL] Or run: source /opt/intel/oneapi/setvars.sh)
+    override USE_SYCL = 0
+endif

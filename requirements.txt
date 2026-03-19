@@ -1,0 +1,7 @@
+
+
+# for prepare llm weights 
+transformers
+torch
+safetensors
+accelerate

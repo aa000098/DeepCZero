@@ -44,7 +44,7 @@ Variable Embedding::forward_ids(const std::vector<int>& token_ids) {
 	std::vector<size_t> indices(token_ids.begin(), token_ids.end());
 
 	// gather_rows: select rows from W -> [seq_len, embed_dim]
-	Tensor<> selected = W.gather_rows(indices);
+	Tensor<> selected = W.gather_rows(indices).contiguous();
 
 	// Reshape to [1, seq_len, embed_dim]
 	size_t seq_len = token_ids.size();

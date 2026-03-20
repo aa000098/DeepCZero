@@ -162,6 +162,14 @@ public:
 	Variable forward_ids(const std::vector<int>& token_ids, size_t position_offset = 0);
 	Variable forward(const std::vector<Variable>& xs) override;
 
+	void to(const dcz::Device& device) override {
+		Layer::to(device);
+		if (!cos_cache.empty())
+			cos_cache = cos_cache.to(device);
+		if (!sin_cache.empty())
+			sin_cache = sin_cache.to(device);
+	}
+
 	void reset_cache();
 	void load_from_npz(const cnpy::npz_t& npz, const std::string& prefix);
 

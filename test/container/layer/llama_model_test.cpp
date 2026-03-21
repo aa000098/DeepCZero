@@ -46,6 +46,10 @@ void test_llama_attention() {
 
 	// Precompute RoPE for small dim
 	auto [cos_cache, sin_cache] = precompute_rope_frequencies(head_dim, 32, 500000.0f);
+#ifdef USE_SYCL
+	cos_cache = cos_cache.to(dcz::sycl());
+	sin_cache = sin_cache.to(dcz::sycl());
+#endif
 
 	// Input: [1, 3, 64]
 	std::vector<float> x_data(1 * 3 * hidden);
@@ -97,6 +101,10 @@ void test_llama_decoder_layer() {
 #endif
 
 	auto [cos_cache, sin_cache] = precompute_rope_frequencies(head_dim, 32, 500000.0f);
+#ifdef USE_SYCL
+	cos_cache = cos_cache.to(dcz::sycl());
+	sin_cache = sin_cache.to(dcz::sycl());
+#endif
 
 	std::vector<float> x_data(1 * 3 * hidden);
 	for (size_t i = 0; i < x_data.size(); ++i)

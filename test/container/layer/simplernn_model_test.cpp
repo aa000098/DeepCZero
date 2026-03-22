@@ -6,6 +6,9 @@ void test_simplernn_forward_only() {
     size_t hidden_size = 10;
     size_t output_size = 1;
     SimpleRNN simplernn(hidden_size, output_size);
+#ifdef USE_SYCL
+    simplernn.to(dcz::sycl());
+#endif
     std::cout << "1. SimpleRNN created" << std::endl;
 
     simplernn.reset_state();
@@ -13,10 +16,14 @@ void test_simplernn_forward_only() {
     // 10개 샘플로 forward만 테스트
     for (size_t i = 0; i < 10; ++i) {
         Tensor<> x = randn({1, 1});
-        std::vector<Variable> x_vec = {Variable(x)};
+        Variable xv(x);
+#ifdef USE_SYCL
+        xv = xv.to(dcz::sycl());
+#endif
+        std::vector<Variable> x_vec = {xv};
         Variable y = simplernn(x_vec);
 
-        std::cout << "   Step " << i << " - Output: " << y.data().raw_data()[0] << std::endl;
+        std::cout << "   Step " << i << " - Output: " << y.cpu().data().raw_data()[0] << std::endl;
     }
 
     std::cout << "2. Forward test completed!" << std::endl;
@@ -28,19 +35,26 @@ void test_simplernn_single_backward() {
     size_t hidden_size = 10;
     size_t output_size = 1;
     SimpleRNN simplernn(hidden_size, output_size);
+#ifdef USE_SYCL
+    simplernn.to(dcz::sycl());
+#endif
     std::cout << "1. SimpleRNN created" << std::endl;
 
     simplernn.reset_state();
 
     // 1개 샘플로 backward 테스트
-    Tensor<> x = randn({1, 1});
-    Tensor<> t = randn({1, 1});
+    Variable xv(randn({1, 1}));
+    Variable tv(randn({1, 1}));
+#ifdef USE_SYCL
+    xv = xv.to(dcz::sycl());
+    tv = tv.to(dcz::sycl());
+#endif
 
-    std::vector<Variable> x_vec = {Variable(x)};
+    std::vector<Variable> x_vec = {xv};
     Variable y = simplernn(x_vec);
-    Variable loss = mean_squared_error(y, Variable(t));
+    Variable loss = mean_squared_error(y, tv);
 
-    std::cout << "2. Loss: " << loss.data().raw_data()[0] << std::endl;
+    std::cout << "2. Loss: " << loss.cpu().data().raw_data()[0] << std::endl;
 
     simplernn.cleargrads();
     std::cout << "3. Running backward..." << std::endl;
@@ -55,6 +69,9 @@ void test_simplernn_model() {
     size_t hidden_size = 10;
     size_t output_size = 1;
     SimpleRNN simplernn(hidden_size, output_size);
+#ifdef USE_SYCL
+    simplernn.to(dcz::sycl());
+#endif
     std::cout << "1. SimpleRNN model created with hidden_size=" << hidden_size
               << " output_size=" << output_size << std::endl;
 
@@ -68,9 +85,13 @@ void test_simplernn_model() {
 
     for (size_t i = 0; i < seqlen; ++i) {
         Tensor<> x = randn({batch_size, input_size});
-        dataset_x.push_back(Variable(x));
-        if (i != 0) 
-            dataset_t.push_back(Variable(x));
+        Variable xv(x);
+#ifdef USE_SYCL
+        xv = xv.to(dcz::sycl());
+#endif
+        dataset_x.push_back(xv);
+        if (i != 0)
+            dataset_t.push_back(xv);
     }
     std::cout << "2. Created dataset with " << seqlen << " samples" << std::endl;
 
@@ -101,7 +122,7 @@ void test_simplernn_model() {
 
         // bptt_length마다 또는 마지막에 backward
         if (count == bptt_length || i == seqlen - 2) {
-            float avg_loss = loss.data().raw_data()[0] / count;
+            float avg_loss = loss.cpu().data().raw_data()[0] / count;
             std::cout << "   Step " << i << " - Avg Loss: " << avg_loss << std::endl;
 
             simplernn.cleargrads();
@@ -124,6 +145,9 @@ void test_simplrnn_sin_wave_prediction() {
     size_t output_size = 1;
     float learning_rate = 0.01;
     SimpleRNN simplernn(hidden_size, output_size);
+#ifdef USE_SYCL
+    simplernn.to(dcz::sycl());
+#endif
     SGD optimizer(learning_rate);
     optimizer.setup(simplernn);
     std::cout << "1. SimpleRNN created" << std::endl;
@@ -145,8 +169,13 @@ void test_simplrnn_sin_wave_prediction() {
         x({0, 0}) = val;
         Tensor<> t({1, 1});
         t({0, 0}) = std::sin(2 * 3.14159f * (i + 1) / 25.0f); // 다음 값 예측
-        dataset_x.push_back(Variable(x));
-        dataset_t.push_back(Variable(t));
+        Variable xv(x), tv(t);
+#ifdef USE_SYCL
+        xv = xv.to(dcz::sycl());
+        tv = tv.to(dcz::sycl());
+#endif
+        dataset_x.push_back(xv);
+        dataset_t.push_back(tv);
     }
     std::cout << "2. Created sine wave dataset" << std::endl;
 
@@ -171,7 +200,7 @@ void test_simplrnn_sin_wave_prediction() {
 
         // bptt_length마다 backward & update
         if (count == bptt_length || i == seqlen - 2) {
-            float avg_loss = loss.data().raw_data()[0] / count;
+            float avg_loss = loss.cpu().data().raw_data()[0] / count;
             total_loss += avg_loss;
             loss_count++;
 
@@ -207,8 +236,8 @@ void test_simplrnn_sin_wave_prediction() {
         Variable y = simplernn({x});
         Variable t = dataset_t[i];
 
-        float pred = y.data().raw_data()[0];
-        float target = t.data().raw_data()[0];
+        float pred = y.cpu().data().raw_data()[0];
+        float target = t.cpu().data().raw_data()[0];
         float error = std::abs(pred - target);
         test_error += error;
 
@@ -236,6 +265,9 @@ void test_bptt_simple() {
     std::cout << "\n=== Test: Simple BPTT Debug ===" << std::endl;
 
     SimpleRNN simplernn(5, 1);
+#ifdef USE_SYCL
+    simplernn.to(dcz::sycl());
+#endif
     SGD optimizer(0.1);
     optimizer.setup(simplernn);
 
@@ -244,8 +276,14 @@ void test_bptt_simple() {
     for (int i = 0; i < 10; ++i) {
         Tensor<> x({1, 1}, float(i));
         Tensor<> t({1, 1}, float(i+1));
-        xs.push_back(Variable(x, "x" + std::to_string(i)));
-        ts.push_back(Variable(t, "t" + std::to_string(i)));
+        Variable xv(x, "x" + std::to_string(i));
+        Variable tv(t, "t" + std::to_string(i));
+#ifdef USE_SYCL
+        xv = xv.to(dcz::sycl());
+        tv = tv.to(dcz::sycl());
+#endif
+        xs.push_back(xv);
+        ts.push_back(tv);
     }
 
     std::cout << "Testing full BPTT with two windows..." << std::endl;
@@ -258,7 +296,7 @@ void test_bptt_simple() {
     Variable y1 = simplernn({xs[1]});
     Variable l1 = mean_squared_error(y1, ts[1]);
     Variable loss1 = l0 + l1;
-    std::cout << "Window 1 (steps 0-1): Loss = " << loss1.data().raw_data()[0] << std::endl;
+    std::cout << "Window 1 (steps 0-1): Loss = " << loss1.cpu().data().raw_data()[0] << std::endl;
 
     simplernn.cleargrads();
     loss1.backward();
@@ -280,7 +318,7 @@ void test_bptt_simple() {
     Variable y3 = simplernn({xs[3]});
     Variable l3 = mean_squared_error(y3, ts[3]);
     Variable loss2 = l2 + l3;
-    std::cout << "Window 2 (steps 2-3): Loss = " << loss2.data().raw_data()[0] << std::endl;
+    std::cout << "Window 2 (steps 2-3): Loss = " << loss2.cpu().data().raw_data()[0] << std::endl;
 
     simplernn.cleargrads();
     std::cout << "About to call backward 2..." << std::endl;

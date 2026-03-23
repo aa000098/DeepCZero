@@ -49,10 +49,21 @@ void test_vgg_forward_with_image() {
 
 	// 3. VGG16 forward
 	VGG16 model(true);
+
+#ifdef USE_SYCL
+	dcz::SYCLContext::get().print_device_info();
+	std::cout << "\nMoving model to GPU..." << std::endl;
+	model.to(dcz::sycl());
+	x = x.to(dcz::sycl());
+#endif
+
 	Variable y = model.forward({x});
 
+	// Move output to CPU for analysis
+	auto y_data = y.data().is_device() ? y.data().cpu() : y.data();
+
 	std::cout << "\n=== Output Statistics ===" << std::endl;
-	const auto& output_data = y.data().raw_data();
+	const auto& output_data = y_data.raw_data();
 	float output_min = *std::min_element(output_data.begin(), output_data.end());
 	float output_max = *std::max_element(output_data.begin(), output_data.end());
 	float output_mean = std::accumulate(output_data.begin(), output_data.end(), 0.0f) / output_data.size();
@@ -65,7 +76,7 @@ void test_vgg_forward_with_image() {
 	std::cout << "\nTop-5 predictions:" << std::endl;
 
 	// Top-5 계산
-	const auto& logits = y.data().raw_data();
+	const auto& logits = y_data.raw_data();
 	std::vector<std::pair<int, float>> scores;
 	for (size_t i = 0; i < logits.size(); ++i) {
 		scores.push_back({static_cast<int>(i), logits[i]});

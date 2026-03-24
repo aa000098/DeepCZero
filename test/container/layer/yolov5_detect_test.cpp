@@ -48,7 +48,15 @@ void test_yolov5_detection(const std::string& variant,
 		return;
 	}
 
-	// 3. Forward pass
+	// 3. Move model/input to GPU if available
+#ifdef USE_SYCL
+	dcz::SYCLContext::get().print_device_info();
+	std::cout << "Moving model to GPU..." << std::endl;
+	model.to(dcz::sycl());
+	x = x.to(dcz::sycl());
+#endif
+
+	// 4. Forward pass
 	std::cout << "\nRunning forward pass..." << std::endl;
 	auto start = std::chrono::high_resolution_clock::now();
 	auto outputs = model.forward_detect(x);
@@ -56,16 +64,21 @@ void test_yolov5_detection(const std::string& variant,
 	double ms = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
 
 	std::cout << "Forward pass: " << ms << " ms" << std::endl;
-	for (size_t i = 0; i < outputs.size(); ++i) {
+
+	// Move outputs to CPU for decode
+	std::vector<Variable> cpu_outputs;
+	for (auto& out : outputs) cpu_outputs.push_back(out.cpu());
+
+	for (size_t i = 0; i < cpu_outputs.size(); ++i) {
 		std::cout << "  Output " << i << " shape: [";
-		for (size_t j = 0; j < outputs[i].shape().size(); ++j)
-			std::cout << outputs[i].shape()[j] << (j < outputs[i].shape().size()-1 ? ", " : "");
+		for (size_t j = 0; j < cpu_outputs[i].shape().size(); ++j)
+			std::cout << cpu_outputs[i].shape()[j] << (j < cpu_outputs[i].shape().size()-1 ? ", " : "");
 		std::cout << "]" << std::endl;
 	}
 
-	// 4. Decode + NMS
+	// 5. Decode + NMS
 	std::cout << "\nPost-processing..." << std::endl;
-	auto detections = decode_yolov5_outputs(outputs, 80, 0.60f);
+	auto detections = decode_yolov5_outputs(cpu_outputs, 80, 0.60f);
 	std::cout << "Detections before NMS: " << detections.size() << std::endl;
 
 	detections = nms(detections, 0.45f);

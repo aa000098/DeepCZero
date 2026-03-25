@@ -38,7 +38,7 @@ int main() {
 	x11.show();
 	
 	const double pi = std::acos(-1.0);
-	Variable x12 = Variable({pi/4});
+	Variable x12 = Variable({static_cast<float>(pi/4)});
 	Variable y6 = sin(x12);
 	y6.backward(true);
 	y6.show();

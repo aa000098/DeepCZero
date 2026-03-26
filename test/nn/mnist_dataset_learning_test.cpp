@@ -5,7 +5,7 @@
 #include <omp.h>
 
 void test_mnist_dataset_learning() {
-    
+
     size_t batch_size = 100;
 
    	MNISTDataset train_set(true);
@@ -16,23 +16,33 @@ void test_mnist_dataset_learning() {
 
 	size_t max_epoch = 5;
 	size_t hidden_size = 1000;
-	
+
 
 	MLP model({hidden_size, 10});
+
+#ifdef USE_SYCL
+	std::cout << "Moving model to GPU..." << std::endl;
+	model.to(dcz::sycl());
+#endif
+
 	SGD optimizer;
 	optimizer.setup(model);
-	
+
 	for (size_t epoch = 0; epoch < max_epoch; epoch++) {
 		float sum_loss = 0, sum_acc = 0;
 		size_t batch_index = 1;
 		size_t total_batches = (train_set.size() + batch_size - 1) / batch_size;
 
-			for (const auto& [x, t] : train_loader) {
+			for (auto [x, t] : train_loader) {
 				auto start = std::chrono::high_resolution_clock::now();
 
     			std::cout << "Epoch " << epoch+1 << ", Batch " << batch_index++ << "/" << total_batches << std::endl;
 
-	
+#ifdef USE_SYCL
+				x = x.to(dcz::sycl());
+				t = t.to(dcz::sycl());
+#endif
+
 				Variable y = model(x);
 				Variable loss = softmax_cross_entropy_error(y, t);
 				Variable acc = accuracy(y, t);
@@ -41,8 +51,8 @@ void test_mnist_dataset_learning() {
 				loss.backward();
 				optimizer.update();
 
-				sum_loss += loss({0}) * static_cast<float>(t.size());
-				sum_acc += acc({0}) * static_cast<float>(t.size());
+				sum_loss += loss.cpu()({0}) * static_cast<float>(t.size());
+				sum_acc += acc.cpu()({0}) * static_cast<float>(t.size());
 
 				auto end = std::chrono::high_resolution_clock::now();
 				std::chrono::duration<double> elapsed = end - start;
@@ -55,14 +65,18 @@ void test_mnist_dataset_learning() {
 			sum_acc = 0;
 			{
 				dcz::UsingConfig no_grad("enable_backprop", true);
-				
-				for (const auto& [x, t] : test_loader) {
+
+				for (auto [x, t] : test_loader) {
+#ifdef USE_SYCL
+					x = x.to(dcz::sycl());
+					t = t.to(dcz::sycl());
+#endif
 					Variable y = model(x);
 					Variable loss = softmax_cross_entropy_error(y, t);
 					Variable acc = accuracy(y, t);
 
-					sum_loss += loss({0}) * static_cast<float>(t.size());
-					sum_acc += acc({0}) * static_cast<float>(t.size());
+					sum_loss += loss.cpu()({0}) * static_cast<float>(t.size());
+					sum_acc += acc.cpu()({0}) * static_cast<float>(t.size());
 				}
 			}
 			std::cout << "test loss : " << sum_loss / static_cast<float>(test_set.size()) << ", accuray : " << sum_acc / static_cast<float>(test_set.size()) << std::endl;

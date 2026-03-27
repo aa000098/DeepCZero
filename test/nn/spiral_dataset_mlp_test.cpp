@@ -18,6 +18,9 @@ void test_spiral_dataset_mlp() {
 	Tensor train_t = train_ds.get_label();
 
 	MLP model({hidden_size, 3});
+#ifdef USE_SYCL
+	model.to(dcz::sycl());
+#endif
 	SGD optimizer(lr);
 	optimizer.setup(model);
 
@@ -36,14 +39,19 @@ void test_spiral_dataset_mlp() {
 
 			Tensor batch_x = train_X.gather_rows(batch_index);
 			Tensor batch_t = train_t.gather_rows(batch_index);
-			Variable y = model(batch_x);
-			Variable loss = softmax_cross_entropy_error(y, batch_t);
+			Variable x(batch_x), t(batch_t);
+#ifdef USE_SYCL
+			x = x.to(dcz::sycl());
+			t = t.to(dcz::sycl());
+#endif
+			Variable y = model(x);
+			Variable loss = softmax_cross_entropy_error(y, t);
 
 			model.cleargrads();
 			loss.backward();
 			optimizer.update();
 
-			sum_loss += loss({0}) * static_cast<float>(batch_t.size());
+			sum_loss += loss.cpu()({0}) * static_cast<float>(batch_t.size());
 		
 		}
 

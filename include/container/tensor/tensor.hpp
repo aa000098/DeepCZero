@@ -227,6 +227,19 @@ namespace tensor {
 		// Access device buffer (for GPU kernel dispatch)
 		std::shared_ptr<dcz::DeviceBuffer<T>> device_buffer() const { return device_buf_; }
 
+		// Static factories
+		static Tensor<T> zeros_like(const Tensor<T>& other) {
+			return Tensor<T>(other.get_shape(), T(0));
+		}
+
+		static Tensor<T> ones_like(const Tensor<T>& other) {
+			return Tensor<T>(other.get_shape(), T(1));
+		}
+
+		static Tensor<T> full_like(const Tensor<T>& other, T value) {
+			return Tensor<T>(other.get_shape(), value);
+		}
+
 		// Static factory for device tensors
 		static Tensor<T> from_device(const dcz::Device& dev,
 									 std::shared_ptr<dcz::DeviceBuffer<T>> buf,

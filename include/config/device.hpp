@@ -12,8 +12,8 @@ namespace dcz {
 enum class DeviceType {
 	CPU = 0,
 	SYCL = 1,
+	CUDA = 2,
 	// Future backends:
-	// CUDA = 2,
 	// VULKAN = 3,
 };
 
@@ -37,6 +37,7 @@ public:
 		switch (type) {
 			case DeviceType::CPU:  return "cpu";
 			case DeviceType::SYCL: return "sycl:" + std::to_string(index);
+			case DeviceType::CUDA: return "cuda:" + std::to_string(index);
 			default: return "unknown";
 		}
 	}
@@ -49,6 +50,7 @@ inline std::ostream& operator<<(std::ostream& os, const Device& d) {
 // Convenience device constructors
 inline Device cpu() { return Device(DeviceType::CPU); }
 inline Device sycl(int index = 0) { return Device(DeviceType::SYCL, index); }
+inline Device cuda(int index = 0) { return Device(DeviceType::CUDA, index); }
 
 // Abstract base for device-side memory
 template<typename T>

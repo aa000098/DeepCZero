@@ -74,7 +74,10 @@ Tensor<T> operator+(T scalar, const Tensor<T>& a) {
 template<typename T>
 Tensor<T> operator-(T scalar, const Tensor<T>& a) {
 #ifdef USE_SYCL
-    if (a.is_device()) return scalar_sub_sycl(scalar, a);
+    if (a.device().type == dcz::DeviceType::SYCL) return scalar_sub_sycl(scalar, a);
+#endif
+#ifdef USE_CUDA
+    if (a.device().type == dcz::DeviceType::CUDA) return scalar_sub_cuda(scalar, a);
 #endif
     Tensor<T> result = a.clone();
     auto& data = result.raw_data();

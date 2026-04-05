@@ -18,6 +18,14 @@
 #include "container/tensor/tensor_ops_sycl_nn.hpp"
 #endif
 
+#ifdef USE_CUDA
+#include "container/tensor/tensor_ops_cuda.hpp"
+#include "container/tensor/tensor_ops_cuda_misc.hpp"
+#include "container/tensor/tensor_ops_cuda_reduce.hpp"
+#include "container/tensor/tensor_ops_cuda_activation.hpp"
+#include "container/tensor/tensor_ops_cuda_nn.hpp"
+#endif
+
 #include "config/backend_config.hpp"
 
 namespace tensor {
@@ -132,10 +140,17 @@ template<typename T>
 Tensor<T> add(const Tensor<T>& a, const Tensor<T>& b) {
 	check_same_device(a, b);
 #ifdef USE_SYCL
-	if (a.is_device()) {
+	if (a.device().type == dcz::DeviceType::SYCL) {
 		if (a.get_shape() == b.get_shape()) return add_sycl(a, b);
 		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
 		return add_sycl(a_bc, b_bc);
+	}
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) {
+		if (a.get_shape() == b.get_shape()) return add_cuda(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_cuda(a, b);
+		return add_cuda(a_bc, b_bc);
 	}
 #endif
 #ifdef USE_MKL
@@ -153,10 +168,17 @@ template<typename T>
 Tensor<T> sub(const Tensor<T>& a, const Tensor<T>& b) {
 	check_same_device(a, b);
 #ifdef USE_SYCL
-	if (a.is_device()) {
+	if (a.device().type == dcz::DeviceType::SYCL) {
 		if (a.get_shape() == b.get_shape()) return sub_sycl(a, b);
 		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
 		return sub_sycl(a_bc, b_bc);
+	}
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) {
+		if (a.get_shape() == b.get_shape()) return sub_cuda(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_cuda(a, b);
+		return sub_cuda(a_bc, b_bc);
 	}
 #endif
 #ifdef USE_MKL
@@ -173,10 +195,17 @@ template<typename T>
 Tensor<T> mul(const Tensor<T>& a, const Tensor<T>& b) {
 	check_same_device(a, b);
 #ifdef USE_SYCL
-	if (a.is_device()) {
+	if (a.device().type == dcz::DeviceType::SYCL) {
 		if (a.get_shape() == b.get_shape()) return mul_sycl(a, b);
 		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
 		return mul_sycl(a_bc, b_bc);
+	}
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) {
+		if (a.get_shape() == b.get_shape()) return mul_cuda(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_cuda(a, b);
+		return mul_cuda(a_bc, b_bc);
 	}
 #endif
 #ifdef USE_MKL
@@ -193,10 +222,17 @@ template<typename T>
 Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
 	check_same_device(a, b);
 #ifdef USE_SYCL
-	if (a.is_device()) {
+	if (a.device().type == dcz::DeviceType::SYCL) {
 		if (a.get_shape() == b.get_shape()) return div_sycl(a, b);
 		auto [a_bc, b_bc, shape] = broadcast_binary_operands_sycl(a, b);
 		return div_sycl(a_bc, b_bc);
+	}
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) {
+		if (a.get_shape() == b.get_shape()) return div_cuda(a, b);
+		auto [a_bc, b_bc, shape] = broadcast_binary_operands_cuda(a, b);
+		return div_cuda(a_bc, b_bc);
 	}
 #endif
 #ifdef USE_MKL
@@ -212,7 +248,10 @@ Tensor<T> div(const Tensor<T>& a, const Tensor<T>& b) {
 template<typename T>
 Tensor<T> neg(const Tensor<T>& a) {
 #ifdef USE_SYCL
-	if (a.is_device()) return neg_sycl(a);
+	if (a.device().type == dcz::DeviceType::SYCL) return neg_sycl(a);
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) return neg_cuda(a);
 #endif
 	std::vector<T> result_data(a.raw_data());
 	for (auto& val : result_data)
@@ -225,9 +264,16 @@ Tensor<T> neg(const Tensor<T>& a) {
 template<typename T>
 void add_inplace(Tensor<T>& a, const Tensor<T>& b) {
 #ifdef USE_SYCL
-	if (a.is_device()) {
+	if (a.device().type == dcz::DeviceType::SYCL) {
 		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_sycl(b, a.get_shape());
 		add_inplace_sycl(a, b_bc);
+		return;
+	}
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) {
+		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_cuda(b, a.get_shape());
+		add_inplace_cuda(a, b_bc);
 		return;
 	}
 #endif
@@ -252,9 +298,16 @@ void add_inplace(Tensor<T>& a, const Tensor<T>& b) {
 template<typename T>
 void sub_inplace(Tensor<T>& a, const Tensor<T>& b) {
 #ifdef USE_SYCL
-	if (a.is_device()) {
+	if (a.device().type == dcz::DeviceType::SYCL) {
 		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_sycl(b, a.get_shape());
 		sub_inplace_sycl(a, b_bc);
+		return;
+	}
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) {
+		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_cuda(b, a.get_shape());
+		sub_inplace_cuda(a, b_bc);
 		return;
 	}
 #endif
@@ -279,9 +332,16 @@ void sub_inplace(Tensor<T>& a, const Tensor<T>& b) {
 template<typename T>
 void mul_inplace(Tensor<T>& a, const Tensor<T>& b) {
 #ifdef USE_SYCL
-	if (a.is_device()) {
+	if (a.device().type == dcz::DeviceType::SYCL) {
 		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_sycl(b, a.get_shape());
 		mul_inplace_sycl(a, b_bc);
+		return;
+	}
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) {
+		Tensor<T> b_bc = (a.get_shape() == b.get_shape()) ? b : broadcast_to_cuda(b, a.get_shape());
+		mul_inplace_cuda(a, b_bc);
 		return;
 	}
 #endif
@@ -329,7 +389,10 @@ void div_inplace(Tensor<T>& a, const Tensor<T>& b) {
 template<typename T>
 void add_scalar_inplace(Tensor<T>& a, T scalar) {
 #ifdef USE_SYCL
-	if (a.is_device()) { add_scalar_inplace_sycl(a, scalar); return; }
+	if (a.device().type == dcz::DeviceType::SYCL) { add_scalar_inplace_sycl(a, scalar); return; }
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) { add_scalar_inplace_cuda(a, scalar); return; }
 #endif
 	auto& data = a.raw_data();
 	for (auto& val : data)
@@ -340,7 +403,10 @@ void add_scalar_inplace(Tensor<T>& a, T scalar) {
 template<typename T>
 void sub_scalar_inplace(Tensor<T>& a, T scalar) {
 #ifdef USE_SYCL
-	if (a.is_device()) { sub_scalar_inplace_sycl(a, scalar); return; }
+	if (a.device().type == dcz::DeviceType::SYCL) { sub_scalar_inplace_sycl(a, scalar); return; }
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) { sub_scalar_inplace_cuda(a, scalar); return; }
 #endif
 	auto& data = a.raw_data();
 	for (auto& val : data)
@@ -350,7 +416,10 @@ void sub_scalar_inplace(Tensor<T>& a, T scalar) {
 template<typename T>
 void mul_scalar_inplace(Tensor<T>& a, T scalar) {
 #ifdef USE_SYCL
-	if (a.is_device()) { mul_scalar_inplace_sycl(a, scalar); return; }
+	if (a.device().type == dcz::DeviceType::SYCL) { mul_scalar_inplace_sycl(a, scalar); return; }
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) { mul_scalar_inplace_cuda(a, scalar); return; }
 #endif
 	auto& data = a.raw_data();
 	for (auto& val : data)
@@ -360,7 +429,10 @@ void mul_scalar_inplace(Tensor<T>& a, T scalar) {
 template<typename T>
 void div_scalar_inplace(Tensor<T>& a, T scalar) {
 #ifdef USE_SYCL
-	if (a.is_device()) { div_scalar_inplace_sycl(a, scalar); return; }
+	if (a.device().type == dcz::DeviceType::SYCL) { div_scalar_inplace_sycl(a, scalar); return; }
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) { div_scalar_inplace_cuda(a, scalar); return; }
 #endif
 	auto& data = a.raw_data();
 	if (scalar == static_cast<T>(0))
@@ -441,7 +513,10 @@ Tensor<T> tanh_naive(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> pow(const Tensor<T>& x, const T scalar) {
 #ifdef USE_SYCL
-	if (x.is_device()) return pow_sycl(x, scalar);
+	if (x.device().type == dcz::DeviceType::SYCL) return pow_sycl(x, scalar);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return pow_cuda(x, scalar);
 #endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -454,7 +529,10 @@ Tensor<T> pow(const Tensor<T>& x, const T scalar) {
 template<typename T>
 Tensor<T> exp(const Tensor<T>& x) {
 #ifdef USE_SYCL
-	if (x.is_device()) return exp_sycl(x);
+	if (x.device().type == dcz::DeviceType::SYCL) return exp_sycl(x);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return exp_cuda(x);
 #endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -467,7 +545,10 @@ Tensor<T> exp(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> log(const Tensor<T>& x) {
 #ifdef USE_SYCL
-	if (x.is_device()) return log_sycl(x);
+	if (x.device().type == dcz::DeviceType::SYCL) return log_sycl(x);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return log_cuda(x);
 #endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -480,7 +561,10 @@ Tensor<T> log(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> sin(const Tensor<T>& x) {
 #ifdef USE_SYCL
-	if (x.is_device()) return sin_sycl(x);
+	if (x.device().type == dcz::DeviceType::SYCL) return sin_sycl(x);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return sin_cuda(x);
 #endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -493,7 +577,10 @@ Tensor<T> sin(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> cos(const Tensor<T>& x) {
 #ifdef USE_SYCL
-	if (x.is_device()) return cos_sycl(x);
+	if (x.device().type == dcz::DeviceType::SYCL) return cos_sycl(x);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return cos_cuda(x);
 #endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -506,7 +593,10 @@ Tensor<T> cos(const Tensor<T>& x) {
 template<typename T>
 Tensor<T> tanh(const Tensor<T>& x) {
 #ifdef USE_SYCL
-	if (x.is_device()) return tanh_sycl(x);
+	if (x.device().type == dcz::DeviceType::SYCL) return tanh_sycl(x);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return tanh_cuda(x);
 #endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -618,7 +708,10 @@ template<typename T>
 Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 	check_same_device(a, b);
 #ifdef USE_SYCL
-	if (a.is_device()) return dot_sycl(a, b);
+	if (a.device().type == dcz::DeviceType::SYCL) return dot_sycl(a, b);
+#endif
+#ifdef USE_CUDA
+	if (a.device().type == dcz::DeviceType::CUDA) return dot_cuda(a, b);
 #endif
 #ifdef USE_MKL
 	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
@@ -700,7 +793,10 @@ Tensor<T> tensordot(const Tensor<T> &A,
 template<typename T>
 Tensor<T> maximum(const Tensor<T>& input, T scalar) {
 #ifdef USE_SYCL
-	if (input.is_device()) return maximum_sycl(input, scalar);
+	if (input.device().type == dcz::DeviceType::SYCL) return maximum_sycl(input, scalar);
+#endif
+#ifdef USE_CUDA
+	if (input.device().type == dcz::DeviceType::CUDA) return maximum_cuda(input, scalar);
 #endif
 	std::vector<T> out_data(input.size());
 	const auto& in_data = input.data();
@@ -714,7 +810,10 @@ Tensor<T> maximum(const Tensor<T>& input, T scalar) {
 template<typename T>
 Tensor<T> minimum(const Tensor<T>& input, T scalar) {
 #ifdef USE_SYCL
-	if (input.is_device()) return minimum_sycl(input, scalar);
+	if (input.device().type == dcz::DeviceType::SYCL) return minimum_sycl(input, scalar);
+#endif
+#ifdef USE_CUDA
+	if (input.device().type == dcz::DeviceType::CUDA) return minimum_cuda(input, scalar);
 #endif
 	std::vector<T> out_data(input.size());
 	const auto& in_data = input.data();
@@ -728,7 +827,10 @@ Tensor<T> minimum(const Tensor<T>& input, T scalar) {
 template<typename T>
 Tensor<T> abs(const Tensor<T>& input) {
 #ifdef USE_SYCL
-	if (input.is_device()) return abs_sycl(input);
+	if (input.device().type == dcz::DeviceType::SYCL) return abs_sycl(input);
+#endif
+#ifdef USE_CUDA
+	if (input.device().type == dcz::DeviceType::CUDA) return abs_cuda(input);
 #endif
 	std::vector<T> out_data(input.size());
 	const auto& in_data = input.data();
@@ -742,7 +844,10 @@ Tensor<T> abs(const Tensor<T>& input) {
 template<typename T>
 Tensor<T> sign(const Tensor<T>& input) {
 #ifdef USE_SYCL
-	if (input.is_device()) return sign_sycl(input);
+	if (input.device().type == dcz::DeviceType::SYCL) return sign_sycl(input);
+#endif
+#ifdef USE_CUDA
+	if (input.device().type == dcz::DeviceType::CUDA) return sign_cuda(input);
 #endif
 	std::vector<T> out_data(input.size());
 	const auto& in_data = input.data();
@@ -759,7 +864,10 @@ Tensor<T> sign(const Tensor<T>& input) {
 template<typename T>
 Tensor<T> clamp(const Tensor<T>& input, T min_val, T max_val) {
 #ifdef USE_SYCL
-	if (input.is_device()) return clamp_sycl(input, min_val, max_val);
+	if (input.device().type == dcz::DeviceType::SYCL) return clamp_sycl(input, min_val, max_val);
+#endif
+#ifdef USE_CUDA
+	if (input.device().type == dcz::DeviceType::CUDA) return clamp_cuda(input, min_val, max_val);
 #endif
 	std::vector<T> out_data(input.size());
 	const auto& in_data = input.data();
@@ -773,7 +881,10 @@ Tensor<T> clamp(const Tensor<T>& input, T min_val, T max_val) {
 template<typename T>
 Tensor<T> greater(const Tensor<T>& x, T scalar) {
 #ifdef USE_SYCL
-	if (x.is_device()) return greater_sycl(x, scalar);
+	if (x.device().type == dcz::DeviceType::SYCL) return greater_sycl(x, scalar);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return greater_cuda(x, scalar);
 #endif
 	const auto& x_data = x.data();
 	std::vector<T> out_data(x.size());

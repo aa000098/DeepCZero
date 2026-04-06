@@ -13,6 +13,17 @@ template<typename T> Tensor<T> gather_rows_sycl(const Tensor<T>& x, const std::v
 }
 #endif
 
+#ifdef USE_CUDA
+#include "config/device_cuda.hpp"
+// Forward declarations for CUDA ops
+namespace tensor {
+template<typename T> Tensor<T> sum_cuda(const Tensor<T>& x, const std::vector<int>& axes, bool keepdims);
+template<typename T> Tensor<T> max_cuda(const Tensor<T>& x, const std::vector<int>& axes, bool keepdims);
+template<typename T> Tensor<T> contiguous_cuda(const Tensor<T>& x);
+template<typename T> Tensor<T> gather_rows_cuda(const Tensor<T>& x, const std::vector<size_t>& indices);
+}
+#endif
+
 #include <set>
 #include <algorithm>
 #include <fstream>
@@ -88,8 +99,13 @@ Tensor<T> Tensor<T>::reshape(const std::vector<size_t>& new_shape) const {
 template<typename T>
 Tensor<T> Tensor<T>::gather_rows(const std::vector<size_t>& indices) const {
 #ifdef USE_SYCL
-	if (is_device()) {
+	if (device_.type == dcz::DeviceType::SYCL) {
 		return gather_rows_sycl(*this, indices);
+	}
+#endif
+#ifdef USE_CUDA
+	if (device_.type == dcz::DeviceType::CUDA) {
+		return gather_rows_cuda(*this, indices);
 	}
 #endif
 	return Tensor<T>(impl->gather_rows(indices));
@@ -138,8 +154,13 @@ Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
 template<typename T>
 Tensor<T> Tensor<T>::sum(const std::vector<int>& axis, bool keepdims) const {
 #ifdef USE_SYCL
-    if (is_device()) {
+    if (device_.type == dcz::DeviceType::SYCL) {
         return sum_sycl(*this, axis, keepdims);
+    }
+#endif
+#ifdef USE_CUDA
+    if (device_.type == dcz::DeviceType::CUDA) {
+        return sum_cuda(*this, axis, keepdims);
     }
 #endif
 
@@ -234,8 +255,13 @@ template <typename T>
 Tensor<T> Tensor<T>::max(const std::vector<int>& axes,
 						bool keepdims) const {
 #ifdef USE_SYCL
-	if (is_device()) {
+	if (device_.type == dcz::DeviceType::SYCL) {
 		return max_sycl(*this, axes, keepdims);
+	}
+#endif
+#ifdef USE_CUDA
+	if (device_.type == dcz::DeviceType::CUDA) {
+		return max_cuda(*this, axes, keepdims);
 	}
 #endif
 
@@ -399,7 +425,13 @@ std::vector<T> Tensor<T>::view_data() const {
 template <typename T>
 Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, T pad_value) const {
 #ifdef USE_SYCL
-	if (is_device()) {
+	if (device_.type == dcz::DeviceType::SYCL) {
+		dcz::Device dev = device();
+		return cpu().pad(padding, pad_value).to(dev);
+	}
+#endif
+#ifdef USE_CUDA
+	if (device_.type == dcz::DeviceType::CUDA) {
 		dcz::Device dev = device();
 		return cpu().pad(padding, pad_value).to(dev);
 	}
@@ -448,8 +480,13 @@ Tensor<T> Tensor<T>::contiguous() const {
         return *this;
     }
 #ifdef USE_SYCL
-    if (is_device()) {
+    if (device_.type == dcz::DeviceType::SYCL) {
         return contiguous_sycl(*this);
+    }
+#endif
+#ifdef USE_CUDA
+    if (device_.type == dcz::DeviceType::CUDA) {
+        return contiguous_cuda(*this);
     }
 #endif
 
@@ -629,6 +666,12 @@ Tensor<T> Tensor<T>::to(const dcz::Device& target) const {
 #ifdef USE_SYCL
 	if (target.type == dcz::DeviceType::SYCL) {
 		return to_sycl(*this, target);
+	}
+#endif
+
+#ifdef USE_CUDA
+	if (target.type == dcz::DeviceType::CUDA) {
+		return to_cuda(*this, target);
 	}
 #endif
 

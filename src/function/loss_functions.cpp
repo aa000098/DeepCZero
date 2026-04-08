@@ -30,8 +30,14 @@ Variable function::SoftmaxCrossEntropyError::forward(const std::vector<Variable>
 	const Tensor<>& t = xs[1].data();
 
 #ifdef USE_SYCL
-	if (x.is_device()) {
+	if (x.device().type == dcz::DeviceType::SYCL) {
 		Tensor<> result = tensor::softmax_cross_entropy_forward_sycl(x, t);
+		return Variable(result);
+	}
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) {
+		Tensor<> result = tensor::softmax_cross_entropy_forward_cuda(x, t);
 		return Variable(result);
 	}
 #endif
@@ -63,10 +69,17 @@ std::vector<Variable> function::SoftmaxCrossEntropyError::backward(const Variabl
 	const Variable& t = inputs[1];
 
 #ifdef USE_SYCL
-	if (x.data().is_device()) {
-		// Get scalar gy value
+	if (x.data().device().type == dcz::DeviceType::SYCL) {
 		float gy_val = gy.data().cpu().raw_data()[0];
 		Tensor<> dx = tensor::softmax_cross_entropy_backward_sycl(
+			x.data(), t.data(), gy_val);
+		return { Variable(dx) };
+	}
+#endif
+#ifdef USE_CUDA
+	if (x.data().device().type == dcz::DeviceType::CUDA) {
+		float gy_val = gy.data().cpu().raw_data()[0];
+		Tensor<> dx = tensor::softmax_cross_entropy_backward_cuda(
 			x.data(), t.data(), gy_val);
 		return { Variable(dx) };
 	}

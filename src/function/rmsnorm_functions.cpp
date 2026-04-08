@@ -10,8 +10,14 @@ Variable function::RMSNorm::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& weight = xs[1].data();   // [hidden_size]
 
 #ifdef USE_SYCL
-	if (x.is_device()) {
+	if (x.device().type == dcz::DeviceType::SYCL) {
 		Tensor<> result = tensor::rmsnorm_forward_sycl(x, weight, eps);
+		return Variable(result);
+	}
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) {
+		Tensor<> result = tensor::rmsnorm_forward_cuda(x, weight, eps);
 		return Variable(result);
 	}
 #endif
@@ -56,8 +62,14 @@ std::vector<Variable> function::RMSNorm::backward(const Variable& gy) {
 	const Tensor<>& gy_data = gy.data();        // [batch, seq_len, hidden_size]
 
 #ifdef USE_SYCL
-	if (x.is_device()) {
+	if (x.device().type == dcz::DeviceType::SYCL) {
 		auto [dx, dw] = tensor::rmsnorm_backward_sycl(x, weight, gy_data, eps);
+		return { Variable(dx), Variable(dw) };
+	}
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) {
+		auto [dx, dw] = tensor::rmsnorm_backward_cuda(x, weight, gy_data, eps);
 		return { Variable(dx), Variable(dw) };
 	}
 #endif

@@ -35,11 +35,21 @@ ifeq ($(USE_SYCL), 1)
     -include Makefile.sycl
 endif
 
+# Optional: Enable CUDA for GPU operations
+# To enable: make USE_CUDA=1
+USE_CUDA ?= 0
+ifeq ($(USE_CUDA), 1)
+    -include Makefile.cuda
+endif
+
 # src and objs
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
-TESTS := $(shell find $(TEST_DIR) -name '*.cpp' -not -path '$(TEST_DIR)/benchmark/*' -not -name '*_sycl_*')
+TESTS := $(shell find $(TEST_DIR) -name '*.cpp' -not -path '$(TEST_DIR)/benchmark/*' -not -name '*_sycl_*' -not -name '*_cuda_*')
 ifeq ($(USE_SYCL), 1)
     TESTS += $(shell find $(TEST_DIR) -name '*_sycl_*.cpp' 2>/dev/null)
+endif
+ifeq ($(USE_CUDA), 1)
+    TESTS += $(shell find $(TEST_DIR) -name '*_cuda_*.cpp' 2>/dev/null)
 endif
 BENCHMARKS := $(shell find $(TEST_DIR)/benchmark -name '*.cpp' 2>/dev/null)
 

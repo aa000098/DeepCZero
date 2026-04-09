@@ -1,0 +1,49 @@
+# NVIDIA CUDA GPU Configuration
+# This file is included when USE_CUDA=1
+# To enable: make USE_CUDA=1
+#
+# Requires: NVIDIA CUDA Toolkit (nvcc)
+
+# Try to detect nvcc
+NVCC_PATH := $(shell which nvcc 2>/dev/null)
+
+ifeq ($(NVCC_PATH),)
+    # Try common install paths
+    NVCC_PATH := $(shell ls /usr/local/cuda/bin/nvcc 2>/dev/null)
+endif
+
+ifneq ($(NVCC_PATH),)
+    CUDA_ROOT ?= $(shell dirname $(NVCC_PATH))/..
+    NVCC = $(NVCC_PATH)
+
+    # CUDA compilation flags
+    NVCCFLAGS = -std=c++17 -O2 -Iinclude -I$(CNPY_DIR) -I$(STB_DIR) -I$(NLOHMANN_DIR) --compiler-options -fPIC
+
+    # Add CUDA include/lib paths to host compiler
+    CXXFLAGS += -DUSE_CUDA -I$(CUDA_ROOT)/include
+    LDFLAGS += -L$(CUDA_ROOT)/lib64 -Wl,-rpath,$(CUDA_ROOT)/lib64 -lcudart -lcublas
+
+    # Discover .cu source files
+    CUDA_SRCS := $(shell find $(SRC_DIR) -name '*.cu' 2>/dev/null)
+    CUDA_OBJS := $(patsubst $(SRC_DIR)/%.cu, $(BUILD_DIR)/%.cu.o, $(CUDA_SRCS))
+
+    # Add CUDA objects to library
+    OBJS += $(CUDA_OBJS)
+
+    # Include CUDA test files
+    ifeq ($(USE_CUDA), 1)
+        TESTS += $(shell find $(TEST_DIR) -name '*_cuda_*.cpp' 2>/dev/null)
+    endif
+
+    # Rule: compile .cu files with nvcc
+    $(BUILD_DIR)/%.cu.o: $(SRC_DIR)/%.cu
+	@mkdir -p $(dir $@)
+	$(NVCC) $(NVCCFLAGS) -c -o $@ $<
+
+    $(info [CUDA] Building with NVIDIA CUDA GPU support)
+    $(info [CUDA] nvcc: $(NVCC_PATH))
+else
+    $(warning [CUDA] nvcc compiler not found.)
+    $(warning [CUDA] Install NVIDIA CUDA Toolkit: https://developer.nvidia.com/cuda-toolkit)
+    override USE_CUDA = 0
+endif

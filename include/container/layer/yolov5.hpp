@@ -90,7 +90,6 @@ class YOLOv5 : public Model {
 private:
 	static constexpr size_t NUM_ANCHORS = 3;
 
-	size_t num_classes;
 	float depth_multiple;
 	float width_multiple;
 

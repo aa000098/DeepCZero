@@ -166,7 +166,7 @@ size_t YOLOv5::depth(size_t n) const {
 }
 
 YOLOv5::YOLOv5(size_t num_classes, float depth_multiple, float width_multiple, bool pretrained)
-	: num_classes(num_classes), depth_multiple(depth_multiple), width_multiple(width_multiple) {
+	: depth_multiple(depth_multiple), width_multiple(width_multiple) {
 
 	size_t out_ch = NUM_ANCHORS * (5 + num_classes);
 

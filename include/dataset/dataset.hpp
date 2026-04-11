@@ -47,10 +47,6 @@ public:
 };
 
 class BigDataset : public Dataset {
-private:
-	size_t num_data;
-	size_t num_class;
-
 public:
 	BigDataset(	size_t num_data = 100,
 				size_t num_class = 3,

@@ -90,12 +90,10 @@ void SpiralDataset::init_dataset() {
 }
 
 // [BigDataset]
-BigDataset::BigDataset(	size_t num_data,
-						size_t num_class,
+BigDataset::BigDataset(	size_t /*num_data*/,
+						size_t /*num_class*/,
 						bool train)
-		: Dataset(train),
-		num_data(num_data),
-		num_class(num_class) {}
+		: Dataset(train) {}
 
 Tensor<> BigDataset::get_data(size_t index) {
 	//TODO: load data

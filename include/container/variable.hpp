@@ -156,6 +156,7 @@ public:
 		return impl->data.empty(); };
 	size_t size() const {
 		return impl->data.size(); };
+	size_t numel() const { return size(); };
 	size_t ndim() const {
 		return impl->data.ndim(); };
 

@@ -229,6 +229,18 @@ namespace tensor {
 		std::shared_ptr<dcz::DeviceBuffer<T>> device_buffer() const { return device_buf_; }
 
 		// Static factories
+		static Tensor<T> zeros(const std::vector<size_t>& shape) {
+			return Tensor<T>(shape, T(0));
+		}
+
+		static Tensor<T> ones(const std::vector<size_t>& shape) {
+			return Tensor<T>(shape, T(1));
+		}
+
+		static Tensor<T> full(const std::vector<size_t>& shape, T value) {
+			return Tensor<T>(shape, value);
+		}
+
 		static Tensor<T> zeros_like(const Tensor<T>& other) {
 			return Tensor<T>(other.get_shape(), T(0));
 		}

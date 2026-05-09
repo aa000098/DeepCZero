@@ -142,6 +142,7 @@ namespace tensor {
 		size_t numel() const { return size(); };
 		size_t ndim() const {
 			return get_shape().size(); };
+		size_t dim() const { return ndim(); };
 		bool empty() const {
 			if (is_device()) return !device_buf_ || device_buf_->size() == 0;
 			if (!impl) return true;

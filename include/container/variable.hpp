@@ -159,6 +159,7 @@ public:
 	size_t numel() const { return size(); };
 	size_t ndim() const {
 		return impl->data.ndim(); };
+	size_t dim() const { return ndim(); };
 
     void show() const;
 };

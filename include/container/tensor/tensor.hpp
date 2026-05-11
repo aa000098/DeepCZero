@@ -130,6 +130,7 @@ namespace tensor {
 		std::vector<size_t> get_shape() const {
 			if (is_device()) return device_shape_;
 			return impl->get_shape(); };
+		std::vector<size_t> shape() const { return get_shape(); };
 		std::vector<size_t> get_strides() const {
 			if (is_device()) return device_strides_;
 			return impl->get_strides(); };

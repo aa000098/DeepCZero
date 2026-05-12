@@ -152,6 +152,8 @@ public:
 		return impl->data.get_shape(); };
 	std::vector<size_t> shape() const {
 		return impl->data.get_shape(); };
+	std::vector<size_t> get_shape() const {
+		return impl->data.get_shape(); };
 	bool empty() const {
 		return impl->data.empty(); };
 	size_t size() const {

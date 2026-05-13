@@ -141,6 +141,7 @@ namespace tensor {
 			if (is_device()) return device_buf_ ? device_buf_->size() : 0;
 			return impl->size(); };
 		size_t numel() const { return size(); };
+		size_t nbytes() const { return size() * sizeof(T); };
 		size_t ndim() const {
 			return get_shape().size(); };
 		size_t dim() const { return ndim(); };

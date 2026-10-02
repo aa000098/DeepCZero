@@ -3,6 +3,8 @@
 
 #include <cuda_runtime.h>
 #include <limits>
+#include <memory>
+#include <algorithm>
 #include "config/device_cuda.hpp"
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensor_utils.hpp"
@@ -63,11 +65,13 @@ Tensor<T> sum_axis_cuda(const Tensor<T>& x, const std::vector<int>& axes, bool k
 
 	auto result_buf = std::make_shared<dcz::CUDABuffer<T>>(out_total);
 
-	// Copy shape/is_reduce to device
+	// Copy shape/is_reduce to device (std::vector<bool> has no data(), so copy to a plain array)
+	std::unique_ptr<bool[]> h_is_reduce(new bool[ndim]);
+	std::copy(is_reduce.begin(), is_reduce.end(), h_is_reduce.get());
 	size_t* d_shape = static_cast<size_t*>(cuda_malloc(ndim * sizeof(size_t)));
 	bool* d_is_reduce = static_cast<bool*>(cuda_malloc(ndim * sizeof(bool)));
 	cuda_memcpy_to_device(d_shape, shape.data(), ndim * sizeof(size_t));
-	cuda_memcpy_to_device(d_is_reduce, is_reduce.data(), ndim * sizeof(bool));
+	cuda_memcpy_to_device(d_is_reduce, h_is_reduce.get(), ndim * sizeof(bool));
 
 	if constexpr (std::is_same_v<T, float>)
 		cuda_sum_axis_f(x.device_buffer()->device_ptr(), result_buf->device_ptr(),
@@ -128,10 +132,12 @@ Tensor<T> max_axis_cuda(const Tensor<T>& x, const std::vector<int>& axes, bool k
 
 	auto result_buf = std::make_shared<dcz::CUDABuffer<T>>(out_total);
 
+	std::unique_ptr<bool[]> h_is_reduce(new bool[ndim]);
+	std::copy(is_reduce.begin(), is_reduce.end(), h_is_reduce.get());
 	size_t* d_shape = static_cast<size_t*>(cuda_malloc(ndim * sizeof(size_t)));
 	bool* d_is_reduce = static_cast<bool*>(cuda_malloc(ndim * sizeof(bool)));
 	cuda_memcpy_to_device(d_shape, shape.data(), ndim * sizeof(size_t));
-	cuda_memcpy_to_device(d_is_reduce, is_reduce.data(), ndim * sizeof(bool));
+	cuda_memcpy_to_device(d_is_reduce, h_is_reduce.get(), ndim * sizeof(bool));
 
 	if constexpr (std::is_same_v<T, float>)
 		cuda_max_axis_f(x.device_buffer()->device_ptr(), result_buf->device_ptr(),

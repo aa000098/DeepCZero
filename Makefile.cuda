@@ -17,23 +17,16 @@ ifneq ($(NVCC_PATH),)
     NVCC = $(NVCC_PATH)
 
     # CUDA compilation flags
-    NVCCFLAGS = -std=c++17 -O2 -Iinclude -I$(CNPY_DIR) -I$(STB_DIR) -I$(NLOHMANN_DIR) --compiler-options -fPIC
+    # Use the same host compiler as the rest of the build (nvcc defaults to `gcc`)
+    NVCCFLAGS = -ccbin $(CXX) -DUSE_CUDA -std=c++17 -O2 -Iinclude -I$(CNPY_DIR) -I$(STB_DIR) -I$(NLOHMANN_DIR) --compiler-options -fPIC
 
     # Add CUDA include/lib paths to host compiler
     CXXFLAGS += -DUSE_CUDA -I$(CUDA_ROOT)/include
     LDFLAGS += -L$(CUDA_ROOT)/lib64 -Wl,-rpath,$(CUDA_ROOT)/lib64 -lcudart -lcublas
 
-    # Discover .cu source files
+    # Discover .cu source files (appended to OBJS in the main Makefile)
     CUDA_SRCS := $(shell find $(SRC_DIR) -name '*.cu' 2>/dev/null)
     CUDA_OBJS := $(patsubst $(SRC_DIR)/%.cu, $(BUILD_DIR)/%.cu.o, $(CUDA_SRCS))
-
-    # Add CUDA objects to library
-    OBJS += $(CUDA_OBJS)
-
-    # Include CUDA test files
-    ifeq ($(USE_CUDA), 1)
-        TESTS += $(shell find $(TEST_DIR) -name '*_cuda_*.cpp' 2>/dev/null)
-    endif
 
     # Rule: compile .cu files with nvcc
     $(BUILD_DIR)/%.cu.o: $(SRC_DIR)/%.cu

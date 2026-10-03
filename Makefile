@@ -54,6 +54,7 @@ endif
 BENCHMARKS := $(shell find $(TEST_DIR)/benchmark -name '*.cpp' 2>/dev/null)
 
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
+OBJS += $(CUDA_OBJS)
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(TESTS))
 
 TEST_BINS = $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%, $(TESTS))

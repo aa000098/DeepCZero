@@ -89,9 +89,10 @@ $(BUILD_DIR)/%.o: $(TEST_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# third-party source: silence its warnings (-w) since we don't patch the submodule
 $(CNPY_OBJ): $(CNPY_SRC)
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -w -c $< -o $@
 
 
 # test auto exec

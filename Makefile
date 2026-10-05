@@ -44,7 +44,14 @@ endif
 
 # src and objs
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
-TESTS := $(shell find $(TEST_DIR) -name '*.cpp' -not -path '$(TEST_DIR)/benchmark/*' -not -name '*_sycl_*' -not -name '*_cuda_*')
+
+# Test execution order: low-level -> high-level (files sorted within each directory).
+# utils runs last because its cnpy tests reuse weights downloaded by container/layer tests.
+TEST_ORDER := config container/tensor container function function/ops graph graph/utils optimizer dataset nn container/layer utils
+ALL_TESTS := $(shell find $(TEST_DIR) -name '*.cpp' -not -path '$(TEST_DIR)/benchmark/*' -not -name '*_sycl_*' -not -name '*_cuda_*')
+ORDERED_TESTS := $(foreach d,$(TEST_ORDER),$(sort $(shell find $(TEST_DIR)/$(d) -maxdepth 1 -name '*.cpp' -not -name '*_sycl_*' -not -name '*_cuda_*')))
+# Tests in directories not listed in TEST_ORDER still run, after the ordered ones
+TESTS := $(ORDERED_TESTS) $(sort $(filter-out $(ORDERED_TESTS),$(ALL_TESTS)))
 ifeq ($(USE_SYCL), 1)
     TESTS += $(shell find $(TEST_DIR) -name '*_sycl_*.cpp' 2>/dev/null)
 endif

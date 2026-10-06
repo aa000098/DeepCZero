@@ -1,11 +1,14 @@
 #include "cnpy.h"
 #include <iostream>
 #include <vector>
+#include <string>
+#include <cstdlib>
 
 void test_cnpy_fortran_order() {
     std::cout << "\n=== Testing cnpy F-contiguous array loading ===" << std::endl;
 
-    std::string npz_path = "/home/user/.deepczero/weights/vgg16.npz";
+    std::string home = std::getenv("HOME");
+    std::string npz_path = home + "/.deepczero/weights/vgg16.npz";
     cnpy::npz_t npz = cnpy::npz_load(npz_path);
 
     // Load fc6/W

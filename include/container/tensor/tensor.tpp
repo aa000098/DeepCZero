@@ -134,9 +134,11 @@ Tensor<T> Tensor<T>::transpose(const std::vector<size_t>& axes) const {
         new_strides[i] = old_strides[actual_axes[i]];
     }
 
-    // Device tensor path: metadata-only view with permuted shape/strides
+    // Device tensor path: materialize the permuted view into a contiguous buffer.
+    // Device kernels (element-wise, dot, reduce, im2col, to_host) assume contiguous
+    // memory, so device tensors must never carry non-contiguous strides.
     if (is_device()) {
-        return from_device(device_, device_buf_, new_shape, new_strides);
+        return from_device(device_, device_buf_, new_shape, new_strides).contiguous();
     }
 
     auto view_impl = std::make_shared<TensorView<T>>(
@@ -655,6 +657,9 @@ Tensor<T> Tensor<T>::to(const dcz::Device& target) const {
 
 	// Device -> CPU
 	if (target.is_cpu() && is_device()) {
+		// to_host() copies the raw buffer as-is, so strides must be contiguous
+		if (!is_contiguous())
+			return contiguous().to(target);
 		auto host_data = device_buf_->to_host();
 		return Tensor<T>(device_shape_, host_data);
 	}

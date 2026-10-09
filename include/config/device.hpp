@@ -61,6 +61,7 @@ public:
 	virtual Device device() const = 0;
 	virtual std::vector<T> to_host() const = 0;
 	virtual void from_host(const T* data, size_t count) = 0;
+	virtual std::shared_ptr<DeviceBuffer<T>> clone() const = 0;
 	virtual T* device_ptr() = 0;
 	virtual const T* device_ptr() const = 0;
 };

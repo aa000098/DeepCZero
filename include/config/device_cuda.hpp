@@ -82,6 +82,13 @@ public:
 		CUDA_CHECK(cudaMemcpy(ptr_, data, count * sizeof(T), cudaMemcpyHostToDevice));
 	}
 
+	std::shared_ptr<DeviceBuffer<T>> clone() const override {
+		auto copy = std::make_shared<CUDABuffer<T>>(size_);
+		if (size_ > 0)
+			CUDA_CHECK(cudaMemcpy(copy->ptr_, ptr_, size_ * sizeof(T), cudaMemcpyDeviceToDevice));
+		return copy;
+	}
+
 	T* device_ptr() override { return ptr_; }
 	const T* device_ptr() const override { return ptr_; }
 

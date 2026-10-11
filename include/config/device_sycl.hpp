@@ -82,6 +82,13 @@ public:
 		q_.memcpy(usm_ptr_, data, count * sizeof(T)).wait();
 	}
 
+	std::shared_ptr<DeviceBuffer<T>> clone() const override {
+		auto copy = std::make_shared<SYCLBuffer<T>>(size_, q_);
+		if (size_ > 0)
+			q_.memcpy(copy->usm_ptr_, usm_ptr_, size_ * sizeof(T)).wait();
+		return copy;
+	}
+
 	T* device_ptr() override { return usm_ptr_; }
 	const T* device_ptr() const override { return usm_ptr_; }
 

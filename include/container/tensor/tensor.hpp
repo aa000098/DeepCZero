@@ -166,11 +166,8 @@ namespace tensor {
 // Tensor functions
 		Tensor<T> clone() const {
 			// Deep copy: always create new tensor with copied data
-			if (is_device()) {
-				auto host_data = device_buf_->to_host();
-				Tensor<T> cpu_tensor(device_shape_, host_data);
-				return cpu_tensor.to(device_);
-			}
+			if (is_device())
+				return from_device(device_, device_buf_->clone(), device_shape_, device_strides_);
 			auto shape = get_shape();
 			if (is_contiguous()) {
 				return Tensor<T>(shape, std::vector<T>(raw_data()));

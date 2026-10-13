@@ -15,6 +15,16 @@ bool approx_equal(float a, float b, float tol = 1e-4f) {
 	return std::abs(a - b) < tol;
 }
 
+// Compare two CPU tensors element-wise in logical (row-major) order
+bool all_close(const Tensor<float>& expected, const Tensor<float>& actual, float tol = 1e-4f) {
+	if (expected.get_shape() != actual.get_shape()) return false;
+	auto e = expected.contiguous();
+	auto a = actual.contiguous();
+	for (size_t i = 0; i < e.size(); i++)
+		if (!approx_equal(e.raw_data()[i], a.raw_data()[i], tol)) return false;
+	return true;
+}
+
 void test_device_transfer() {
 	std::cout << "=== Test: CPU <-> CUDA Transfer ===" << std::endl;
 
@@ -166,6 +176,58 @@ void test_reduction() {
 			  << " " << (pass ? "PASS" : "FAIL") << std::endl;
 }
 
+void test_transpose() {
+	std::cout << "=== Test: Transpose on CUDA (non-contiguous) ===" << std::endl;
+
+	Tensor<float> a_cpu({2, 3}, {1, 2, 3, 4, 5, 6});
+	Tensor<float> b_cpu({3, 2}, {1, 1, 2, 2, 3, 3});
+	Tensor<float> c_cpu({2, 4}, {1, 2, 3, 4, 5, 6, 7, 8});
+
+	auto a = a_cpu.to(dcz::cuda());
+	auto b = b_cpu.to(dcz::cuda());
+	auto c = c_cpu.to(dcz::cuda());
+
+	// Transposed tensor read back to host
+	bool pass = all_close(a_cpu.transpose(), a.transpose().cpu());
+	std::cout << "  transpose: " << (pass ? "PASS" : "FAIL") << std::endl;
+
+	// Element-wise op with a transposed operand
+	pass = all_close(tensor::add(a_cpu.transpose(), b_cpu),
+					 tensor::add(a.transpose(), b).cpu());
+	std::cout << "  transpose + add: " << (pass ? "PASS" : "FAIL") << std::endl;
+
+	// GEMM with a transposed operand: [3,2] @ [2,4]
+	pass = all_close(tensor::dot(a_cpu.transpose(), c_cpu),
+					 tensor::dot(a.transpose(), c).cpu());
+	std::cout << "  dot(transpose(a), c): " << (pass ? "PASS" : "FAIL") << std::endl;
+
+	// MatMul backward computes gy @ W^T and x^T @ gy internally
+	Variable x_c(a_cpu), w_c(b_cpu);
+	matmul(x_c, w_c).backward();
+	Variable x_g(a), w_g(b);
+	matmul(x_g, w_g).backward();
+	pass = all_close(x_c.grad().data(), x_g.grad().data().cpu())
+		&& all_close(w_c.grad().data(), w_g.grad().data().cpu());
+	std::cout << "  matmul backward grads: " << (pass ? "PASS" : "FAIL") << std::endl;
+}
+
+void test_clone() {
+	std::cout << "=== Test: Clone on CUDA (device-to-device deep copy) ===" << std::endl;
+
+	Tensor<float> a_cpu({2, 2}, {1, 2, 3, 4});
+	auto a = a_cpu.to(dcz::cuda());
+	auto b = a.clone();
+
+	bool pass = b.is_device() && b.device_buffer() != a.device_buffer()
+		&& all_close(a_cpu, b.cpu());
+	std::cout << "  clone values: " << (pass ? "PASS" : "FAIL") << std::endl;
+
+	// Modifying the clone must not touch the original
+	tensor::add_scalar_inplace(b, 10.0f);
+	pass = all_close(a_cpu, a.cpu());
+	std::cout << "  clone independence: " << (pass ? "PASS" : "FAIL") << std::endl;
+}
+
 void test_device_mismatch() {
 	std::cout << "=== Test: Device Mismatch Error ===" << std::endl;
 
@@ -193,6 +255,8 @@ int main() {
 	test_math_ops();
 	test_gemm();
 	test_reduction();
+	test_transpose();
+	test_clone();
 	test_device_mismatch();
 
 	std::cout << "\nAll CUDA tests done." << std::endl;

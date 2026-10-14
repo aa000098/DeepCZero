@@ -26,6 +26,22 @@ inline size_t flatten_index(const std::vector<size_t>& indices, const std::vecto
 	return flat;
 }
 
+inline std::vector<size_t> batch_matrix_offsets(const std::vector<size_t>& operand_batch_shape,
+												const std::vector<size_t>& batch_shape,
+												size_t matrix_size) {
+	std::vector<size_t> strides(batch_shape.size(), 0);
+	size_t stride = matrix_size;
+	for (size_t i = batch_shape.size(); i-- > 0;) {
+		strides[i] = (operand_batch_shape[i] == 1) ? 0 : stride;
+		stride *= operand_batch_shape[i];
+	}
+
+	std::vector<size_t> offsets(product(batch_shape));
+	for (size_t b = 0; b < offsets.size(); ++b)
+		offsets[b] = flatten_index(unflatten_index(b, batch_shape), strides);
+	return offsets;
+}
+
 inline std::set<size_t> normalize_axes(const std::vector<int>& axes, size_t ndim) {
     std::set<size_t> result;
     for (int a : axes) {

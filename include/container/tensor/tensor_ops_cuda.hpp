@@ -184,10 +184,13 @@ Tensor<T> dot_cuda(const Tensor<T>& a, const Tensor<T>& b) {
 	const T* b_ptr = b.device_buffer()->device_ptr();
 	T* r_ptr = result_buf->device_ptr();
 
+	auto a_offsets = batch_matrix_offsets(std::vector<size_t>(a_shape.begin(), a_shape.end() - 2), batch_shape, M * K);
+	auto b_offsets = batch_matrix_offsets(std::vector<size_t>(b_shape.begin(), b_shape.end() - 2), batch_shape, K * N);
+
 	if constexpr (std::is_same_v<T, float>) {
 		for (size_t batch = 0; batch < batch_size; ++batch) {
-			const float* a_batch = a_ptr + batch * M * K;
-			const float* b_batch = b_ptr + batch * K * N;
+			const float* a_batch = a_ptr + a_offsets[batch];
+			const float* b_batch = b_ptr + b_offsets[batch];
 			float* r_batch = r_ptr + batch * M * N;
 			cuda_gemm_f(a_batch, b_batch, r_batch, M, N, K, 1.0f, 0.0f);
 		}

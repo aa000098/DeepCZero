@@ -235,10 +235,13 @@ Tensor<T> dot_sycl(const Tensor<T>& a, const Tensor<T>& b) {
 	const T* b_ptr = b.device_buffer()->device_ptr();
 	T* r_ptr = result_buf->device_ptr();
 
+	auto a_offsets = batch_matrix_offsets(std::vector<size_t>(a_shape.begin(), a_shape.end() - 2), batch_shape, M * K);
+	auto b_offsets = batch_matrix_offsets(std::vector<size_t>(b_shape.begin(), b_shape.end() - 2), batch_shape, K * N);
+
 	// Per-batch GEMM
 	for (size_t batch = 0; batch < batch_size; ++batch) {
-		const T* a_batch = a_ptr + batch * M * K;
-		const T* b_batch = b_ptr + batch * K * N;
+		const T* a_batch = a_ptr + a_offsets[batch];
+		const T* b_batch = b_ptr + b_offsets[batch];
 		T* r_batch = r_ptr + batch * M * N;
 
 		oneapi::mkl::blas::row_major::gemm(

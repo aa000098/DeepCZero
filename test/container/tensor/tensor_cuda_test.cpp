@@ -228,6 +228,39 @@ void test_clone() {
 	std::cout << "  clone independence: " << (pass ? "PASS" : "FAIL") << std::endl;
 }
 
+Tensor<float> seq_tensor(const std::vector<size_t>& shape) {
+	size_t n = 1;
+	for (auto s : shape) n *= s;
+	std::vector<float> data(n);
+	for (size_t i = 0; i < n; i++) data[i] = static_cast<float>(i % 7) - 3.0f;
+	return Tensor<float>(shape, data);
+}
+
+void test_batched_dot() {
+	std::cout << "=== Test: Batched GEMM with broadcasting on CUDA ===" << std::endl;
+
+	auto shape_str = [](const std::vector<size_t>& s) {
+		std::string out = "[";
+		for (size_t i = 0; i < s.size(); i++) out += (i ? "," : "") + std::to_string(s[i]);
+		return out + "]";
+	};
+
+	std::vector<std::pair<std::vector<size_t>, std::vector<size_t>>> cases = {
+		{{3, 2, 3}, {3, 4}},
+		{{2, 3}, {3, 3, 4}},
+		{{3, 2, 3}, {3, 3, 4}},
+		{{2, 1, 2, 3}, {1, 3, 3, 4}},
+	};
+	for (auto& [a_shape, b_shape] : cases) {
+		auto a_cpu = seq_tensor(a_shape);
+		auto b_cpu = seq_tensor(b_shape);
+		bool pass = all_close(tensor::dot(a_cpu, b_cpu),
+							  tensor::dot(a_cpu.to(dcz::cuda()), b_cpu.to(dcz::cuda())).cpu());
+		std::cout << "  " << shape_str(a_shape) << " x " << shape_str(b_shape) << ": "
+				  << (pass ? "PASS" : "FAIL") << std::endl;
+	}
+}
+
 void test_device_mismatch() {
 	std::cout << "=== Test: Device Mismatch Error ===" << std::endl;
 
@@ -257,6 +290,7 @@ int main() {
 	test_reduction();
 	test_transpose();
 	test_clone();
+	test_batched_dot();
 	test_device_mismatch();
 
 	std::cout << "\nAll CUDA tests done." << std::endl;

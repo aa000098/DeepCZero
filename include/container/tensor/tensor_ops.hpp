@@ -615,7 +615,7 @@ Tensor<T> dot_naive(const Tensor<T>& a, const Tensor<T>& b) {
 
 	// TODO: check dot condition
 	if (a_shape.size() < 2 || b_shape.size() < 2)
-		std::runtime_error("dot: tensors must be at least 2D");
+		throw std::runtime_error("dot: tensors must be at least 2D");
 
 
     size_t ndim = std::max(a_shape.size(), b_shape.size());

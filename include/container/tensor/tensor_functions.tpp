@@ -76,7 +76,7 @@ Tensor<T> sum_to(const Tensor<T>& src, const std::vector<size_t>& target_shape) 
 	size_t ndim_target = target_shape.size();
 
 	if (ndim_src < ndim_target)
-		std::runtime_error("sum_to: target shape has more dimensions than source.");
+		throw std::runtime_error("sum_to: target shape has more dimensions than source.");
 
 	std::vector<int> reduce_axes;
 	size_t leading = ndim_src - ndim_target;

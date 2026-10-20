@@ -187,12 +187,21 @@ Variable function::MatMul::forward(const std::vector<Variable>& xs) {
     return Variable(result);
 }
 
+static std::vector<size_t> swap_last_two_axes(size_t ndim) {
+	std::vector<size_t> axes(ndim);
+	for (size_t i = 0; i < ndim; ++i) axes[i] = i;
+	std::swap(axes[ndim - 2], axes[ndim - 1]);
+	return axes;
+}
+
 std::vector<Variable> function::MatMul::backward(const Variable& gy) {
 	const Variable& x = inputs[0];
 	const Variable& w = inputs[1];
 
-	const Variable& gx = matmul(gy, w.trans());
-	const Variable& gw = matmul(x.trans(), gy);
+	Variable gx = matmul(gy, w.trans(swap_last_two_axes(w.ndim())));
+	Variable gw = matmul(x.trans(swap_last_two_axes(x.ndim())), gy);
+	if (gx.shape() != x.shape()) gx = sum_to(gx, x.shape());
+	if (gw.shape() != w.shape()) gw = sum_to(gw, w.shape());
 
 	return {gx, gw};
 }
@@ -213,8 +222,10 @@ std::vector<Variable> function::Linear::backward(const Variable& gy) {
 	const Variable w = inputs[1];
 	const Variable b = inputs[2];
 
-	const Variable gx = matmul(gy, w.trans());
-	const Variable gw = matmul(x.trans(), gy);
+	Variable gx = matmul(gy, w.trans(swap_last_two_axes(w.ndim())));
+	Variable gw = matmul(x.trans(swap_last_two_axes(x.ndim())), gy);
+	if (gx.shape() != x.shape()) gx = sum_to(gx, x.shape());
+	if (gw.shape() != w.shape()) gw = sum_to(gw, w.shape());
 	Variable gb;
 	if (!b.empty())
 		gb = sum_to(gy, b.shape());

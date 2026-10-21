@@ -79,8 +79,46 @@ void test_linear_forward_and_backward() {
 	std::cout << "✅ Linear forward & backward passed!" << std::endl;
 }
 
+void test_linear_backward_3d_input() {
+	std::cout << "[Test] Linear / MatMul backward with 3D input" << std::endl;
+
+	std::vector<float> xv(24), wv(20), bv(5);
+	for (size_t i = 0; i < xv.size(); ++i) xv[i] = static_cast<float>(i % 7) - 3.0f;
+	for (size_t i = 0; i < wv.size(); ++i) wv[i] = static_cast<float>(i % 5) * 0.5f - 1.0f;
+	for (size_t i = 0; i < bv.size(); ++i) bv[i] = static_cast<float>(i);
+	Tensor<> x_data({2, 3, 4}, xv);
+	Tensor<> w_data({4, 5}, wv);
+	Tensor<> b_data({5}, bv);
+
+	auto check = [](const Variable& got, const Variable& ref, const std::vector<size_t>& shape) {
+		assert(got.shape() == shape);
+		auto g = got.data().contiguous();
+		auto r = ref.data().contiguous();
+		for (size_t i = 0; i < g.size(); ++i)
+			assert(std::abs(g.raw_data()[i] - r.raw_data()[i]) < 1e-4);
+	};
+
+	Variable x3(x_data), w3(w_data), b3(b_data);
+	linear(x3, w3, b3).backward();
+	Variable x2(Tensor<>({6, 4}, xv)), w2(w_data), b2(b_data);
+	linear(x2, w2, b2).backward();
+	check(x3.grad(), x2.grad(), {2, 3, 4});
+	check(w3.grad(), w2.grad(), {4, 5});
+	check(b3.grad(), b2.grad(), {5});
+
+	Variable mx3(x_data), mw3(w_data);
+	matmul(mx3, mw3).backward();
+	Variable mx2(Tensor<>({6, 4}, xv)), mw2(w_data);
+	matmul(mx2, mw2).backward();
+	check(mx3.grad(), mx2.grad(), {2, 3, 4});
+	check(mw3.grad(), mw2.grad(), {4, 5});
+
+	std::cout << "✅ Linear / MatMul backward with 3D input passed!" << std::endl;
+}
+
 int main() {
 	test_linear_forward_and_backward();
+	test_linear_backward_3d_input();
 	return 0;
 }
 

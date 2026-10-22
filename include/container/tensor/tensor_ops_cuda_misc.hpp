@@ -5,6 +5,7 @@
 #include "config/device_cuda.hpp"
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensor_utils.hpp"
+#include "container/tensor/tensor_ops_cuda.hpp"
 
 extern "C" {
 void cuda_contiguous_f(const float* src, float* dst,

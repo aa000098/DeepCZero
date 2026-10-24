@@ -8,6 +8,7 @@
 #include "config/device_cuda.hpp"
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensor_utils.hpp"
+#include "container/tensor/tensor_ops_cuda.hpp"
 
 extern "C" {
 void cuda_sum_axis_f(const float* x, float* r,

@@ -36,17 +36,17 @@ extern "C" {
 
 void cuda_sigmoid_f(const float* x, float* r, size_t n) {
 	sigmoid_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_silu_f(const float* x, float* r, size_t n) {
 	silu_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_relu_f(const float* x, float* r, size_t n) {
 	relu_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 } // extern "C"

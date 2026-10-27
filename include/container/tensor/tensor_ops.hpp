@@ -26,6 +26,10 @@
 #include "container/tensor/tensor_ops_cuda_nn.hpp"
 #endif
 
+#ifdef USE_CUDNN
+#include "container/tensor/tensor_ops_cudnn.hpp"
+#endif
+
 #include "config/backend_config.hpp"
 
 namespace tensor {

@@ -6,6 +6,7 @@
 #include "config/device_sycl.hpp"
 #include "container/tensor/tensor.hpp"
 #include "container/tensor/tensor_utils.hpp"
+#include "container/tensor/tensor_ops_sycl.hpp"
 
 namespace tensor {
 

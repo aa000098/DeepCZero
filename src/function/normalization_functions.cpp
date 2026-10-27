@@ -1,18 +1,39 @@
 #include "function/normalization_functions.hpp"
 #include "container/tensor/tensor_all.hpp"
+#include "config/config.hpp"
 
 #include <cmath>
 
 using namespace tensor;
 
+static Tensor<> inverse_std(const Tensor<>& var, float eps) {
+	size_t n = var.size();
+	std::vector<float> data(n);
+	for (size_t c = 0; c < n; ++c)
+		data[c] = 1.0f / std::sqrt(var.raw_data()[c] + eps);
+	return Tensor<>({n}, std::move(data));
+}
+
 Variable function::BatchNorm2dFunc::forward(const std::vector<Variable>& xs) {
 	dcz::Device orig_device = xs[0].device();
+	auto shape = xs[0].shape();
+	N = shape[0]; C = shape[1]; H = shape[2]; W = shape[3];
+
+#ifdef USE_CUDA
+	if (!is_training && orig_device.type == dcz::DeviceType::CUDA) {
+		if (dcz::Config::get().enable_backprop) {
+			saved_mean = xs[3].data().cpu();
+			saved_inv_std = inverse_std(xs[4].data().cpu(), eps);
+		}
+		return Variable(tensor::batchnorm_forward_cuda(xs[0].data(), xs[3].data(), xs[4].data(),
+													   xs[1].data(), xs[2].data(), eps));
+	}
+#endif
+
 	const Tensor<> x = !orig_device.is_cpu() ? xs[0].data().cpu() : xs[0].data();
 	const Tensor<> gamma = !orig_device.is_cpu() ? xs[1].data().cpu() : xs[1].data();
 	const Tensor<> beta = !orig_device.is_cpu() ? xs[2].data().cpu() : xs[2].data();
 
-	auto shape = x.get_shape();
-	N = shape[0]; C = shape[1]; H = shape[2]; W = shape[3];
 	float M = static_cast<float>(N * H * W);
 
 	Tensor<> mu, var;
@@ -31,17 +52,12 @@ Variable function::BatchNorm2dFunc::forward(const std::vector<Variable>& xs) {
 		var = !orig_device.is_cpu() ? xs[4].data().cpu() : xs[4].data();
 	}
 
-	// Compute inv_std per channel
-	std::vector<float> inv_std_data(C);
-	for (size_t c = 0; c < C; ++c)
-		inv_std_data[c] = 1.0f / std::sqrt(var.raw_data()[c] + eps);
-
 	saved_mean = Tensor<>({C}, mu.raw_data());
-	saved_inv_std = Tensor<>({C}, inv_std_data);
+	saved_inv_std = inverse_std(var, eps);
 
 	// Broadcast for element-wise ops (contiguous for MKL compatibility)
 	Tensor<> mu_4d({1, C, 1, 1}, mu.raw_data());
-	Tensor<> inv_std_4d({1, C, 1, 1}, inv_std_data);
+	Tensor<> inv_std_4d({1, C, 1, 1}, saved_inv_std.raw_data());
 	Tensor<> gamma_4d({1, C, 1, 1}, gamma.raw_data());
 	Tensor<> beta_4d({1, C, 1, 1}, beta.raw_data());
 

@@ -27,12 +27,13 @@ Tensor<float> rand_tensor(const std::vector<size_t>& shape) {
 	return Tensor<float>(shape, data);
 }
 
-// CUDA launchers synchronize before returning, so wall-clock timing is accurate
 double measure_ms(std::function<void()> fn, int warmup = 1, int repeats = 5) {
 	for (int i = 0; i < warmup; i++) fn();
+	CUDA_CHECK(cudaDeviceSynchronize());
 
 	auto start = Clock::now();
 	for (int i = 0; i < repeats; i++) fn();
+	CUDA_CHECK(cudaDeviceSynchronize());
 	auto end = Clock::now();
 
 	return std::chrono::duration<double, std::milli>(end - start).count() / repeats;

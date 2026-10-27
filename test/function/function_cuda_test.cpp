@@ -87,6 +87,10 @@ int main() {
 		  [](const std::vector<Variable>& x) { return concat({x[0], x[1], x[2]}, 1); });
 	check("get_item", {seq_tensor({4, 5})},
 		  [](const std::vector<Variable>& x) { return get_item(x[0], {1}); });
+	check("sigmoid", {seq_tensor({4, 5})},
+		  [](const std::vector<Variable>& x) { return sigmoid(x[0]); });
+	check("silu", {seq_tensor({2, 3, 4, 4})},
+		  [](const std::vector<Variable>& x) { return silu(x[0]); });
 	check("batchnorm eval", {seq_tensor({2, 3, 4, 4}), seq_tensor({3}, 0.3f), seq_tensor({3})},
 		  [](const std::vector<Variable>& x) {
 			  Tensor<float> mean({3}, std::vector<float>{0.1f, -0.2f, 0.3f});

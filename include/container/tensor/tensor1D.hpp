@@ -12,7 +12,7 @@ namespace tensor {
 	private:
 		std::shared_ptr<std::vector<T>> data_ptr;
 	public:
-		Tensor1D(const std::vector<T>& vec) : data_ptr(std::make_shared<std::vector<T>>(vec)) {};
+		Tensor1D(std::vector<T> vec) : data_ptr(std::make_shared<std::vector<T>>(std::move(vec))) {};
 		Tensor1D(size_t len, T init = T()) : data_ptr(std::make_shared<std::vector<T>>(len, init)) {};
 		Tensor1D() : data_ptr(std::make_shared<std::vector<T>>()) {};
 

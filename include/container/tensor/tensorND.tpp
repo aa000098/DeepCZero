@@ -26,8 +26,8 @@ namespace tensor {
 
 	template<typename T>
 	TensorND<T>::TensorND(	
-			const std::vector<size_t>& shape, 
-			const std::vector<T>& init_data)
+			const std::vector<size_t>& shape,
+			std::vector<T> init_data)
 		: shape(shape) {
 		if (shape.size() < 2)
 			throw std::runtime_error("Tensor must be at least 2D to define ND tensor");
@@ -38,9 +38,9 @@ namespace tensor {
 		if (expected_size != init_data.size())
 			throw std::invalid_argument("TensorND: shape does not match size of init_data:");
 
-		data_ptr = std::make_shared<std::vector<T>>(init_data);
+		data_ptr = std::make_shared<std::vector<T>>(std::move(init_data));
 
-		compute_strides(); 
+		compute_strides();
 	};
 
 	template<typename T>

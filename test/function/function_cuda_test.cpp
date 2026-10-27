@@ -85,6 +85,12 @@ int main() {
 	}
 	check("concat axis 1", {seq_tensor({2, 3, 4, 4}), seq_tensor({2, 5, 4, 4}, 0.2f), seq_tensor({2, 2, 4, 4}, 0.3f)},
 		  [](const std::vector<Variable>& x) { return concat({x[0], x[1], x[2]}, 1); });
+	check("upsample x2 nearest", {seq_tensor({2, 3, 4, 5})},
+		  [](const std::vector<Variable>& x) { return upsample(x[0], 2); });
+	check("upsample x2 bilinear", {seq_tensor({2, 3, 4, 5})},
+		  [](const std::vector<Variable>& x) { return upsample(x[0], 2, "bilinear"); });
+	check("upsample x2 bilinear align_corners", {seq_tensor({2, 3, 4, 5})},
+		  [](const std::vector<Variable>& x) { return upsample(x[0], 2, "bilinear", true); });
 	check("get_item", {seq_tensor({4, 5})},
 		  [](const std::vector<Variable>& x) { return get_item(x[0], {1}); });
 	check("sigmoid", {seq_tensor({4, 5})},

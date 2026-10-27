@@ -241,6 +241,96 @@ Tensor<T> upsample_nearest_backward_sycl(const Tensor<T>& gy,
 	return make_device_tensor(result_buf, {N, C, H, W});
 }
 
+inline void sycl_bilinear_source(size_t dst, size_t in_size, size_t out_size, bool align_corners,
+								 size_t& i0, size_t& i1, float& lambda) {
+	float src;
+	if (align_corners) {
+		float scale = out_size > 1 ? static_cast<float>(in_size - 1) / static_cast<float>(out_size - 1) : 0.0f;
+		src = scale * static_cast<float>(dst);
+	} else {
+		float scale = static_cast<float>(in_size) / static_cast<float>(out_size);
+		src = scale * (static_cast<float>(dst) + 0.5f) - 0.5f;
+		if (src < 0.0f) src = 0.0f;
+	}
+	i0 = static_cast<size_t>(src);
+	i1 = i0 + (i0 < in_size - 1 ? 1 : 0);
+	lambda = src - static_cast<float>(i0);
+}
+
+template<typename T>
+Tensor<T> upsample_bilinear_sycl(const Tensor<T>& x, size_t scale_h, size_t scale_w, bool align_corners) {
+	auto& q = dcz::SYCLContext::get().queue();
+	auto shape = x.get_shape();
+	size_t N = shape[0], C = shape[1], H = shape[2], W = shape[3];
+	size_t OH = H * scale_h, OW = W * scale_w;
+
+	size_t total = N * C * OH * OW;
+	auto result_buf = std::make_shared<dcz::SYCLBuffer<T>>(total, q);
+	const T* x_ptr = x.device_buffer()->device_ptr();
+	T* r_ptr = result_buf->device_ptr();
+
+	q.parallel_for(sycl::range<1>(total), [=](sycl::id<1> flat) {
+		size_t idx = flat;
+		size_t ow = idx % OW; idx /= OW;
+		size_t oh = idx % OH; idx /= OH;
+		size_t c  = idx % C;  idx /= C;
+		size_t n  = idx;
+
+		size_t h0, h1, w0, w1;
+		float lh, lw;
+		sycl_bilinear_source(oh, H, OH, align_corners, h0, h1, lh);
+		sycl_bilinear_source(ow, W, OW, align_corners, w0, w1, lw);
+
+		const T* plane = x_ptr + (n*C + c) * H * W;
+		r_ptr[flat] = (1.0f - lh) * ((1.0f - lw) * plane[h0*W + w0] + lw * plane[h0*W + w1])
+					+ lh * ((1.0f - lw) * plane[h1*W + w0] + lw * plane[h1*W + w1]);
+	}).wait();
+
+	return make_device_tensor(result_buf, {N, C, OH, OW});
+}
+
+template<typename T>
+Tensor<T> upsample_bilinear_backward_sycl(const Tensor<T>& gy,
+										   size_t N, size_t C, size_t H, size_t W,
+										   size_t scale_h, size_t scale_w, bool align_corners) {
+	auto& q = dcz::SYCLContext::get().queue();
+	size_t OH = H * scale_h, OW = W * scale_w;
+
+	size_t gx_size = N * C * H * W;
+	auto result_buf = std::make_shared<dcz::SYCLBuffer<T>>(gx_size, q);
+	T* gx_ptr = result_buf->device_ptr();
+	q.memset(gx_ptr, 0, gx_size * sizeof(T)).wait();
+
+	const T* gy_ptr = gy.device_buffer()->device_ptr();
+	size_t gy_total = N * C * OH * OW;
+
+	q.parallel_for(sycl::range<1>(gy_total), [=](sycl::id<1> flat) {
+		size_t idx = flat;
+		size_t ow = idx % OW; idx /= OW;
+		size_t oh = idx % OH; idx /= OH;
+		size_t c  = idx % C;  idx /= C;
+		size_t n  = idx;
+
+		size_t h0, h1, w0, w1;
+		float lh, lw;
+		sycl_bilinear_source(oh, H, OH, align_corners, h0, h1, lh);
+		sycl_bilinear_source(ow, W, OW, align_corners, w0, w1, lw);
+
+		T g = gy_ptr[flat];
+		T* plane = gx_ptr + (n*C + c) * H * W;
+		const size_t taps[4] = {h0*W + w0, h0*W + w1, h1*W + w0, h1*W + w1};
+		const float weights[4] = {(1.0f - lh) * (1.0f - lw), (1.0f - lh) * lw, lh * (1.0f - lw), lh * lw};
+		for (int t = 0; t < 4; ++t) {
+			sycl::atomic_ref<T, sycl::memory_order::relaxed,
+				sycl::memory_scope::device,
+				sycl::access::address_space::global_space> ref(plane[taps[t]]);
+			ref.fetch_add(weights[t] * g);
+		}
+	}).wait();
+
+	return make_device_tensor(result_buf, {N, C, H, W});
+}
+
 // ========== Concat along axis ==========
 
 template<typename T>

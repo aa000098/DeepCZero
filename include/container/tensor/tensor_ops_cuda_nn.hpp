@@ -37,6 +37,9 @@ void cuda_rmsnorm_forward_f(const float* x, const float* w, float* r,
 	size_t rows, size_t hidden_size, float eps);
 void cuda_rmsnorm_backward_f(const float* x, const float* w, const float* gy,
 	float* dx, float* dw, size_t rows, size_t hidden_size, float eps);
+void cuda_batchnorm_forward_f(const float* x, const float* mean, const float* var,
+	const float* gamma, const float* beta, float* y,
+	size_t N, size_t C, size_t HW, float eps);
 void cuda_softmax_ce_forward_f(const float* x, const float* t, float* loss,
 	size_t N, size_t C);
 void cuda_softmax_ce_backward_f(const float* x, const float* t, float* dx,
@@ -100,7 +103,8 @@ std::pair<Tensor<T>, Tensor<size_t>> maxpool_forward_cuda(
 		const Tensor<T>& x,
 		size_t KH, size_t KW,
 		size_t SH, size_t SW,
-		size_t PH, size_t PW) {
+		size_t PH, size_t PW,
+		bool with_indexes = true) {
 	auto shape = x.get_shape();
 	size_t N = shape[0], C = shape[1], H = shape[2], W = shape[3];
 	size_t OH = (H + 2*PH - KH) / SH + 1;
@@ -108,22 +112,26 @@ std::pair<Tensor<T>, Tensor<size_t>> maxpool_forward_cuda(
 
 	size_t out_total = N * C * OH * OW;
 	auto out_buf = std::make_shared<dcz::CUDABuffer<T>>(out_total);
-	std::vector<size_t> argmax_data(out_total);
 
-	size_t* d_argmax = static_cast<size_t*>(cuda_malloc(out_total * sizeof(size_t)));
+	size_t* d_argmax = with_indexes
+		? static_cast<size_t*>(cuda_malloc(out_total * sizeof(size_t)))
+		: nullptr;
 
 	if constexpr (std::is_same_v<T, float>)
 		cuda_maxpool_forward_f(x.device_buffer()->device_ptr(),
 			out_buf->device_ptr(), d_argmax,
 			N, C, H, W, KH, KW, SH, SW, PH, PW, OH, OW);
 
+	auto out_tensor = make_cuda_tensor(out_buf, {N, C, OH, OW});
+	if (!with_indexes)
+		return {out_tensor, Tensor<size_t>()};
+
 	// Transfer argmax to host
+	std::vector<size_t> argmax_data(out_total);
 	cudaMemcpy(argmax_data.data(), d_argmax, out_total * sizeof(size_t), cudaMemcpyDeviceToHost);
 	cuda_free(d_argmax);
 
-	auto out_tensor = make_cuda_tensor(out_buf, {N, C, OH, OW});
-	Tensor<size_t> argmax_tensor({N, C, OH, OW}, argmax_data);
-
+	Tensor<size_t> argmax_tensor({N, C, OH, OW}, std::move(argmax_data));
 	return {out_tensor, argmax_tensor};
 }
 
@@ -290,6 +298,24 @@ std::pair<Tensor<T>, Tensor<T>> rmsnorm_backward_cuda(
 	auto dx = make_cuda_tensor(dx_buf, shape);
 	auto dw = make_cuda_tensor(dw_buf, weight.get_shape());
 	return {dx, dw};
+}
+
+template<typename T>
+Tensor<T> batchnorm_forward_cuda(const Tensor<T>& x,
+								 const Tensor<T>& mean, const Tensor<T>& var,
+								 const Tensor<T>& gamma, const Tensor<T>& beta, T eps) {
+	auto shape = x.get_shape();
+	size_t N = shape[0], C = shape[1], HW = shape[2] * shape[3];
+
+	auto result_buf = std::make_shared<dcz::CUDABuffer<T>>(x.size());
+
+	if constexpr (std::is_same_v<T, float>)
+		cuda_batchnorm_forward_f(x.device_buffer()->device_ptr(),
+			mean.device_buffer()->device_ptr(), var.device_buffer()->device_ptr(),
+			gamma.device_buffer()->device_ptr(), beta.device_buffer()->device_ptr(),
+			result_buf->device_ptr(), N, C, HW, eps);
+
+	return make_cuda_tensor(result_buf, shape);
 }
 
 // ========== Softmax cross entropy forward ==========

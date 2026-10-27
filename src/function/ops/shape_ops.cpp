@@ -23,9 +23,10 @@ Variable concat(const std::vector<Variable>& xs, int axis) {
 	return (*f)(xs);
 }
 
-Variable upsample(const Variable& x, size_t scale_factor) {
+Variable upsample(const Variable& x, size_t scale_factor,
+				  const std::string& mode, bool align_corners) {
 	using namespace function;
-	std::shared_ptr<Function> f = std::make_shared<Upsample>(scale_factor);
+	std::shared_ptr<Function> f = std::make_shared<Upsample>(scale_factor, mode, align_corners);
 	return (*f)({x});
 }
 

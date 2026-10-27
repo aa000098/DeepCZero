@@ -508,6 +508,28 @@ Tensor<T> tanh_naive(const Tensor<T>& x) {
 	return Tensor<T>(x.get_shape(), result_data);
 }
 
+template<typename T>
+Tensor<T> sigmoid_naive(const Tensor<T>& x) {
+	Tensor<T> x_contig = x.contiguous();
+	const std::vector<T>& x_data = x_contig.raw_data();
+	std::vector<T> result_data(x_data.size());
+	for (size_t i = 0; i < result_data.size(); i++)
+		result_data[i] = T(1) / (T(1) + std::exp(-x_data[i]));
+
+	return Tensor<T>(x.get_shape(), std::move(result_data));
+}
+
+template<typename T>
+Tensor<T> silu_naive(const Tensor<T>& x) {
+	Tensor<T> x_contig = x.contiguous();
+	const std::vector<T>& x_data = x_contig.raw_data();
+	std::vector<T> result_data(x_data.size());
+	for (size_t i = 0; i < result_data.size(); i++)
+		result_data[i] = x_data[i] / (T(1) + std::exp(-x_data[i]));
+
+	return Tensor<T>(x.get_shape(), std::move(result_data));
+}
+
 // Dispatcher functions that use MKL when available
 
 template<typename T>
@@ -604,6 +626,28 @@ Tensor<T> tanh(const Tensor<T>& x) {
 	}
 #endif
 	return tanh_naive(x);
+}
+
+template<typename T>
+Tensor<T> sigmoid(const Tensor<T>& x) {
+#ifdef USE_SYCL
+	if (x.device().type == dcz::DeviceType::SYCL) return sigmoid_sycl(x);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return sigmoid_cuda(x);
+#endif
+	return sigmoid_naive(x);
+}
+
+template<typename T>
+Tensor<T> silu(const Tensor<T>& x) {
+#ifdef USE_SYCL
+	if (x.device().type == dcz::DeviceType::SYCL) return silu_sycl(x);
+#endif
+#ifdef USE_CUDA
+	if (x.device().type == dcz::DeviceType::CUDA) return silu_cuda(x);
+#endif
+	return silu_naive(x);
 }
 
 // Naive (non-MKL) matrix multiplication implementation

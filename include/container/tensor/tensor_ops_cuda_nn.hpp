@@ -26,6 +26,12 @@ void cuda_upsample_nearest_f(const float* x, float* r,
 void cuda_upsample_nearest_bwd_f(const float* gy, float* gx,
 	size_t N, size_t C, size_t H, size_t W,
 	size_t scale_h, size_t scale_w);
+void cuda_upsample_bilinear_f(const float* x, float* r,
+	size_t N, size_t C, size_t H, size_t W,
+	size_t scale_h, size_t scale_w, bool align_corners);
+void cuda_upsample_bilinear_bwd_f(const float* gy, float* gx,
+	size_t N, size_t C, size_t H, size_t W,
+	size_t scale_h, size_t scale_w, bool align_corners);
 void cuda_concat_f(const float* src, float* dst,
 	size_t outer, size_t t_axis, size_t out_axis, size_t inner,
 	size_t ax_off, size_t t_total);
@@ -166,6 +172,36 @@ Tensor<T> upsample_nearest_backward_cuda(const Tensor<T>& gy,
 	if constexpr (std::is_same_v<T, float>)
 		cuda_upsample_nearest_bwd_f(gy.device_buffer()->device_ptr(),
 			result_buf->device_ptr(), N, C, H, W, scale_h, scale_w);
+
+	return make_cuda_tensor(result_buf, {N, C, H, W});
+}
+
+template<typename T>
+Tensor<T> upsample_bilinear_cuda(const Tensor<T>& x, size_t scale_h, size_t scale_w, bool align_corners) {
+	auto shape = x.get_shape();
+	size_t N = shape[0], C = shape[1], H = shape[2], W = shape[3];
+	size_t OH = H * scale_h, OW = W * scale_w;
+
+	auto result_buf = std::make_shared<dcz::CUDABuffer<T>>(N * C * OH * OW);
+
+	if constexpr (std::is_same_v<T, float>)
+		cuda_upsample_bilinear_f(x.device_buffer()->device_ptr(),
+			result_buf->device_ptr(), N, C, H, W, scale_h, scale_w, align_corners);
+
+	return make_cuda_tensor(result_buf, {N, C, OH, OW});
+}
+
+template<typename T>
+Tensor<T> upsample_bilinear_backward_cuda(const Tensor<T>& gy,
+										   size_t N, size_t C, size_t H, size_t W,
+										   size_t scale_h, size_t scale_w, bool align_corners) {
+	size_t gx_size = N * C * H * W;
+	auto result_buf = std::make_shared<dcz::CUDABuffer<T>>(gx_size);
+	cuda_memset(result_buf->device_ptr(), 0, gx_size * sizeof(T));
+
+	if constexpr (std::is_same_v<T, float>)
+		cuda_upsample_bilinear_bwd_f(gy.device_buffer()->device_ptr(),
+			result_buf->device_ptr(), N, C, H, W, scale_h, scale_w, align_corners);
 
 	return make_cuda_tensor(result_buf, {N, C, H, W});
 }

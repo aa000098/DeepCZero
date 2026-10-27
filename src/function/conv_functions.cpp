@@ -16,7 +16,13 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 	size_t KW = w_shape[3];
 
 	// [N, C, KH, KW, OH, OW]
-	const Tensor<> &col = im2col_array(x, {KH, KW}, stride, pad, false);
+	const bool pointwise = KH == 1 && KW == 1
+		&& stride.first == 1 && stride.second == 1
+		&& pad.first == 0 && pad.second == 0;
+	const auto x_shape = x.get_shape();
+	const Tensor<> col = pointwise
+		? x.contiguous().reshape({x_shape[0], x_shape[1], 1, 1, x_shape[2], x_shape[3]})
+		: im2col_array(x, {KH, KW}, stride, pad, false);
 	const auto col_shape = col.get_shape();
 	size_t N = col_shape[0];
 	size_t CKK = col_shape[1] * KH * KW;

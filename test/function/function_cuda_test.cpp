@@ -70,6 +70,10 @@ int main() {
 		  [](const std::vector<Variable>& x) { return conv2d(x[0], x[1], x[2], {1, 1}, {1, 1}); });
 	check("conv2d stride 2", {seq_tensor({2, 3, 7, 7}), seq_tensor({4, 3, 3, 3}, 0.05f), seq_tensor({4})},
 		  [](const std::vector<Variable>& x) { return conv2d(x[0], x[1], x[2], {2, 2}, {0, 0}); });
+	check("conv2d 1x1", {seq_tensor({2, 3, 6, 6}), seq_tensor({4, 3, 1, 1}, 0.05f), seq_tensor({4})},
+		  [](const std::vector<Variable>& x) { return conv2d(x[0], x[1], x[2], {1, 1}, {0, 0}); });
+	check("conv2d 1x1 stride 2", {seq_tensor({2, 3, 7, 7}), seq_tensor({4, 3, 1, 1}, 0.05f), seq_tensor({4})},
+		  [](const std::vector<Variable>& x) { return conv2d(x[0], x[1], x[2], {2, 2}, {0, 0}); });
 	check("pooling 2x2", {seq_tensor({2, 3, 6, 6})},
 		  [](const std::vector<Variable>& x) { return pooling(x[0], {2, 2}, {2, 2}, {0, 0}); });
 	Tensor<float> negative = seq_tensor({2, 3, 6, 6});

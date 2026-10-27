@@ -469,10 +469,20 @@ Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, 
 
 template<typename T>
 bool Tensor<T>::is_contiguous() const {
+    if (get_offset() != 0)
+        return false;
+    if (!is_device() && impl->raw_data().size() != size())
+        return false;
+
     auto shape = get_shape();
     auto strides = get_strides();
-    auto expected = compute_contiguous_strides(shape);
-    return strides == expected && get_offset() == 0;
+    size_t expected = 1;
+    for (size_t i = shape.size(); i-- > 0;) {
+        if (shape[i] != 1 && strides[i] != expected)
+            return false;
+        expected *= shape[i];
+    }
+    return true;
 }
 
 template<typename T>

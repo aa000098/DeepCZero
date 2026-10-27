@@ -1,5 +1,8 @@
 #include "function/pooling_functions.hpp"
 #include "container/tensor/tensor_all.hpp"
+#include "config/config.hpp"
+
+#include <limits>
 
 // [Max Pooling]
 
@@ -8,9 +11,24 @@ Variable function::Pooling::forward(
 	const Tensor<> &x_orig = xs[0].data();
 	input_shape = x_orig.get_shape();
 
+#ifdef USE_CUDA
+	if (x_orig.device().type == dcz::DeviceType::CUDA) {
+		auto [y, idx] = tensor::maxpool_forward_cuda(x_orig,
+			kernel_size.first, kernel_size.second,
+			stride.first, stride.second,
+			pad.first, pad.second,
+			dcz::Config::get().enable_backprop);
+		indexes = idx;
+		return Variable(y);
+	}
+#endif
+
 	// CPU fallback: im2col_array requires raw_data() access
 	Tensor<> x = x_orig.is_device() ? x_orig.cpu() : x_orig;
-	Tensor<> col = im2col_array(x, kernel_size, stride, pad, false);
+	auto [PH, PW] = pad;
+	if (PH > 0 || PW > 0)
+		x = x.pad({{0, 0}, {0, 0}, {PH, PH}, {PW, PW}}, -std::numeric_limits<float>::infinity());
+	Tensor<> col = im2col_array(x, kernel_size, stride, {0, 0}, false);
 
 	std::vector<size_t> col_shape = col.get_shape();
 	

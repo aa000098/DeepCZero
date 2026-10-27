@@ -1,6 +1,7 @@
 #ifdef USE_CUDA
 
 #include <cuda_runtime.h>
+#include <algorithm>
 #include <cmath>
 #include <cfloat>
 #include <stdexcept>
@@ -18,33 +19,29 @@ static inline int grid_size(size_t n) { return static_cast<int>((n + BLOCK_SIZE 
 // ========== im2col ==========
 
 __global__ void im2col_kernel_f(const float* img, float* col,
-	size_t N, size_t C, size_t H, size_t W,
-	size_t KH, size_t KW, size_t SH, size_t SW, size_t PH, size_t PW,
-	size_t OH, size_t OW, size_t col_size) {
-	size_t flat = blockIdx.x * blockDim.x + threadIdx.x;
-	if (flat >= col_size) return;
+	unsigned C, unsigned H, unsigned W,
+	unsigned KH, unsigned KW, unsigned SH, unsigned SW, unsigned PH, unsigned PW,
+	unsigned OH, unsigned OW) {
+	unsigned row = blockIdx.x;
+	unsigned kw = row % KW;
+	unsigned t = row / KW;
+	unsigned kh = t % KH;
+	t /= KH;
+	unsigned c = t % C;
+	unsigned n = t / C;
 
-	size_t idx = flat;
-	size_t ow = idx % OW; idx /= OW;
-	size_t oh = idx % OH; idx /= OH;
-	size_t kw = idx % KW; idx /= KW;
-	size_t kh = idx % KH; idx /= KH;
-	size_t c  = idx % C;  idx /= C;
-	size_t n  = idx;
+	const float* plane = img + (static_cast<size_t>(n) * C + c) * H * W;
+	unsigned OHW = OH * OW;
+	float* out = col + static_cast<size_t>(row) * OHW;
 
-	size_t h_in = kh + oh * SH;
-	size_t w_in = kw + ow * SW;
-
-	float val = 0.0f;
-	if (h_in >= PH && h_in < H + PH && w_in >= PW && w_in < W + PW) {
-		size_t h_img = h_in - PH;
-		size_t w_img = w_in - PW;
-		val = img[n*(C*H*W) + c*(H*W) + h_img*W + w_img];
+	for (unsigned hw = blockIdx.y * blockDim.x + threadIdx.x; hw < OHW; hw += gridDim.y * blockDim.x) {
+		unsigned oh = hw / OW;
+		unsigned ow = hw - oh * OW;
+		int h = static_cast<int>(oh * SH + kh) - static_cast<int>(PH);
+		int w = static_cast<int>(ow * SW + kw) - static_cast<int>(PW);
+		out[hw] = (h >= 0 && h < static_cast<int>(H) && w >= 0 && w < static_cast<int>(W))
+			? plane[static_cast<unsigned>(h) * W + static_cast<unsigned>(w)] : 0.0f;
 	}
-
-	size_t col_c = c * KH * KW + kh * KW + kw;
-	size_t col_hw = oh * OW + ow;
-	col[n*(C*KH*KW*OH*OW) + col_c*(OH*OW) + col_hw] = val;
 }
 
 // ========== col2im ==========
@@ -384,8 +381,14 @@ void cuda_im2col_f(const float* img, float* col,
 	size_t N, size_t C, size_t H, size_t W,
 	size_t KH, size_t KW, size_t SH, size_t SW, size_t PH, size_t PW,
 	size_t OH, size_t OW) {
-	size_t col_size = N * C * KH * KW * OH * OW;
-	im2col_kernel_f<<<grid_size(col_size), BLOCK_SIZE>>>(img, col, N, C, H, W, KH, KW, SH, SW, PH, PW, OH, OW, col_size);
+	size_t rows = N * C * KH * KW;
+	size_t hw_blocks = std::min<size_t>((OH * OW + BLOCK_SIZE - 1) / BLOCK_SIZE, 65535);
+	if (rows == 0 || hw_blocks == 0) return;
+	dim3 grid(static_cast<unsigned>(rows), static_cast<unsigned>(hw_blocks));
+	im2col_kernel_f<<<grid, BLOCK_SIZE>>>(img, col,
+		static_cast<unsigned>(C), static_cast<unsigned>(H), static_cast<unsigned>(W),
+		static_cast<unsigned>(KH), static_cast<unsigned>(KW), static_cast<unsigned>(SH), static_cast<unsigned>(SW),
+		static_cast<unsigned>(PH), static_cast<unsigned>(PW), static_cast<unsigned>(OH), static_cast<unsigned>(OW));
 	CUDA_CHECK(cudaGetLastError());
 }
 

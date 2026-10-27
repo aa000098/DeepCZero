@@ -138,83 +138,83 @@ extern "C" {
 void cuda_contiguous_f(const float* src, float* dst,
 	const size_t* d_shape, const size_t* d_strides, size_t ndim, size_t total) {
 	contiguous_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(src, dst, d_shape, d_strides, ndim, total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_broadcast_to_f(const float* src, float* dst,
 	const size_t* d_target, const size_t* d_src_strides, size_t ndim, size_t total) {
 	broadcast_to_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(src, dst, d_target, d_src_strides, ndim, total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_add_inplace_f(float* a, const float* b, size_t n) {
 	add_inplace_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, b, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_sub_inplace_f(float* a, const float* b, size_t n) {
 	sub_inplace_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, b, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_mul_inplace_f(float* a, const float* b, size_t n) {
 	mul_inplace_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, b, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_add_scalar_inplace_f(float* a, float scalar, size_t n) {
 	add_scalar_inplace_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, scalar, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_sub_scalar_inplace_f(float* a, float scalar, size_t n) {
 	sub_scalar_inplace_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, scalar, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_mul_scalar_inplace_f(float* a, float scalar, size_t n) {
 	mul_scalar_inplace_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, scalar, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_div_scalar_inplace_f(float* a, float scalar, size_t n) {
 	div_scalar_inplace_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, scalar, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_maximum_f(const float* x, float scalar, float* r, size_t n) {
 	maximum_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, scalar, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_minimum_f(const float* x, float scalar, float* r, size_t n) {
 	minimum_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, scalar, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_abs_f(const float* x, float* r, size_t n) {
 	abs_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_sign_f(const float* x, float* r, size_t n) {
 	sign_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_clamp_f(const float* x, float min_val, float max_val, float* r, size_t n) {
 	clamp_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, min_val, max_val, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_greater_f(const float* x, float scalar, float* r, size_t n) {
 	greater_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, scalar, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_scalar_sub_f(float scalar, const float* x, float* r, size_t n) {
 	scalar_sub_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(scalar, x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 // Helper: copy host array to device (for shape/stride arrays)

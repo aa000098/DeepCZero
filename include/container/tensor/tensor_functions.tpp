@@ -11,9 +11,13 @@
 #include <omp.h>
 
 #ifdef USE_SYCL
-namespace tensor {
-template<typename T> Tensor<T> broadcast_to_sycl(const Tensor<T>& x, const std::vector<size_t>& target_shape);
-}
+#include "container/tensor/tensor_ops_sycl_misc.hpp"
+#include "container/tensor/tensor_ops_sycl_nn.hpp"
+#endif
+
+#ifdef USE_CUDA
+#include "container/tensor/tensor_ops_cuda_misc.hpp"
+#include "container/tensor/tensor_ops_cuda_nn.hpp"
 #endif
 
 namespace tensor {
@@ -22,9 +26,15 @@ namespace tensor {
 template<typename T>
 Tensor<T> broadcast_to(const Tensor<T>& src, const std::vector<size_t>& target_shape) {
 #ifdef USE_SYCL
-	if (src.is_device()) {
+	if (src.device().type == dcz::DeviceType::SYCL) {
 		if (src.get_shape() == target_shape) return src;
 		return broadcast_to_sycl(src, target_shape);
+	}
+#endif
+#ifdef USE_CUDA
+	if (src.device().type == dcz::DeviceType::CUDA) {
+		if (src.get_shape() == target_shape) return src;
+		return broadcast_to_cuda(src, target_shape);
 	}
 #endif
 
@@ -195,12 +205,6 @@ Tensor<T> im2col_array(	const Tensor<T> &img,
 						std::pair<size_t, size_t> stride,
 						std::pair<size_t, size_t> pad,
 						bool to_matrix) {
-#ifdef USE_SYCL
-	if (img.is_device()) {
-		dcz::Device dev = img.device();
-		return im2col_array(img.cpu(), kernel_size, stride, pad, to_matrix).to(dev);
-	}
-#endif
 	std::vector<size_t> shape = img.get_shape();
 	size_t N = shape[0];
 	size_t C = shape[1];
@@ -212,6 +216,23 @@ Tensor<T> im2col_array(	const Tensor<T> &img,
 	size_t PH = pad.first, PW = pad.second;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
 	size_t OW = get_conv_outsize(W, KW, SW, PW);
+
+#ifdef USE_SYCL
+	if (img.device().type == dcz::DeviceType::SYCL) {
+		Tensor<T> col = im2col_sycl(img, KH, KW, SH, SW, PH, PW).reshape({N, C, KH, KW, OH, OW});
+		if (to_matrix)
+			col = col.transpose({0, 4, 5, 1, 2, 3}).reshape({N * OH * OW, C * KH * KW});
+		return col;
+	}
+#endif
+#ifdef USE_CUDA
+	if (img.device().type == dcz::DeviceType::CUDA) {
+		Tensor<T> col = im2col_cuda(img, KH, KW, SH, SW, PH, PW).reshape({N, C, KH, KW, OH, OW});
+		if (to_matrix)
+			col = col.transpose({0, 4, 5, 1, 2, 3}).reshape({N * OH * OW, C * KH * KW});
+		return col;
+	}
+#endif
 
 	// to array
 	auto padded = img.pad({{0, 0}, {0, 0}, {PH, PH}, {PW, PW}}, 0);
@@ -251,12 +272,6 @@ Tensor<T> col2im_array(	const Tensor<T> &col,
 						std::pair<size_t, size_t> stride,
 						std::pair<size_t, size_t> pad,
 						bool to_matrix) {
-#ifdef USE_SYCL
-	if (col.is_device()) {
-		dcz::Device dev = col.device();
-		return col2im_array(col.cpu(), img_shape, kernel_size, stride, pad, to_matrix).to(dev);
-	}
-#endif
 	size_t N = img_shape[0];
 	size_t C = img_shape[1];
 	size_t H = img_shape[2];
@@ -267,6 +282,23 @@ Tensor<T> col2im_array(	const Tensor<T> &col,
 	size_t PH = pad.first, PW = pad.second;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
 	size_t OW = get_conv_outsize(W, KW, SW, PW);
+
+#ifdef USE_SYCL
+	if (col.device().type == dcz::DeviceType::SYCL) {
+		Tensor<T> col_arr = to_matrix
+			? col.reshape({N, OH, OW, C, KH, KW}).transpose({0, 3, 4, 5, 1, 2})
+			: col;
+		return col2im_sycl(col_arr, N, C, H, W, KH, KW, SH, SW, PH, PW);
+	}
+#endif
+#ifdef USE_CUDA
+	if (col.device().type == dcz::DeviceType::CUDA) {
+		Tensor<T> col_arr = to_matrix
+			? col.reshape({N, OH, OW, C, KH, KW}).transpose({0, 3, 4, 5, 1, 2})
+			: col;
+		return col2im_cuda(col_arr, N, C, H, W, KH, KW, SH, SW, PH, PW);
+	}
+#endif
 
 	Tensor<T> col_arr = col;
 

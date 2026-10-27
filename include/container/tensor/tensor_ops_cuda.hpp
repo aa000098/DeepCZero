@@ -20,6 +20,13 @@ void cuda_cos_f(const float* x, float* r, size_t n);
 void cuda_pow_f(const float* x, float scalar, float* r, size_t n);
 void cuda_gemm_f(const float* a, const float* b, float* c,
 				  size_t M, size_t N, size_t K, float alpha, float beta);
+void cuda_gemm_strided_f(bool trans_a, bool trans_b,
+						 size_t M, size_t N, size_t K,
+						 const float* a, size_t lda,
+						 const float* b, size_t ldb,
+						 float* c, size_t ldc,
+						 const size_t* a_offsets, const size_t* b_offsets, const size_t* c_offsets,
+						 const unsigned char* accumulate, size_t count);
 }
 
 namespace tensor {
@@ -197,6 +204,21 @@ Tensor<T> dot_cuda(const Tensor<T>& a, const Tensor<T>& b) {
 	}
 
 	return make_cuda_tensor(result_buf, result_shape);
+}
+
+template<typename T>
+Tensor<T> tensordot_cuda(const Tensor<T>& a, const Tensor<T>& b, const GemmPlan& plan) {
+	auto result_buf = std::make_shared<dcz::CUDABuffer<T>>(product(plan.out_shape));
+
+	if constexpr (std::is_same_v<T, float>)
+		cuda_gemm_strided_f(plan.trans_a, plan.trans_b, plan.M, plan.N, plan.K,
+			a.device_buffer()->device_ptr(), plan.lda,
+			b.device_buffer()->device_ptr(), plan.ldb,
+			result_buf->device_ptr(), plan.ldc,
+			plan.a_offsets.data(), plan.b_offsets.data(), plan.c_offsets.data(),
+			plan.accumulate.data(), plan.a_offsets.size());
+
+	return make_cuda_tensor(result_buf, plan.out_shape);
 }
 
 } // namespace tensor

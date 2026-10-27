@@ -170,6 +170,30 @@ void cuda_gemm_f(const float* a, const float* b, float* c,
 	CUDA_CHECK(cudaDeviceSynchronize());
 }
 
+void cuda_gemm_strided_f(bool trans_a, bool trans_b,
+						 size_t M, size_t N, size_t K,
+						 const float* a, size_t lda,
+						 const float* b, size_t ldb,
+						 float* c, size_t ldc,
+						 const size_t* a_offsets, const size_t* b_offsets, const size_t* c_offsets,
+						 const unsigned char* accumulate, size_t count) {
+	cublasHandle_t handle = get_cublas_handle();
+	const float alpha = 1.0f;
+	for (size_t i = 0; i < count; ++i) {
+		const float beta = accumulate[i] ? 1.0f : 0.0f;
+		CUBLAS_CHECK(cublasSgemm(handle,
+			trans_b ? CUBLAS_OP_T : CUBLAS_OP_N,
+			trans_a ? CUBLAS_OP_T : CUBLAS_OP_N,
+			static_cast<int>(N), static_cast<int>(M), static_cast<int>(K),
+			&alpha,
+			b + b_offsets[i], static_cast<int>(ldb),
+			a + a_offsets[i], static_cast<int>(lda),
+			&beta,
+			c + c_offsets[i], static_cast<int>(ldc)));
+	}
+	CUDA_CHECK(cudaDeviceSynchronize());
+}
+
 } // extern "C"
 
 #endif // USE_CUDA

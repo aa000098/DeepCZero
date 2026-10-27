@@ -324,7 +324,7 @@ void cuda_im2col_f(const float* img, float* col,
 	size_t OH, size_t OW) {
 	size_t col_size = N * C * KH * KW * OH * OW;
 	im2col_kernel_f<<<grid_size(col_size), BLOCK_SIZE>>>(img, col, N, C, H, W, KH, KW, SH, SW, PH, PW, OH, OW, col_size);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_col2im_f(const float* col, float* img,
@@ -333,7 +333,7 @@ void cuda_col2im_f(const float* col, float* img,
 	size_t OH, size_t OW) {
 	size_t col_total = N * C * KH * KW * OH * OW;
 	col2im_kernel_f<<<grid_size(col_total), BLOCK_SIZE>>>(col, img, N, C, H, W, KH, KW, SH, SW, PH, PW, OH, OW, col_total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_maxpool_forward_f(const float* x, float* out, size_t* argmax,
@@ -342,7 +342,7 @@ void cuda_maxpool_forward_f(const float* x, float* out, size_t* argmax,
 	size_t OH, size_t OW) {
 	size_t out_total = N * C * OH * OW;
 	maxpool_forward_kernel_f<<<grid_size(out_total), BLOCK_SIZE>>>(x, out, argmax, N, C, H, W, KH, KW, SH, SW, PH, PW, OH, OW, out_total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_upsample_nearest_f(const float* x, float* r,
@@ -351,7 +351,7 @@ void cuda_upsample_nearest_f(const float* x, float* r,
 	size_t OH = H * scale_h, OW = W * scale_w;
 	size_t total = N * C * OH * OW;
 	upsample_nearest_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(x, r, N, C, H, W, OH, OW, scale_h, scale_w, total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_upsample_nearest_bwd_f(const float* gy, float* gx,
@@ -360,40 +360,40 @@ void cuda_upsample_nearest_bwd_f(const float* gy, float* gx,
 	size_t OH = H * scale_h, OW = W * scale_w;
 	size_t gy_total = N * C * OH * OW;
 	upsample_nearest_bwd_kernel_f<<<grid_size(gy_total), BLOCK_SIZE>>>(gy, gx, N, C, H, W, OH, OW, scale_h, scale_w, gy_total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_concat_f(const float* src, float* dst,
 	size_t outer, size_t t_axis, size_t out_axis, size_t inner,
 	size_t ax_off, size_t t_total) {
 	concat_kernel_f<<<grid_size(t_total), BLOCK_SIZE>>>(src, dst, outer, t_axis, out_axis, inner, ax_off, t_total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_gather_rows_f(const float* x, float* r,
 	const size_t* d_indices, size_t N_sel, size_t D) {
 	size_t total = N_sel * D;
 	gather_rows_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(x, r, d_indices, N_sel, D);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_scatter_add_f(const float* grad, float* r,
 	const size_t* d_indices, size_t N_sel, size_t D) {
 	size_t total = N_sel * D;
 	scatter_add_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(grad, r, d_indices, N_sel, D);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_rmsnorm_forward_f(const float* x, const float* w, float* r,
 	size_t rows, size_t hidden_size, float eps) {
 	rmsnorm_forward_kernel_f<<<grid_size(rows), BLOCK_SIZE>>>(x, w, r, rows, hidden_size, eps);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_rmsnorm_backward_f(const float* x, const float* w, const float* gy,
 	float* dx, float* dw, size_t rows, size_t hidden_size, float eps) {
 	rmsnorm_backward_kernel_f<<<grid_size(rows), BLOCK_SIZE>>>(x, w, gy, dx, dw, rows, hidden_size, eps);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_batchnorm_forward_f(const float* x, const float* mean, const float* var,
@@ -401,19 +401,19 @@ void cuda_batchnorm_forward_f(const float* x, const float* mean, const float* va
 	size_t N, size_t C, size_t HW, float eps) {
 	size_t total = N * C * HW;
 	batchnorm_forward_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(x, mean, var, gamma, beta, y, C, HW, eps, total);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_softmax_ce_forward_f(const float* x, const float* t, float* loss,
 	size_t N, size_t C) {
 	softmax_ce_forward_kernel_f<<<grid_size(N), BLOCK_SIZE>>>(x, t, loss, N, C);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_softmax_ce_backward_f(const float* x, const float* t, float* dx,
 	float scale, size_t N, size_t C) {
 	softmax_ce_backward_kernel_f<<<grid_size(N), BLOCK_SIZE>>>(x, t, dx, scale, N, C);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 } // extern "C"

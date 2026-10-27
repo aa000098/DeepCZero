@@ -31,7 +31,7 @@ static Tensor<> random_image(size_t size) {
 	return x;
 }
 
-static void bench_yolov5s(const dcz::Device& device, int iterations) {
+static void bench_yolov5s(const dcz::Device& device, int warmup, int iterations) {
 	const size_t image_size = 640;
 
 	YOLOv5 model(80, 0.33f, 0.50f);
@@ -42,6 +42,10 @@ static void bench_yolov5s(const dcz::Device& device, int iterations) {
 	model.forward_detect(x);
 	sync(device);
 	double first_ms = elapsed_ms(start);
+
+	for (int i = 0; i < warmup; ++i)
+		model.forward_detect(x);
+	sync(device);
 
 	std::vector<double> times;
 	for (int i = 0; i < iterations; ++i) {
@@ -73,11 +77,11 @@ int main() {
 
 #ifdef USE_CUDA
 	dcz::CUDAContext::get().print_device_info();
-	bench_yolov5s(dcz::cuda(0), 5);
+	bench_yolov5s(dcz::cuda(0), 2, 20);
 #endif
 
 #ifdef USE_MKL
-	bench_yolov5s(dcz::cpu(), 3);
+	bench_yolov5s(dcz::cpu(), 0, 3);
 #else
 	std::cout << "  cpu     skipped (naive GEMM takes minutes per image; build with USE_MKL=1)" << std::endl;
 #endif

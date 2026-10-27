@@ -17,26 +17,37 @@ Variable function::Concat::forward(const std::vector<Variable>& xs) {
 	split_sizes.clear();
 	split_sizes.reserve(n);
 
-	std::vector<Tensor<>> tensors;
-	tensors.reserve(n);
-	for (size_t i = 0; i < n; i++) {
-		Tensor<> t = !orig_device.is_cpu() ? xs[i].data().cpu() : xs[i].data();
-		tensors.push_back(t);
-		split_sizes.push_back(t.get_shape()[ax]);
-	}
-
 	// Compute output shape
 	std::vector<size_t> out_shape = base_shape;
 	size_t total_axis_size = 0;
 	for (size_t i = 0; i < n; i++) {
-		const auto& s = tensors[i].get_shape();
+		if (!(xs[i].device() == orig_device))
+			throw std::runtime_error("Concat: inputs must be on the same device");
+		const auto& s = xs[i].data().get_shape();
 		for (size_t d = 0; d < ndim; d++) {
 			if (static_cast<int>(d) != ax && s[d] != base_shape[d])
 				throw std::runtime_error("Concat: shape mismatch at dim " + std::to_string(d));
 		}
+		split_sizes.push_back(s[ax]);
 		total_axis_size += s[ax];
 	}
 	out_shape[ax] = total_axis_size;
+
+	std::vector<Tensor<>> tensors;
+	tensors.reserve(n);
+	for (const auto& x : xs) tensors.push_back(x.data());
+
+#ifdef USE_SYCL
+	if (orig_device.type == dcz::DeviceType::SYCL)
+		return Variable(tensor::concat_sycl(tensors, static_cast<size_t>(ax)));
+#endif
+#ifdef USE_CUDA
+	if (orig_device.type == dcz::DeviceType::CUDA)
+		return Variable(tensor::concat_cuda(tensors, static_cast<size_t>(ax)));
+#endif
+
+	if (!orig_device.is_cpu())
+		for (auto& t : tensors) t = t.cpu();
 
 	// Compute total size and allocate
 	size_t total_size = 1;

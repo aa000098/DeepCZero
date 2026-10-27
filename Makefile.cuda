@@ -24,6 +24,13 @@ ifneq ($(NVCC_PATH),)
     CXXFLAGS += -DUSE_CUDA -I$(CUDA_ROOT)/include
     LDFLAGS += -L$(CUDA_ROOT)/lib64 -Wl,-rpath,$(CUDA_ROOT)/lib64 -lcudart -lcublas
 
+    ifeq ($(USE_CUDNN), 1)
+        CXXFLAGS += -DUSE_CUDNN
+        NVCCFLAGS += -DUSE_CUDNN
+        LDFLAGS += -lcudnn
+        $(info [CUDA] cuDNN enabled)
+    endif
+
     # Discover .cu source files (appended to OBJS in the main Makefile)
     CUDA_SRCS := $(shell find $(SRC_DIR) -name '*.cu' 2>/dev/null)
     CUDA_OBJS := $(patsubst $(SRC_DIR)/%.cu, $(BUILD_DIR)/%.cu.o, $(CUDA_SRCS))

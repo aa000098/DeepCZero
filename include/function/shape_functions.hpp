@@ -2,6 +2,9 @@
 
 #include "function/function.hpp"
 
+#include <stdexcept>
+#include <string>
+
 namespace function {
 
 class Reshape: public Function {
@@ -47,10 +50,16 @@ public:
 class Upsample : public Function {
 private:
 	size_t scale_factor;
+	bool bilinear;
+	bool align_corners;
 	std::vector<size_t> input_shape;
 
 public:
-	Upsample(size_t scale_factor = 2) : scale_factor(scale_factor) {};
+	Upsample(size_t scale_factor = 2, const std::string& mode = "nearest", bool align_corners = false)
+		: scale_factor(scale_factor), bilinear(mode == "bilinear"), align_corners(align_corners) {
+		if (mode != "nearest" && mode != "bilinear")
+			throw std::invalid_argument("Upsample: mode must be \"nearest\" or \"bilinear\"");
+	};
 	Variable forward(const std::vector<Variable>& xs) override;
 	std::vector<Variable> backward(const Variable& gy) override;
 	~Upsample() = default;

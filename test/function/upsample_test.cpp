@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <cassert>
+#include <cmath>
+#include <stdexcept>
+#include <vector>
 
 void test_upsample_forward() {
 	std::cout << "=== Upsample Forward ===" << std::endl;
@@ -53,9 +56,60 @@ void test_upsample_backward() {
 	std::cout << "Upsample backward test passed!" << std::endl;
 }
 
+void test_upsample_bilinear() {
+	std::cout << "=== Upsample Bilinear (vs PyTorch interpolate) ===" << std::endl;
+
+	struct Case {
+		bool align_corners;
+		std::vector<float> y;
+		std::vector<float> gx;
+	};
+	std::vector<Case> cases = {
+		{false,
+		 {1.0f, 1.25f, 1.75f, 2.25f, 2.75f, 3.0f, 1.75f, 2.0f, 2.5f, 3.0f, 3.5f, 3.75f,
+		  3.25f, 3.5f, 4.0f, 4.5f, 5.0f, 5.25f, 4.0f, 4.25f, 4.75f, 5.25f, 5.75f, 6.0f},
+		 {4.0f, 4.0f, 4.0f, 4.0f, 4.0f, 4.0f}},
+		{true,
+		 {1.0f, 1.4f, 1.8f, 2.2f, 2.6f, 3.0f, 2.0f, 2.4f, 2.8f, 3.2f, 3.6f, 4.0f,
+		  3.0f, 3.4f, 3.8f, 4.2f, 4.6f, 5.0f, 4.0f, 4.4f, 4.8f, 5.2f, 5.6f, 6.0f},
+		 {3.6f, 4.8f, 3.6f, 3.6f, 4.8f, 3.6f}},
+	};
+
+	for (const auto& c : cases) {
+		Tensor<> x_data({1, 1, 2, 3}, {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f});
+		Variable x(x_data);
+
+		Variable y = upsample(x, 2, "bilinear", c.align_corners);
+		assert((y.shape() == std::vector<size_t>{1, 1, 4, 6}));
+		Tensor<> y_data = y.data().contiguous();
+		for (size_t i = 0; i < c.y.size(); i++)
+			assert(std::abs(y_data.raw_data()[i] - c.y[i]) < 1e-5f);
+
+		Variable loss = sum(y);
+		loss.backward();
+		Tensor<> gx = x.grad().data().contiguous();
+		for (size_t i = 0; i < c.gx.size(); i++)
+			assert(std::abs(gx.raw_data()[i] - c.gx[i]) < 1e-5f);
+
+		std::cout << "align_corners=" << (c.align_corners ? "true" : "false")
+				  << " matches PyTorch" << std::endl;
+	}
+
+	bool threw = false;
+	try {
+		upsample(Variable(Tensor<>({1, 1, 2, 2}, 1.0f)), 2, "bicubic");
+	} catch (const std::invalid_argument&) {
+		threw = true;
+	}
+	assert(threw);
+
+	std::cout << "Upsample bilinear test passed!" << std::endl;
+}
+
 int main() {
 	test_upsample_forward();
 	test_upsample_backward();
+	test_upsample_bilinear();
 	std::cout << "\nAll Upsample tests passed!" << std::endl;
 	return 0;
 }

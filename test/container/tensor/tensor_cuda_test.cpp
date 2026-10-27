@@ -261,6 +261,32 @@ void test_batched_dot() {
 	}
 }
 
+void test_tensordot() {
+	std::cout << "=== Test: tensordot on CUDA (strided GEMM plan) ===" << std::endl;
+
+	struct Case {
+		std::string name;
+		std::vector<size_t> a_shape, b_shape;
+		std::vector<int> ac, bc;
+	};
+	std::vector<Case> cases = {
+		{"conv forward (col, W)", {2, 3, 2, 2, 3, 3}, {4, 3, 2, 2}, {1, 2, 3}, {1, 2, 3}},
+		{"conv forward (W, col)", {4, 3, 2, 2}, {2, 3, 2, 2, 3, 3}, {1, 2, 3}, {1, 2, 3}},
+		{"deconv (W, gy)", {4, 3, 2, 2}, {2, 4, 3, 3}, {0}, {1}},
+		{"conv grad W (gy, col)", {2, 4, 3, 3}, {2, 3, 2, 2, 3, 3}, {0, 2, 3}, {0, 4, 5}},
+		{"matmul", {3, 4}, {4, 5}, {1}, {0}},
+		{"swapped contract order (fallback)", {3, 4, 5}, {5, 4, 2}, {1, 2}, {1, 0}},
+	};
+	for (const auto& c : cases) {
+		auto a_cpu = seq_tensor(c.a_shape);
+		auto b_cpu = seq_tensor(c.b_shape);
+		auto expected = tensor::tensordot(a_cpu, b_cpu, {c.ac, c.bc});
+		auto actual = tensor::tensordot(a_cpu.to(dcz::cuda()), b_cpu.to(dcz::cuda()), {c.ac, c.bc});
+		bool pass = actual.is_device() && all_close(expected, actual.cpu());
+		std::cout << "  " << c.name << ": " << (pass ? "PASS" : "FAIL") << std::endl;
+	}
+}
+
 void test_device_mismatch() {
 	std::cout << "=== Test: Device Mismatch Error ===" << std::endl;
 
@@ -291,6 +317,7 @@ int main() {
 	test_transpose();
 	test_clone();
 	test_batched_dot();
+	test_tensordot();
 	test_device_mismatch();
 
 	std::cout << "\nAll CUDA tests done." << std::endl;

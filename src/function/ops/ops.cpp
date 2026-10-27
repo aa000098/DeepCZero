@@ -96,12 +96,14 @@ Variable div(const Variable &a, const Variable &b) {
 Variable div(const Variable &a, const float &b) {
 	using namespace function;
 	Variable b_var({b});
+	if (a.is_device()) b_var = b_var.to(a.device());
 	std::shared_ptr<Function> f = std::make_shared<Div>();
 	return (*f)({a, b_var});
 }
 Variable div(const float &a, const Variable &b) {
 	using namespace function;
 	Variable a_var({a});
+	if (b.is_device()) a_var = a_var.to(b.device());
 	std::shared_ptr<Function> f = std::make_shared<Div>();
 	return (*f)({a_var, b});
 }

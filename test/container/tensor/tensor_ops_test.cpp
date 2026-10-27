@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <algorithm>
 
 using namespace tensor;
 
@@ -367,7 +368,71 @@ void test_tensor_tensordot_4d_5d() {
     //assert(is_allclose(Y, expected));
     std::cout << "✅ test_tensordot_4d_5d_small passed.\n";
 }
- 
+
+Tensor<float> tensordot_reference(const Tensor<float>& A, const Tensor<float>& B,
+								  const std::vector<size_t>& ac, const std::vector<size_t>& bc) {
+	auto as = A.get_shape(), bs = B.get_shape();
+	std::vector<size_t> a_free, b_free, out_shape, k_shape;
+	for (size_t i = 0; i < as.size(); ++i)
+		if (std::find(ac.begin(), ac.end(), i) == ac.end()) { a_free.push_back(i); out_shape.push_back(as[i]); }
+	for (size_t i = 0; i < bs.size(); ++i)
+		if (std::find(bc.begin(), bc.end(), i) == bc.end()) { b_free.push_back(i); out_shape.push_back(bs[i]); }
+	for (size_t ax : ac) k_shape.push_back(as[ax]);
+
+	std::vector<float> out(product(out_shape), 0.0f);
+	for (size_t o = 0; o < out.size(); ++o) {
+		auto o_idx = unflatten_index(o, out_shape);
+		std::vector<size_t> a_idx(as.size()), b_idx(bs.size());
+		for (size_t t = 0; t < a_free.size(); ++t) a_idx[a_free[t]] = o_idx[t];
+		for (size_t t = 0; t < b_free.size(); ++t) b_idx[b_free[t]] = o_idx[a_free.size() + t];
+		for (size_t k = 0; k < product(k_shape); ++k) {
+			auto k_idx = unflatten_index(k, k_shape);
+			for (size_t t = 0; t < ac.size(); ++t) {
+				a_idx[ac[t]] = k_idx[t];
+				b_idx[bc[t]] = k_idx[t];
+			}
+			out[o] += A(a_idx) * B(b_idx);
+		}
+	}
+	return Tensor<float>(out_shape, out);
+}
+
+void test_tensor_tensordot_strided() {
+	auto seq = [](const std::vector<size_t>& shape) {
+		std::vector<float> data(product(shape));
+		for (size_t i = 0; i < data.size(); ++i) data[i] = static_cast<float>(i % 7) - 3.0f;
+		return Tensor<float>(shape, data);
+	};
+
+	struct Case {
+		std::string name;
+		std::vector<size_t> a_shape, b_shape;
+		std::vector<int> ac, bc;
+	};
+	std::vector<Case> cases = {
+		{"conv forward (col, W)", {2, 3, 2, 2, 3, 3}, {4, 3, 2, 2}, {1, 2, 3}, {1, 2, 3}},
+		{"conv forward (W, col)", {4, 3, 2, 2}, {2, 3, 2, 2, 3, 3}, {1, 2, 3}, {1, 2, 3}},
+		{"deconv (W, gy)", {4, 3, 2, 2}, {2, 4, 3, 3}, {0}, {1}},
+		{"conv grad W (gy, col)", {2, 4, 3, 3}, {2, 3, 2, 2, 3, 3}, {0, 2, 3}, {0, 4, 5}},
+		{"matmul", {3, 4}, {4, 5}, {1}, {0}},
+		{"swapped contract order (fallback)", {3, 4, 5}, {5, 4, 2}, {1, 2}, {1, 0}},
+	};
+
+	for (const auto& c : cases) {
+		Tensor<float> A = seq(c.a_shape);
+		Tensor<float> B = seq(c.b_shape);
+		Tensor<float> Y = tensordot(A, B, {c.ac, c.bc});
+		Tensor<float> ref = tensordot_reference(A, B, cast_axes(c.ac, c.a_shape.size()),
+												cast_axes(c.bc, c.b_shape.size()));
+		assert(Y.get_shape() == ref.get_shape());
+		Tensor<float> y = Y.contiguous();
+		for (size_t i = 0; i < ref.size(); ++i)
+			assert(y.raw_data()[i] == ref.raw_data()[i]);
+		std::cout << "  " << c.name << ": ok\n";
+	}
+	std::cout << "✅ test_tensordot_strided passed.\n";
+}
+
 int main() {
     test_tensor_arithmetic();
 	test_tensor_dot_batched();
@@ -376,5 +441,6 @@ int main() {
 	test_tensor_tensordot_3d();
 	test_tensor_tensordot_4d_5d();
 	test_tensor_tensordot_highdim();
+	test_tensor_tensordot_strided();
     return 0;
 }

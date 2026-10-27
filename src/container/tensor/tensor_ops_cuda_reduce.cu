@@ -112,7 +112,7 @@ void cuda_sum_axis_f(const float* x, float* r,
 	size_t ndim, size_t total_in, size_t out_total, size_t reduce_size) {
 	sum_axis_kernel_f<<<grid_size(out_total), BLOCK_SIZE>>>(
 		x, r, d_shape, d_is_reduce, ndim, total_in, out_total, reduce_size);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_max_axis_f(const float* x, float* r,
@@ -120,7 +120,7 @@ void cuda_max_axis_f(const float* x, float* r,
 	size_t ndim, size_t total_in, size_t out_total, size_t reduce_size) {
 	max_axis_kernel_f<<<grid_size(out_total), BLOCK_SIZE>>>(
 		x, r, d_shape, d_is_reduce, ndim, total_in, out_total, reduce_size);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 } // extern "C"

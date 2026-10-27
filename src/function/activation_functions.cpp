@@ -4,7 +4,7 @@
 
 Variable function::Sigmoid::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
-	const Tensor<> result = tanh(x * 0.5f) * 0.5f + 0.5f;
+	const Tensor<> result = tensor::sigmoid(x);
 	return Variable(result);
 }
 
@@ -56,8 +56,7 @@ std::vector<Variable> function::ReLU::backward(const Variable& gy) {
 
 Variable function::SiLU::forward(const std::vector<Variable>& xs) {
 	const Tensor<>& x = xs[0].data();
-	const Tensor<> sig = tanh(x * 0.5f) * 0.5f + 0.5f;
-	const Tensor<> result = x * sig;
+	const Tensor<> result = tensor::silu(x);
 	return Variable(result);
 }
 

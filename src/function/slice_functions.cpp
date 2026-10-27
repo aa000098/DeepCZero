@@ -4,12 +4,12 @@
 
 
 Variable function::GetItem::forward(const std::vector<Variable>& xs) {
-    const Tensor<>& x_data = xs[0].data();
-	
-	Tensor<> result = x_data;
+	dcz::Device orig_device = xs[0].device();
+	Tensor<> result = !orig_device.is_cpu() ? xs[0].data().cpu() : xs[0].data();
 	for (size_t idx : slices)
 		result = result[idx];
 
+	if (!orig_device.is_cpu()) result = result.to(orig_device);
 	return Variable(result);
 }
 
@@ -67,10 +67,12 @@ std::vector<Variable> function::SliceAxis::backward(const Variable& gy) {
 
 
 Variable function::GetItemGrad::forward(const std::vector<Variable>& gys) {
-    const Tensor<>& gy_data = gys[0].data();
+	dcz::Device orig_device = gys[0].device();
+	Tensor<> gy_data = !orig_device.is_cpu() ? gys[0].data().cpu() : gys[0].data();
 	Tensor<> gx_data(in_shape);
 
 	add_at(gx_data, slices, gy_data);
+	if (!orig_device.is_cpu()) gx_data = gx_data.to(orig_device);
 	return Variable(gx_data);
 
 }

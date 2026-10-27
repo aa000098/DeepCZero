@@ -15,10 +15,20 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 	size_t KH = w_shape[2];
 	size_t KW = w_shape[3];
 
-	// [N, C, KH, KW, OH, OW]
 	const bool pointwise = KH == 1 && KW == 1
 		&& stride.first == 1 && stride.second == 1
 		&& pad.first == 0 && pad.second == 0;
+
+#ifdef USE_CUDNN
+	if (!pointwise && x.device().type == dcz::DeviceType::CUDA) {
+		Tensor<> y = tensor::conv2d_forward_cudnn(x, W, stride, pad);
+		if (!b.empty())
+			y += b.reshape({1, OC, 1, 1});
+		return Variable(y);
+	}
+#endif
+
+	// [N, C, KH, KW, OH, OW]
 	const auto x_shape = x.get_shape();
 	const Tensor<> col = pointwise
 		? x.contiguous().reshape({x_shape[0], x_shape[1], 1, 1, x_shape[2], x_shape[3]})

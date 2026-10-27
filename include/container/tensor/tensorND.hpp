@@ -25,8 +25,8 @@ namespace tensor {
 		TensorND(	const std::vector<size_t>& shape, 
 					T init = T{});
 
-		TensorND(	const std::vector<size_t>& shape, 
-					const std::vector<T>& init_data);
+		TensorND(	const std::vector<size_t>& shape,
+					std::vector<T> init_data);
 
 		TensorND() : data_ptr(std::make_shared<std::vector<T>>()) {};
 

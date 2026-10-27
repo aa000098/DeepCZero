@@ -661,7 +661,7 @@ Tensor<T> Tensor<T>::to(const dcz::Device& target) const {
 		if (!is_contiguous())
 			return contiguous().to(target);
 		auto host_data = device_buf_->to_host();
-		return Tensor<T>(device_shape_, host_data);
+		return Tensor<T>(device_shape_, std::move(host_data));
 	}
 
 	// CPU -> Device: requires backend-specific DeviceBuffer creation

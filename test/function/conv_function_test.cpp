@@ -179,8 +179,42 @@ void test_col2im_backward() {
     std::cout << "[Col2im Backward Test Passed]" << std::endl;
 }
 
+void test_conv2d_pointwise() {
+    std::cout << "[Test] Conv2d 1x1 (pointwise)" << std::endl;
+
+    const size_t N = 2, C = 3, H = 4, W = 5, OC = 4;
+    Tensor<> x_tensor({N, C, H, W});
+    for (size_t i = 0; i < x_tensor.size(); ++i)
+        x_tensor.raw_data()[i] = static_cast<float>(i % 7) - 3.0f;
+    Tensor<> w_tensor({OC, C, 1, 1});
+    for (size_t i = 0; i < w_tensor.size(); ++i)
+        w_tensor.raw_data()[i] = static_cast<float>(i % 5) - 2.0f;
+    Tensor<> b_tensor({OC}, std::vector<float>{0.5f, -1.0f, 2.0f, 0.0f});
+
+    for (size_t s : std::vector<size_t>{1, 2}) {
+        Variable y = conv2d(Variable(x_tensor), Variable(w_tensor), Variable(b_tensor), {s, s}, {0, 0});
+        size_t OH = (H - 1) / s + 1;
+        size_t OW = (W - 1) / s + 1;
+        assert((y.shape() == std::vector<size_t>{N, OC, OH, OW}));
+
+        for (size_t n = 0; n < N; ++n)
+            for (size_t oc = 0; oc < OC; ++oc)
+                for (size_t oh = 0; oh < OH; ++oh)
+                    for (size_t ow = 0; ow < OW; ++ow) {
+                        float expected = b_tensor({oc});
+                        for (size_t c = 0; c < C; ++c)
+                            expected += w_tensor({oc, c, 0, 0}) * x_tensor({n, c, oh * s, ow * s});
+                        assert(y.data()({n, oc, oh, ow}) == expected);
+                    }
+        std::cout << "stride " << s << " matches direct computation" << std::endl;
+    }
+
+    std::cout << "Conv2d 1x1 test passed!" << std::endl;
+}
+
 int main() {
 	test_conv2d_forward_backward();
+	test_conv2d_pointwise();
     test_im2col_forward();
     test_im2col_backward();
     test_col2im_forward();

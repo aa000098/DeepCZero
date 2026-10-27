@@ -11,20 +11,23 @@ Variable function::Conv2d::forward(const std::vector<Variable>& xs) {
 	// [OC]
 	const Tensor<> &b = xs[2].data();
 	const auto w_shape = W.get_shape();
+	size_t OC = w_shape[0];
 	size_t KH = w_shape[2];
 	size_t KW = w_shape[3];
 
 	// [N, C, KH, KW, OH, OW]
 	const Tensor<> &col = im2col_array(x, {KH, KW}, stride, pad, false);
-	
-	// [N, OH, OW, OC] 
-	Tensor<> y = tensordot(col, W, {{1,2,3}, {1,2,3}});
-	
-	if (!b.empty())
-		y += b;
-	
+	const auto col_shape = col.get_shape();
+	size_t N = col_shape[0];
+	size_t CKK = col_shape[1] * KH * KW;
+	size_t OH = col_shape[4];
+	size_t OW = col_shape[5];
+
 	// [N, OC, OH, OW]
-	y = y.transpose({0, 3, 1, 2}).contiguous();
+	Tensor<> y = dot(W.reshape({OC, CKK}), col.reshape({N, CKK, OH * OW})).reshape({N, OC, OH, OW});
+
+	if (!b.empty())
+		y += b.reshape({1, OC, 1, 1});
 
 	return Variable(y);
 }

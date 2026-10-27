@@ -107,13 +107,14 @@ __global__ void maxpool_forward_kernel_f(const float* x, float* out, size_t* arg
 				float val = x[src_idx];
 				if (val > max_val) {
 					max_val = val;
-					max_idx = src_idx;
+					max_idx = kh * KW + kw;
 				}
 			}
 		}
 	}
 	out[flat] = max_val;
-	argmax[flat] = max_idx;
+	if (argmax)
+		argmax[flat] = max_idx;
 }
 
 // ========== Upsample nearest forward ==========
@@ -250,6 +251,17 @@ __global__ void rmsnorm_backward_kernel_f(const float* x, const float* w, const 
 	}
 }
 
+__global__ void batchnorm_forward_kernel_f(const float* x, const float* mean, const float* var,
+	const float* gamma, const float* beta, float* y,
+	size_t C, size_t HW, float eps, size_t total) {
+	size_t i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i >= total) return;
+
+	size_t c = (i / HW) % C;
+	float inv_std = 1.0f / sqrtf(var[c] + eps);
+	y[i] = (x[i] - mean[c]) * inv_std * gamma[c] + beta[c];
+}
+
 // ========== Softmax cross entropy forward ==========
 
 __global__ void softmax_ce_forward_kernel_f(const float* x, const float* t, float* loss,
@@ -381,6 +393,14 @@ void cuda_rmsnorm_forward_f(const float* x, const float* w, float* r,
 void cuda_rmsnorm_backward_f(const float* x, const float* w, const float* gy,
 	float* dx, float* dw, size_t rows, size_t hidden_size, float eps) {
 	rmsnorm_backward_kernel_f<<<grid_size(rows), BLOCK_SIZE>>>(x, w, gy, dx, dw, rows, hidden_size, eps);
+	CUDA_CHECK(cudaDeviceSynchronize());
+}
+
+void cuda_batchnorm_forward_f(const float* x, const float* mean, const float* var,
+	const float* gamma, const float* beta, float* y,
+	size_t N, size_t C, size_t HW, float eps) {
+	size_t total = N * C * HW;
+	batchnorm_forward_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(x, mean, var, gamma, beta, y, C, HW, eps, total);
 	CUDA_CHECK(cudaDeviceSynchronize());
 }
 

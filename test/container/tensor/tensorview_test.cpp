@@ -61,6 +61,37 @@ void test_tensor_view() {
     std::cout << "[PASS] tensor[i] and tensor[i][j] indexing test\n";
 }
 
+void test_is_contiguous() {
+	std::vector<float> data(12);
+	for (size_t i = 0; i < data.size(); ++i) data[i] = static_cast<float>(i);
+
+	Tensor<float> a({1, 3, 4}, data);
+	Tensor<float> moved = a.transpose({1, 0, 2});
+	assert((moved.get_shape() == std::vector<size_t>{3, 1, 4}));
+	assert(moved.is_contiguous());
+	Tensor<float> moved_c = moved.contiguous();
+	assert(moved_c.shared_data() == a.shared_data());
+	assert(moved_c({2, 0, 3}) == 11.0f);
+
+	Tensor<float> b({4, 3}, data);
+	Tensor<float> bt = b.transpose({1, 0});
+	assert(!bt.is_contiguous());
+
+	Tensor<float> row = b[0];
+	assert(!row.is_contiguous());
+	assert(row.contiguous().raw_data().size() == 3);
+
+	Tensor<float> col = bt.slice(1, 0, 1);
+	assert((col.get_shape() == std::vector<size_t>{3, 1}));
+	assert(!col.is_contiguous());
+	Tensor<float> col_c = col.clone();
+	assert(col_c.raw_data().size() == 3);
+	assert(col_c({2, 0}) == 2.0f);
+
+	std::cout << "[PASS] is_contiguous ignores size-1 strides and rejects partial views\n";
+}
+
 int main() {
 	test_tensor_view();
+	test_is_contiguous();
 }

@@ -1,6 +1,8 @@
 #include "function/shape_functions.hpp"
 #include "container/tensor/tensor_all.hpp"
 
+#include <algorithm>
+
 
 Variable function::Concat::forward(const std::vector<Variable>& xs) {
 	size_t n = xs.size();
@@ -135,10 +137,39 @@ std::vector<Variable> function::Transpose::backward(const Variable& gy) {
 }
 
 
+static void bilinear_source(size_t dst, size_t in_size, size_t out_size, bool align_corners,
+							size_t& i0, size_t& i1, float& lambda) {
+	float src;
+	if (align_corners) {
+		float scale = out_size > 1 ? static_cast<float>(in_size - 1) / static_cast<float>(out_size - 1) : 0.0f;
+		src = scale * static_cast<float>(dst);
+	} else {
+		float scale = static_cast<float>(in_size) / static_cast<float>(out_size);
+		src = std::max(scale * (static_cast<float>(dst) + 0.5f) - 0.5f, 0.0f);
+	}
+	i0 = static_cast<size_t>(src);
+	i1 = i0 + (i0 < in_size - 1 ? 1 : 0);
+	lambda = src - static_cast<float>(i0);
+}
+
 Variable function::Upsample::forward(const std::vector<Variable>& xs) {
 	dcz::Device orig_device = xs[0].device();
+	input_shape = xs[0].data().get_shape();
+
+#ifdef USE_SYCL
+	if (orig_device.type == dcz::DeviceType::SYCL)
+		return Variable(bilinear
+			? tensor::upsample_bilinear_sycl(xs[0].data(), scale_factor, scale_factor, align_corners)
+			: tensor::upsample_nearest_sycl(xs[0].data(), scale_factor, scale_factor));
+#endif
+#ifdef USE_CUDA
+	if (orig_device.type == dcz::DeviceType::CUDA)
+		return Variable(bilinear
+			? tensor::upsample_bilinear_cuda(xs[0].data(), scale_factor, scale_factor, align_corners)
+			: tensor::upsample_nearest_cuda(xs[0].data(), scale_factor, scale_factor));
+#endif
+
 	const Tensor<> x = !orig_device.is_cpu() ? xs[0].data().cpu() : xs[0].data();
-	input_shape = x.get_shape();
 
 	// Input: [N, C, H, W]
 	size_t N = input_shape[0];
@@ -153,15 +184,38 @@ Variable function::Upsample::forward(const std::vector<Variable>& xs) {
 	size_t total = N * C * OH * OW;
 	std::vector<float> out_data(total);
 
-	#pragma omp parallel for collapse(4)
-	for (size_t n = 0; n < N; n++) {
-		for (size_t c = 0; c < C; c++) {
+	if (bilinear) {
+		const Tensor<> x_contig = x.contiguous();
+		const float* x_ptr = x_contig.raw_data().data();
+
+		#pragma omp parallel for collapse(2)
+		for (size_t nc = 0; nc < N * C; nc++) {
 			for (size_t oh = 0; oh < OH; oh++) {
+				size_t h0, h1;
+				float lh;
+				bilinear_source(oh, H, OH, align_corners, h0, h1, lh);
+				const float* plane = x_ptr + nc * H * W;
 				for (size_t ow = 0; ow < OW; ow++) {
-					size_t ih = oh / sf;
-					size_t iw = ow / sf;
-					out_data[n * C * OH * OW + c * OH * OW + oh * OW + ow] =
-						x({n, c, ih, iw});
+					size_t w0, w1;
+					float lw;
+					bilinear_source(ow, W, OW, align_corners, w0, w1, lw);
+					out_data[(nc * OH + oh) * OW + ow] =
+						(1.0f - lh) * ((1.0f - lw) * plane[h0 * W + w0] + lw * plane[h0 * W + w1])
+						+ lh * ((1.0f - lw) * plane[h1 * W + w0] + lw * plane[h1 * W + w1]);
+				}
+			}
+		}
+	} else {
+		#pragma omp parallel for collapse(4)
+		for (size_t n = 0; n < N; n++) {
+			for (size_t c = 0; c < C; c++) {
+				for (size_t oh = 0; oh < OH; oh++) {
+					for (size_t ow = 0; ow < OW; ow++) {
+						size_t ih = oh / sf;
+						size_t iw = ow / sf;
+						out_data[n * C * OH * OW + c * OH * OW + oh * OW + ow] =
+							x({n, c, ih, iw});
+					}
 				}
 			}
 		}
@@ -174,7 +228,6 @@ Variable function::Upsample::forward(const std::vector<Variable>& xs) {
 
 std::vector<Variable> function::Upsample::backward(const Variable& gy) {
 	dcz::Device orig_device = gy.device();
-	const Tensor<> gy_data = !orig_device.is_cpu() ? gy.data().cpu() : gy.data();
 
 	size_t N = input_shape[0];
 	size_t C = input_shape[1];
@@ -184,16 +237,56 @@ std::vector<Variable> function::Upsample::backward(const Variable& gy) {
 	size_t OH = H * sf;
 	size_t OW = W * sf;
 
+#ifdef USE_SYCL
+	if (orig_device.type == dcz::DeviceType::SYCL)
+		return { Variable(bilinear
+			? tensor::upsample_bilinear_backward_sycl(gy.data(), N, C, H, W, sf, sf, align_corners)
+			: tensor::upsample_nearest_backward_sycl(gy.data(), N, C, H, W, sf, sf)) };
+#endif
+#ifdef USE_CUDA
+	if (orig_device.type == dcz::DeviceType::CUDA)
+		return { Variable(bilinear
+			? tensor::upsample_bilinear_backward_cuda(gy.data(), N, C, H, W, sf, sf, align_corners)
+			: tensor::upsample_nearest_backward_cuda(gy.data(), N, C, H, W, sf, sf)) };
+#endif
+
+	const Tensor<> gy_data = !orig_device.is_cpu() ? gy.data().cpu() : gy.data();
+
 	Tensor<> gx(input_shape, 0.0f);
 
-	for (size_t n = 0; n < N; n++) {
-		for (size_t c = 0; c < C; c++) {
+	if (bilinear) {
+		const Tensor<> gy_contig = gy_data.contiguous();
+		const float* gy_ptr = gy_contig.raw_data().data();
+		float* gx_ptr = gx.raw_data().data();
+
+		for (size_t nc = 0; nc < N * C; nc++) {
+			float* plane = gx_ptr + nc * H * W;
 			for (size_t oh = 0; oh < OH; oh++) {
+				size_t h0, h1;
+				float lh;
+				bilinear_source(oh, H, OH, align_corners, h0, h1, lh);
 				for (size_t ow = 0; ow < OW; ow++) {
-					size_t ih = oh / sf;
-					size_t iw = ow / sf;
-					gx({n, c, ih, iw}) +=
-						gy_data({n, c, oh, ow});
+					size_t w0, w1;
+					float lw;
+					bilinear_source(ow, W, OW, align_corners, w0, w1, lw);
+					float g = gy_ptr[(nc * OH + oh) * OW + ow];
+					plane[h0 * W + w0] += (1.0f - lh) * (1.0f - lw) * g;
+					plane[h0 * W + w1] += (1.0f - lh) * lw * g;
+					plane[h1 * W + w0] += lh * (1.0f - lw) * g;
+					plane[h1 * W + w1] += lh * lw * g;
+				}
+			}
+		}
+	} else {
+		for (size_t n = 0; n < N; n++) {
+			for (size_t c = 0; c < C; c++) {
+				for (size_t oh = 0; oh < OH; oh++) {
+					for (size_t ow = 0; ow < OW; ow++) {
+						size_t ih = oh / sf;
+						size_t iw = ow / sf;
+						gx({n, c, ih, iw}) +=
+							gy_data({n, c, oh, ow});
+					}
 				}
 			}
 		}

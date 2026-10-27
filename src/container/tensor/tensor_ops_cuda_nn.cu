@@ -156,6 +156,68 @@ __global__ void upsample_nearest_bwd_kernel_f(const float* gy, float* gx,
 	atomicAdd(&gx[gx_idx], gy[flat]);
 }
 
+__device__ inline void bilinear_source_f(size_t dst, size_t in_size, size_t out_size, bool align_corners,
+	size_t& i0, size_t& i1, float& lambda) {
+	float src;
+	if (align_corners) {
+		float scale = out_size > 1 ? static_cast<float>(in_size - 1) / static_cast<float>(out_size - 1) : 0.0f;
+		src = scale * static_cast<float>(dst);
+	} else {
+		float scale = static_cast<float>(in_size) / static_cast<float>(out_size);
+		src = fmaxf(scale * (static_cast<float>(dst) + 0.5f) - 0.5f, 0.0f);
+	}
+	i0 = static_cast<size_t>(src);
+	i1 = i0 + (i0 < in_size - 1 ? 1 : 0);
+	lambda = src - static_cast<float>(i0);
+}
+
+__global__ void upsample_bilinear_kernel_f(const float* x, float* r,
+	size_t N, size_t C, size_t H, size_t W,
+	size_t OH, size_t OW, bool align_corners, size_t total) {
+	size_t flat = blockIdx.x * blockDim.x + threadIdx.x;
+	if (flat >= total) return;
+
+	size_t idx = flat;
+	size_t ow = idx % OW; idx /= OW;
+	size_t oh = idx % OH; idx /= OH;
+	size_t c  = idx % C;  idx /= C;
+	size_t n  = idx;
+
+	size_t h0, h1, w0, w1;
+	float lh, lw;
+	bilinear_source_f(oh, H, OH, align_corners, h0, h1, lh);
+	bilinear_source_f(ow, W, OW, align_corners, w0, w1, lw);
+
+	const float* plane = x + (n*C + c) * H * W;
+	r[flat] = (1.0f - lh) * ((1.0f - lw) * plane[h0*W + w0] + lw * plane[h0*W + w1])
+			+ lh * ((1.0f - lw) * plane[h1*W + w0] + lw * plane[h1*W + w1]);
+}
+
+__global__ void upsample_bilinear_bwd_kernel_f(const float* gy, float* gx,
+	size_t N, size_t C, size_t H, size_t W,
+	size_t OH, size_t OW, bool align_corners, size_t gy_total) {
+	size_t flat = blockIdx.x * blockDim.x + threadIdx.x;
+	if (flat >= gy_total) return;
+
+	size_t idx = flat;
+	size_t ow = idx % OW; idx /= OW;
+	size_t oh = idx % OH; idx /= OH;
+	size_t c  = idx % C;  idx /= C;
+	size_t n  = idx;
+
+	size_t h0, h1, w0, w1;
+	float lh, lw;
+	bilinear_source_f(oh, H, OH, align_corners, h0, h1, lh);
+	bilinear_source_f(ow, W, OW, align_corners, w0, w1, lw);
+
+	float g = gy[flat];
+	float* plane = gx + (n*C + c) * H * W;
+	atomicAdd(&plane[h0*W + w0], (1.0f - lh) * (1.0f - lw) * g);
+	atomicAdd(&plane[h0*W + w1], (1.0f - lh) * lw * g);
+	atomicAdd(&plane[h1*W + w0], lh * (1.0f - lw) * g);
+	atomicAdd(&plane[h1*W + w1], lh * lw * g);
+}
+
 // ========== Concat along axis ==========
 
 __global__ void concat_kernel_f(const float* src, float* dst,
@@ -360,6 +422,24 @@ void cuda_upsample_nearest_bwd_f(const float* gy, float* gx,
 	size_t OH = H * scale_h, OW = W * scale_w;
 	size_t gy_total = N * C * OH * OW;
 	upsample_nearest_bwd_kernel_f<<<grid_size(gy_total), BLOCK_SIZE>>>(gy, gx, N, C, H, W, OH, OW, scale_h, scale_w, gy_total);
+	CUDA_CHECK(cudaGetLastError());
+}
+
+void cuda_upsample_bilinear_f(const float* x, float* r,
+	size_t N, size_t C, size_t H, size_t W,
+	size_t scale_h, size_t scale_w, bool align_corners) {
+	size_t OH = H * scale_h, OW = W * scale_w;
+	size_t total = N * C * OH * OW;
+	upsample_bilinear_kernel_f<<<grid_size(total), BLOCK_SIZE>>>(x, r, N, C, H, W, OH, OW, align_corners, total);
+	CUDA_CHECK(cudaGetLastError());
+}
+
+void cuda_upsample_bilinear_bwd_f(const float* gy, float* gx,
+	size_t N, size_t C, size_t H, size_t W,
+	size_t scale_h, size_t scale_w, bool align_corners) {
+	size_t OH = H * scale_h, OW = W * scale_w;
+	size_t gy_total = N * C * OH * OW;
+	upsample_bilinear_bwd_kernel_f<<<grid_size(gy_total), BLOCK_SIZE>>>(gy, gx, N, C, H, W, OH, OW, align_corners, gy_total);
 	CUDA_CHECK(cudaGetLastError());
 }
 

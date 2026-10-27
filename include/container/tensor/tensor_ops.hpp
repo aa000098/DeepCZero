@@ -724,7 +724,55 @@ Tensor<T> dot(const Tensor<T>& a, const Tensor<T>& b) {
 }
 
 template<typename T>
-Tensor<T> tensordot(const Tensor<T> &A, 
+void gemm_strided_naive(const GemmPlan& plan, const T* a, const T* b, T* c) {
+	for (size_t call = 0; call < plan.a_offsets.size(); ++call) {
+		const T* a_mat = a + plan.a_offsets[call];
+		const T* b_mat = b + plan.b_offsets[call];
+		T* c_mat = c + plan.c_offsets[call];
+		bool accumulate = plan.accumulate[call];
+
+		#pragma omp parallel for
+		for (size_t i = 0; i < plan.M; ++i) {
+			T* c_row = c_mat + i * plan.ldc;
+			if (!accumulate)
+				std::fill(c_row, c_row + plan.N, T{});
+			for (size_t k = 0; k < plan.K; ++k) {
+				T a_ik = plan.trans_a ? a_mat[k * plan.lda + i] : a_mat[i * plan.lda + k];
+				if (plan.trans_b) {
+					for (size_t j = 0; j < plan.N; ++j)
+						c_row[j] += a_ik * b_mat[j * plan.ldb + k];
+				} else {
+					const T* b_row = b_mat + k * plan.ldb;
+					for (size_t j = 0; j < plan.N; ++j)
+						c_row[j] += a_ik * b_row[j];
+				}
+			}
+		}
+	}
+}
+
+template<typename T>
+Tensor<T> tensordot_cpu(const Tensor<T>& a, const Tensor<T>& b, const GemmPlan& plan) {
+	Tensor<T> a_contig = a.contiguous();
+	Tensor<T> b_contig = b.contiguous();
+	const T* a_ptr = a_contig.raw_data().data();
+	const T* b_ptr = b_contig.raw_data().data();
+	std::vector<T> result(product(plan.out_shape));
+
+#ifdef USE_MKL
+	if constexpr (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+		if (dcz::BackendConfig::get().use_mkl) {
+			gemm_strided_mkl(plan, a_ptr, b_ptr, result.data());
+			return Tensor<T>(plan.out_shape, std::move(result));
+		}
+	}
+#endif
+	gemm_strided_naive(plan, a_ptr, b_ptr, result.data());
+	return Tensor<T>(plan.out_shape, std::move(result));
+}
+
+template<typename T>
+Tensor<T> tensordot(const Tensor<T> &A,
                     const Tensor<T>& B,
                     const std::pair<std::vector<int>, 
 							std::vector<int>>& axes) {
@@ -743,6 +791,17 @@ Tensor<T> tensordot(const Tensor<T> &A,
     for (size_t i = 0; i < A_contract_axes.size(); ++i) {
         if (A_shape[A_contract_axes[i]] != B_shape[B_contract_axes[i]])
             throw std::runtime_error("Shape mismatch in tensordot axes");
+    }
+
+    GemmPlan plan;
+    if (make_tensordot_plan(A_shape, B_shape, A_contract_axes, B_contract_axes, plan)) {
+        check_same_device(A, B);
+#ifdef USE_CUDA
+        if (A.device().type == dcz::DeviceType::CUDA)
+            return tensordot_cuda(A, B, plan);
+#endif
+        if (A.is_cpu())
+            return tensordot_cpu(A, B, plan);
     }
 
     // 2. 계산에 사용될 축 외의 남은 축 구하기

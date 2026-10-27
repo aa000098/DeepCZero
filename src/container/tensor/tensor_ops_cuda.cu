@@ -89,57 +89,57 @@ extern "C" {
 
 void cuda_add_f(const float* a, const float* b, float* r, size_t n) {
 	add_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, b, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_sub_f(const float* a, const float* b, float* r, size_t n) {
 	sub_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, b, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_mul_f(const float* a, const float* b, float* r, size_t n) {
 	mul_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, b, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_div_f(const float* a, const float* b, float* r, size_t n) {
 	div_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, b, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_neg_f(const float* a, float* r, size_t n) {
 	neg_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(a, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_exp_f(const float* x, float* r, size_t n) {
 	exp_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_log_f(const float* x, float* r, size_t n) {
 	log_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_tanh_f(const float* x, float* r, size_t n) {
 	tanh_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_sin_f(const float* x, float* r, size_t n) {
 	sin_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_cos_f(const float* x, float* r, size_t n) {
 	cos_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_pow_f(const float* x, float scalar, float* r, size_t n) {
 	pow_kernel_f<<<grid_size(n), BLOCK_SIZE>>>(x, scalar, r, n);
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 // ========== GEMM via cuBLAS ==========
@@ -167,7 +167,7 @@ void cuda_gemm_f(const float* a, const float* b, float* c,
 		a, static_cast<int>(K),
 		&beta,
 		c, static_cast<int>(N)));
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 void cuda_gemm_strided_f(bool trans_a, bool trans_b,
@@ -191,7 +191,7 @@ void cuda_gemm_strided_f(bool trans_a, bool trans_b,
 			&beta,
 			c + c_offsets[i], static_cast<int>(ldc)));
 	}
-	CUDA_CHECK(cudaDeviceSynchronize());
+	CUDA_CHECK(cudaGetLastError());
 }
 
 } // extern "C"

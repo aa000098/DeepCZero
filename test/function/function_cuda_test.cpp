@@ -72,8 +72,30 @@ int main() {
 		  [](const std::vector<Variable>& x) { return conv2d(x[0], x[1], x[2], {2, 2}, {0, 0}); });
 	check("pooling 2x2", {seq_tensor({2, 3, 6, 6})},
 		  [](const std::vector<Variable>& x) { return pooling(x[0], {2, 2}, {2, 2}, {0, 0}); });
+	Tensor<float> negative = seq_tensor({2, 3, 6, 6});
+	for (auto& v : negative.raw_data()) v -= 1.0f;
+	check("pooling 3x3 pad 1 (negative input)", {negative},
+		  [](const std::vector<Variable>& x) { return pooling(x[0], {3, 3}, {1, 1}, {1, 1}); });
+	{
+		dcz::UsingConfig no_grad("enable_backprop", false);
+		Variable yc = pooling(Variable(negative), {3, 3}, {1, 1}, {1, 1});
+		Variable yg = pooling(Variable(negative.to(dcz::cuda())), {3, 3}, {1, 1}, {1, 1});
+		bool pass = yg.is_device() && all_close(yc.data(), yg.data().cpu());
+		std::cout << "  pooling no_grad: " << (pass ? "PASS" : "FAIL") << std::endl;
+	}
+	check("concat axis 1", {seq_tensor({2, 3, 4, 4}), seq_tensor({2, 5, 4, 4}, 0.2f), seq_tensor({2, 2, 4, 4}, 0.3f)},
+		  [](const std::vector<Variable>& x) { return concat({x[0], x[1], x[2]}, 1); });
 	check("get_item", {seq_tensor({4, 5})},
 		  [](const std::vector<Variable>& x) { return get_item(x[0], {1}); });
+	check("batchnorm eval", {seq_tensor({2, 3, 4, 4}), seq_tensor({3}, 0.3f), seq_tensor({3})},
+		  [](const std::vector<Variable>& x) {
+			  Tensor<float> mean({3}, std::vector<float>{0.1f, -0.2f, 0.3f});
+			  Tensor<float> var({3}, std::vector<float>{0.5f, 1.0f, 2.0f});
+			  Variable rm(mean.to(x[0].device()), "", false);
+			  Variable rv(var.to(x[0].device()), "", false);
+			  auto f = std::make_shared<function::BatchNorm2dFunc>(1e-5f, false);
+			  return (*f)({x[0], x[1], x[2], rm, rv});
+		  });
 
 	std::cout << "\nAll CUDA function tests done." << std::endl;
 	return 0;

@@ -53,6 +53,40 @@ void mkl_gemm_2d(const T* A, const T* B, T* C,
     }
 }
 
+template<typename T>
+void gemm_strided_mkl(const GemmPlan& plan, const T* a, const T* b, T* c) {
+    static_assert(can_use_mkl<T>(), "MKL only supports float and double types");
+
+    const CBLAS_TRANSPOSE trans_a = plan.trans_a ? CblasTrans : CblasNoTrans;
+    const CBLAS_TRANSPOSE trans_b = plan.trans_b ? CblasTrans : CblasNoTrans;
+    const MKL_INT m = static_cast<MKL_INT>(plan.M);
+    const MKL_INT n = static_cast<MKL_INT>(plan.N);
+    const MKL_INT k = static_cast<MKL_INT>(plan.K);
+    const MKL_INT lda = static_cast<MKL_INT>(plan.lda);
+    const MKL_INT ldb = static_cast<MKL_INT>(plan.ldb);
+    const MKL_INT ldc = static_cast<MKL_INT>(plan.ldc);
+    const T alpha = static_cast<T>(1.0);
+
+    for (size_t call = 0; call < plan.a_offsets.size(); ++call) {
+        const T beta = plan.accumulate[call] ? static_cast<T>(1.0) : static_cast<T>(0.0);
+        const T* a_mat = a + plan.a_offsets[call];
+        const T* b_mat = b + plan.b_offsets[call];
+        T* c_mat = c + plan.c_offsets[call];
+
+        if constexpr (std::is_same<T, float>::value) {
+            cblas_sgemm(CblasRowMajor, trans_a, trans_b,
+                        m, n, k,
+                        alpha, a_mat, lda, b_mat, ldb,
+                        beta, c_mat, ldc);
+        } else if constexpr (std::is_same<T, double>::value) {
+            cblas_dgemm(CblasRowMajor, trans_a, trans_b,
+                        m, n, k,
+                        alpha, a_mat, lda, b_mat, ldb,
+                        beta, c_mat, ldc);
+        }
+    }
+}
+
 // MKL-optimized dot product with batching support
 template<typename T>
 Tensor<T> dot_mkl(const Tensor<T>& a, const Tensor<T>& b) {

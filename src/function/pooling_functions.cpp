@@ -44,7 +44,8 @@ std::vector<Variable> function::Pooling::backward(
 
 Variable function::Pooling2DGrad::forward(
 		const std::vector<Variable>& xs) {
-	const Tensor<>& gy = xs[0].data();
+	const Tensor<>& gy_orig = xs[0].data();
+	Tensor<> gy = gy_orig.is_device() ? gy_orig.cpu() : gy_orig;
 
 	std::vector<size_t> gy_shape = gy.get_shape();
 	size_t N = gy_shape[0];
@@ -74,6 +75,8 @@ Variable function::Pooling2DGrad::forward(
 	Tensor<> gcol = gcol_flat.reshape({N, C, OH, OW, KH, KW}).transpose({0, 1, 4, 5, 2, 3});
 
 	Tensor<> gx = col2im_array(gcol, {N, C, H, W}, {KH, KW}, stride, pad, false);
+	if (gy_orig.is_device())
+		gx = gx.to(gy_orig.device());
 
 	return Variable(gx);
 }
@@ -92,7 +95,8 @@ std::vector<Variable> function::Pooling2DGrad::backward(
 
 Variable function::Pooling2DWithIndexes::forward(
 		const std::vector<Variable>& xs) {
-	const Tensor<>& x = xs[0].data();
+	const Tensor<>& x_orig = xs[0].data();
+	Tensor<> x = x_orig.is_device() ? x_orig.cpu() : x_orig;
 	
 	// [N, C, KH, KW, OH, OW]
 	Tensor<> col = im2col_array(x, kernel_size, stride, pad, false);
@@ -124,6 +128,8 @@ Variable function::Pooling2DWithIndexes::forward(
 	
 	// [N, C, OH, OW]
 	Tensor<> out = out_flat.reshape({N, C, OH, OW});
+	if (x_orig.is_device())
+		out = out.to(x_orig.device());
 	return Variable(out);
 }
 

@@ -23,26 +23,63 @@ Variable function::Pooling::forward(
 	}
 #endif
 
-	// CPU fallback: im2col_array requires raw_data() access
-	Tensor<> x = x_orig.is_device() ? x_orig.cpu() : x_orig;
+	Tensor<> x = (x_orig.is_device() ? x_orig.cpu() : x_orig).contiguous();
+
+	size_t N = input_shape[0];
+	size_t C = input_shape[1];
+	size_t H = input_shape[2];
+	size_t W = input_shape[3];
+	auto [KH, KW] = kernel_size;
+	auto [SH, SW] = stride;
 	auto [PH, PW] = pad;
-	if (PH > 0 || PW > 0)
-		x = x.pad({{0, 0}, {0, 0}, {PH, PH}, {PW, PW}}, -std::numeric_limits<float>::infinity());
-	Tensor<> col = im2col_array(x, kernel_size, stride, {0, 0}, false);
+	size_t OH = get_conv_outsize(H, KH, SH, PH);
+	size_t OW = get_conv_outsize(W, KW, SW, PW);
 
-	std::vector<size_t> col_shape = col.get_shape();
-	
-	size_t N = col_shape[0];
-	size_t C = col_shape[1];
-	size_t KH = col_shape[2];
-	size_t KW = col_shape[3];
-	size_t OH = col_shape[4];
-	size_t OW = col_shape[5];
+	const bool need_idx = dcz::Config::get().enable_backprop;
 
-	col = col.reshape({N, C, KH * KW, OH, OW});
+	Tensor<> y({N, C, OH, OW});
+	if (need_idx)
+		indexes = Tensor<size_t>({N, C, OH, OW}, 0);
+	else
+		indexes = Tensor<size_t>();
 
-	indexes = col.argmax(2);
-	Tensor<> y = col.max({2});
+	const float* xp = x.raw_data().data();
+	float* yp = y.raw_data().data();
+	size_t* ip = need_idx ? indexes.raw_data().data() : nullptr;
+
+	// indexes[o] = kh * KW + kw of the max inside the window
+	#pragma omp parallel for collapse(2)
+	for (size_t n = 0; n < N; ++n) {
+		for (size_t c = 0; c < C; ++c) {
+			const float* xc = xp + (n * C + c) * H * W;
+			float* yc = yp + (n * C + c) * OH * OW;
+			size_t* ic = ip ? ip + (n * C + c) * OH * OW : nullptr;
+
+			for (size_t oh = 0; oh < OH; ++oh) {
+				for (size_t ow = 0; ow < OW; ++ow) {
+					float max_val = -std::numeric_limits<float>::infinity();
+					size_t max_idx = 0;
+					for (size_t kh = 0; kh < KH; ++kh) {
+						const size_t h_in = oh * SH + kh;
+						if (h_in < PH || h_in >= H + PH) continue;
+						const float* xrow = xc + (h_in - PH) * W;
+						for (size_t kw = 0; kw < KW; ++kw) {
+							const size_t w_in = ow * SW + kw;
+							if (w_in < PW || w_in >= W + PW) continue;
+							const float v = xrow[w_in - PW];
+							if (v > max_val) {
+								max_val = v;
+								max_idx = kh * KW + kw;
+							}
+						}
+					}
+					yc[oh * OW + ow] = max_val;
+					if (ic) ic[oh * OW + ow] = max_idx;
+				}
+			}
+		}
+	}
+
 	if (x_orig.is_device())
 		y = y.to(x_orig.device());
 	return Variable(y);
@@ -51,11 +88,11 @@ Variable function::Pooling::forward(
 std::vector<Variable> function::Pooling::backward(
 		const Variable& gy) {
 	const Variable gx = pooling2d_grad(
-								gy, 
-								indexes, 
-								input_shape, 
-								kernel_size, 
-								stride, 
+								gy,
+								indexes,
+								input_shape,
+								kernel_size,
+								stride,
 								pad);
 	return {gx};
 }
@@ -63,36 +100,46 @@ std::vector<Variable> function::Pooling::backward(
 Variable function::Pooling2DGrad::forward(
 		const std::vector<Variable>& xs) {
 	const Tensor<>& gy_orig = xs[0].data();
-	Tensor<> gy = gy_orig.is_device() ? gy_orig.cpu() : gy_orig;
+	Tensor<> gy = (gy_orig.is_device() ? gy_orig.cpu() : gy_orig).contiguous();
+	Tensor<size_t> idx = indexes.contiguous();
 
-	std::vector<size_t> gy_shape = gy.get_shape();
-	size_t N = gy_shape[0];
-	size_t C = gy_shape[1];
-	size_t OH = gy_shape[2];
-	size_t OW = gy_shape[3];
-
+	size_t N = input_shape[0];
+	size_t C = input_shape[1];
 	size_t H = input_shape[2];
 	size_t W = input_shape[3];
 	auto [KH, KW] = kernel_size;
-	size_t K = KH * KW;
-	size_t S = N * C * OH * OW;
+	auto [SH, SW] = stride;
+	auto [PH, PW] = pad;
+	size_t OH = get_conv_outsize(H, KH, SH, PH);
+	size_t OW = get_conv_outsize(W, KW, SW, PW);
 
-	Tensor<> gy_flat = gy.ravel();
-	Tensor<size_t> idx_flat = indexes.ravel(); 
+	Tensor<> gx({N, C, H, W}, 0.0f);
+	const float* gyp = gy.raw_data().data();
+	const size_t* ip = idx.raw_data().data();
+	float* gxp = gx.raw_data().data();
 
-	Tensor<> gcol_flat = Tensor<>({S * K});
+	// Windows inside one (n, c) plane may overlap: scatter per plane,
+	// parallelise over planes only.
+	#pragma omp parallel for collapse(2)
+	for (size_t n = 0; n < N; ++n) {
+		for (size_t c = 0; c < C; ++c) {
+			const float* gyc = gyp + (n * C + c) * OH * OW;
+			const size_t* ic = ip + (n * C + c) * OH * OW;
+			float* gxc = gxp + (n * C + c) * H * W;
 
-	for (size_t i = 0; i < S; i++) {
-		const size_t pos = i * K + idx_flat({i});
-		gcol_flat({pos}) = gy_flat({i});
+			for (size_t oh = 0; oh < OH; ++oh) {
+				for (size_t ow = 0; ow < OW; ++ow) {
+					const size_t o = oh * OW + ow;
+					const size_t h_in = oh * SH + ic[o] / KW;
+					const size_t w_in = ow * SW + ic[o] % KW;
+					if (h_in < PH || h_in >= H + PH) continue;
+					if (w_in < PW || w_in >= W + PW) continue;
+					gxc[(h_in - PH) * W + (w_in - PW)] += gyc[o];
+				}
+			}
+		}
 	}
-	
-	// indexes for python style
-	//indexes = indexes.ravel() + arrange<size_t>(0, indexes.size() * KH * KW, KH * KW);
-	
-	Tensor<> gcol = gcol_flat.reshape({N, C, OH, OW, KH, KW}).transpose({0, 1, 4, 5, 2, 3});
 
-	Tensor<> gx = col2im_array(gcol, {N, C, H, W}, {KH, KW}, stride, pad, false);
 	if (gy_orig.is_device())
 		gx = gx.to(gy_orig.device());
 
@@ -102,11 +149,11 @@ Variable function::Pooling2DGrad::forward(
 std::vector<Variable> function::Pooling2DGrad::backward(
 		const Variable& ggy) {
 	const Variable ggx = pooling2d_with_indexes(
-								ggy, 
-								indexes, 
-								input_shape, 
-								kernel_size, 
-								stride, 
+								ggy,
+								indexes,
+								input_shape,
+								kernel_size,
+								stride,
 								pad);
 	return {ggx};
 }
@@ -114,38 +161,45 @@ std::vector<Variable> function::Pooling2DGrad::backward(
 Variable function::Pooling2DWithIndexes::forward(
 		const std::vector<Variable>& xs) {
 	const Tensor<>& x_orig = xs[0].data();
-	Tensor<> x = x_orig.is_device() ? x_orig.cpu() : x_orig;
-	
-	// [N, C, KH, KW, OH, OW]
-	Tensor<> col = im2col_array(x, kernel_size, stride, pad, false);
+	Tensor<> x = (x_orig.is_device() ? x_orig.cpu() : x_orig).contiguous();
+	Tensor<size_t> idx = indexes.contiguous();
 
-	std::vector<size_t> col_shape = col.get_shape();
-	size_t N = col_shape[0];
-	size_t C = col_shape[1];
-	size_t KH = col_shape[2];
-	size_t KW = col_shape[3];
-	size_t OH = col_shape[4];
-	size_t OW = col_shape[5];
-	size_t K = KH * KW;
-	size_t S = N * C * OH * OW;
+	std::vector<size_t> x_shape = x.get_shape();
+	size_t N = x_shape[0];
+	size_t C = x_shape[1];
+	size_t H = x_shape[2];
+	size_t W = x_shape[3];
+	auto [KH, KW] = kernel_size;
+	auto [SH, SW] = stride;
+	auto [PH, PW] = pad;
+	size_t OH = get_conv_outsize(H, KH, SH, PH);
+	size_t OW = get_conv_outsize(W, KW, SW, PW);
 
-	// [N, C, KH*KW, OH, OW] -> [N, C, OH, OW, KH*KW] -> [S, K]
-	col = col.reshape({N, C, K, OH, OW})
-				.transpose({0, 1, 3, 4, 2})
-				.reshape({S, K});
+	Tensor<> out({N, C, OH, OW}, 0.0f);
+	const float* xp = x.raw_data().data();
+	const size_t* ip = idx.raw_data().data();
+	float* op = out.raw_data().data();
 
-	// [N, C, OH, OW] -> [S]
-	Tensor<size_t> idx_flat = indexes.ravel();
+	#pragma omp parallel for collapse(2)
+	for (size_t n = 0; n < N; ++n) {
+		for (size_t c = 0; c < C; ++c) {
+			const float* xc = xp + (n * C + c) * H * W;
+			const size_t* ic = ip + (n * C + c) * OH * OW;
+			float* oc = op + (n * C + c) * OH * OW;
 
-	Tensor<> out_flat({S});
-	Tensor<> col_flat = col.ravel();
-	for (size_t i = 0; i < S; i++) {
-		size_t j = idx_flat({i});
-		out_flat({i}) = col_flat({i * K + j});
+			for (size_t oh = 0; oh < OH; ++oh) {
+				for (size_t ow = 0; ow < OW; ++ow) {
+					const size_t o = oh * OW + ow;
+					const size_t h_in = oh * SH + ic[o] / KW;
+					const size_t w_in = ow * SW + ic[o] % KW;
+					if (h_in < PH || h_in >= H + PH) continue;
+					if (w_in < PW || w_in >= W + PW) continue;
+					oc[o] = xc[(h_in - PH) * W + (w_in - PW)];
+				}
+			}
+		}
 	}
-	
-	// [N, C, OH, OW]
-	Tensor<> out = out_flat.reshape({N, C, OH, OW});
+
 	if (x_orig.is_device())
 		out = out.to(x_orig.device());
 	return Variable(out);
@@ -153,7 +207,7 @@ Variable function::Pooling2DWithIndexes::forward(
 
 std::vector<Variable> function::Pooling2DWithIndexes::backward(
 		const Variable& gy) {
-	if (gy.empty()) 
+	if (gy.empty())
 		throw std::runtime_error("Pooling2DWithIndexes backward not implemented");
 	return { Variable() };
 }

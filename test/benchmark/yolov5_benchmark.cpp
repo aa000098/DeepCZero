@@ -81,7 +81,7 @@ int main() {
 #endif
 
 #ifdef USE_MKL
-	bench_yolov5s(dcz::cpu(), 0, 3);
+	bench_yolov5s(dcz::cpu(), 2, 20);
 #else
 	std::cout << "  cpu     skipped (naive GEMM takes minutes per image; build with USE_MKL=1)" << std::endl;
 #endif

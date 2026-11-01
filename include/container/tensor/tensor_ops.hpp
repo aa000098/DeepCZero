@@ -36,98 +36,96 @@ namespace tensor {
 
 // Naive implementations of element-wise operations
 
-template<typename T>
-Tensor<T> add_naive(const Tensor<T>& a, const Tensor<T>& b) {
-	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
+// Generic strided binary element-wise kernel with broadcasting.
+// Walks both operands through their (possibly zero) strides directly, so no
+// per-element index vector is allocated and no virtual operator() is called.
+template<typename T, typename Op>
+Tensor<T> binary_elementwise_naive(const Tensor<T>& a, const Tensor<T>& b, Op op) {
+	auto operands = broadcast_binary_operands(a, b);
+	const Tensor<T>& a_bc = std::get<0>(operands);
+	const Tensor<T>& b_bc = std::get<1>(operands);
+	const std::vector<size_t> broadcast_shape = std::get<2>(operands);
 
-    Tensor<T> result(broadcast_shape, T{});
-    size_t total = result.size();
-    size_t ndim_result = broadcast_shape.size();
+	Tensor<T> result(broadcast_shape, T{});
+	const size_t total = result.size();
+	if (total == 0) return result;
 
-	//#pragma omp parallel for
-    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
-        std::vector<size_t> idx(ndim_result);
-        size_t rem = flat_idx;
-        for (size_t i = ndim_result; i-- > 0;) {
-            idx[i] = rem % broadcast_shape[i];
-            rem /= broadcast_shape[i];
-        }
+	const size_t ndim = broadcast_shape.size();
+	const std::vector<size_t> a_strides = a_bc.get_strides();
+	const std::vector<size_t> b_strides = b_bc.get_strides();
+	const T* a_ptr = a_bc.raw_data().data() + a_bc.get_offset();
+	const T* b_ptr = b_bc.raw_data().data() + b_bc.get_offset();
+	T* out = result.raw_data().data();
 
-        result(idx) = a_bc(idx) + b_bc(idx);
-    }
+	if (ndim == 0) {
+		out[0] = op(a_ptr[0], b_ptr[0]);
+		return result;
+	}
+
+	// Fast path: both operands already laid out like the result.
+	const std::vector<size_t> contiguous = compute_contiguous_strides(broadcast_shape);
+	if (a_strides == contiguous && b_strides == contiguous) {
+		#pragma omp parallel for if(total > 65536)
+		for (size_t i = 0; i < total; ++i)
+			out[i] = op(a_ptr[i], b_ptr[i]);
+		return result;
+	}
+
+	// General path: innermost dimension is a strided loop, outer dimensions are
+	// decomposed once per row (O(ndim) per row, not per element).
+	const size_t inner = broadcast_shape[ndim - 1];
+	const size_t a_inner_stride = a_strides[ndim - 1];
+	const size_t b_inner_stride = b_strides[ndim - 1];
+	const size_t rows = total / inner;
+
+	#pragma omp parallel for if(total > 65536)
+	for (size_t row = 0; row < rows; ++row) {
+		size_t rem = row;
+		size_t a_off = 0, b_off = 0;
+		for (size_t d = ndim - 1; d-- > 0;) {
+			const size_t idx = rem % broadcast_shape[d];
+			rem /= broadcast_shape[d];
+			a_off += idx * a_strides[d];
+			b_off += idx * b_strides[d];
+		}
+		const T* a_row = a_ptr + a_off;
+		const T* b_row = b_ptr + b_off;
+		T* o = out + row * inner;
+		for (size_t j = 0; j < inner; ++j)
+			o[j] = op(a_row[j * a_inner_stride], b_row[j * b_inner_stride]);
+	}
 
 	return result;
+}
+
+template<typename T>
+Tensor<T> add_naive(const Tensor<T>& a, const Tensor<T>& b) {
+	return binary_elementwise_naive(a, b, [](T x, T y) { return x + y; });
 }
 
 template<typename T>
 Tensor<T> sub_naive(const Tensor<T>& a, const Tensor<T>& b) {
-	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
-
-    Tensor<T> result(broadcast_shape, T{});
-    size_t total = result.size();
-    size_t ndim_result = broadcast_shape.size();
-
-	//#pragma omp parallel for
-    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
-        std::vector<size_t> idx(ndim_result);
-        size_t rem = flat_idx;
-        for (size_t i = ndim_result; i-- > 0;) {
-            idx[i] = rem % broadcast_shape[i];
-            rem /= broadcast_shape[i];
-        }
-
-        result(idx) = a_bc(idx) - b_bc(idx);
-    }
-
-	return result;
+	return binary_elementwise_naive(a, b, [](T x, T y) { return x - y; });
 }
 
 template<typename T>
 Tensor<T> mul_naive(const Tensor<T>& a, const Tensor<T>& b) {
-	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
-
-    Tensor<T> result(broadcast_shape, T{});
-    size_t total = result.size();
-    size_t ndim_result = broadcast_shape.size();
-
-	//#pragma omp parallel for
-    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
-        std::vector<size_t> idx(ndim_result);
-        size_t rem = flat_idx;
-        for (size_t i = ndim_result; i-- > 0;) {
-            idx[i] = rem % broadcast_shape[i];
-            rem /= broadcast_shape[i];
-        }
-
-        result(idx) = a_bc(idx) * b_bc(idx);
-    }
-
-	return result;
+	return binary_elementwise_naive(a, b, [](T x, T y) { return x * y; });
 }
 
 template<typename T>
 Tensor<T> div_naive(const Tensor<T>& a, const Tensor<T>& b) {
-	auto [a_bc, b_bc, broadcast_shape] = broadcast_binary_operands(a, b);
-
-    Tensor<T> result(broadcast_shape, T{});
-    size_t total = result.size();
-    size_t ndim_result = broadcast_shape.size();
-
-	//#pragma omp parallel for
-    for (size_t flat_idx = 0; flat_idx < total; ++flat_idx) {
-        std::vector<size_t> idx(ndim_result);
-        size_t rem = flat_idx;
-        for (size_t i = ndim_result; i-- > 0;) {
-            idx[i] = rem % broadcast_shape[i];
-            rem /= broadcast_shape[i];
-        }
-
-		if (b_bc(idx) == 0)
-			throw std::runtime_error("Tensor Div: Division by zero");
-        result(idx) = a_bc(idx) / b_bc(idx);
-    }
-
-	return result;
+	// The divisor check runs over the (small, strided) divisor view before the
+	// kernel so the parallel loop stays exception-free.
+	{
+		Tensor<T> b_c = b.contiguous();
+		const T* p = b_c.raw_data().data() + b_c.get_offset();
+		const size_t count = b_c.size();
+		for (size_t i = 0; i < count; ++i)
+			if (p[i] == T{})
+				throw std::runtime_error("Tensor Div: Division by zero");
+	}
+	return binary_elementwise_naive(a, b, [](T x, T y) { return x / y; });
 }
 
 // Dispatcher functions that use MKL when available and shapes match
@@ -704,51 +702,35 @@ Tensor<T> dot_naive(const Tensor<T>& a, const Tensor<T>& b) {
     result_shape.push_back(M);
     result_shape.push_back(N);
 
+    // Materialize contiguous operands once so the hot loop works on raw pointers.
+    a_bc = a_bc.contiguous();
+    b_bc = b_bc.contiguous();
+
     std::vector<T> result_data(product(result_shape), T{});
-	auto result_strides = compute_contiguous_strides(result_shape); 
 
-    // 6. flatten loop over batches
-    size_t batch_size = product(batch_shape);
+    const size_t batch_size = product(batch_shape);
+    const size_t K = K1;
+    const T* a_ptr = a_bc.raw_data().data() + a_bc.get_offset();
+    const T* b_ptr = b_bc.raw_data().data() + b_bc.get_offset();
+    T* c_ptr = result_data.data();
 
-	#pragma omp parallel for
-	for (size_t flat = 0; flat < batch_size * M * N; ++flat) {
-		size_t batch_idx = flat / (M * N);
-		size_t i = (flat / N) % M;
-		size_t j = flat % N;
-
-		auto batch_idx_vec = unflatten_index(batch_idx, batch_shape);
-
-		T sum = T{};
-		for (size_t k = 0; k < K1; ++k) {
-			auto idx_a = batch_idx_vec; idx_a.push_back(i); idx_a.push_back(k);
-			auto idx_b = batch_idx_vec; idx_b.push_back(k); idx_b.push_back(j);
-			sum += a_bc(idx_a) * b_bc(idx_b);
+    // 6. i-k-j loop order: the innermost loop streams contiguous rows of B and C.
+	#pragma omp parallel for collapse(2)
+	for (size_t batch_idx = 0; batch_idx < batch_size; ++batch_idx) {
+		for (size_t i = 0; i < M; ++i) {
+			const T* a_row = a_ptr + (batch_idx * M + i) * K;
+			const T* b_mat = b_ptr + batch_idx * K * N;
+			T* c_row = c_ptr + (batch_idx * M + i) * N;
+			for (size_t k = 0; k < K; ++k) {
+				const T a_ik = a_row[k];
+				const T* b_row = b_mat + k * N;
+				for (size_t j = 0; j < N; ++j)
+					c_row[j] += a_ik * b_row[j];
+			}
 		}
-
-		auto idx_res = batch_idx_vec; idx_res.push_back(i); idx_res.push_back(j);
-		size_t flat_idx = flatten_index(idx_res, result_strides);
-		result_data[flat_idx] = sum;
 	}
-	/*
-    for (size_t batch_idx = 0; batch_idx < batch_size; ++batch_idx) {
-        auto batch_idx_vec = unflatten_index(batch_idx, batch_shape);
 
-        for (size_t i = 0; i < M; ++i) {
-            for (size_t j = 0; j < N; ++j) {
-                T sum = T{};
-                for (size_t k = 0; k < K1; ++k) {
-                    auto idx_a = batch_idx_vec; idx_a.push_back(i); idx_a.push_back(k);
-                    auto idx_b = batch_idx_vec; idx_b.push_back(k); idx_b.push_back(j);
-                    sum += a_bc(idx_a) * b_bc(idx_b);
-                }
-                auto idx_res = batch_idx_vec; idx_res.push_back(i); idx_res.push_back(j);
-                size_t flat = flatten_index(idx_res, result_strides);
-                result_data[flat] = sum;
-            }
-        }
-    }
-*/
-    return Tensor<T>(result_shape, result_data);
+    return Tensor<T>(result_shape, std::move(result_data));
 }
 
 // Main dot function that dispatches to appropriate implementation

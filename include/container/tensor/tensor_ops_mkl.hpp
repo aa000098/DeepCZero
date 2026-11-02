@@ -156,14 +156,35 @@ Tensor<T> dot_mkl(const Tensor<T>& a, const Tensor<T>& b) {
     const T* b_ptr = b_bc.raw_data().data();
     T* c_ptr = result_data.data();
 
-    // Process each batch using MKL GEMM
-    #pragma omp parallel for
-    for (size_t batch_idx = 0; batch_idx < batch_size; ++batch_idx) {
-        const T* a_batch = a_ptr + batch_idx * a_matrix_size;
-        const T* b_batch = b_ptr + batch_idx * b_matrix_size;
-        T* c_batch = c_ptr + batch_idx * c_matrix_size;
+    // Do NOT wrap the GEMM calls in an OpenMP parallel region: MKL (gnu_thread)
+    // detects the enclosing region and falls back to a single thread while the
+    // remaining gomp workers spin-wait. Let MKL parallelize internally instead.
+    if (batch_size == 1) {
+        mkl_gemm_2d(a_ptr, b_ptr, c_ptr, M, K, N);
+    } else if (batch_size > 1) {
+        const MKL_INT m = static_cast<MKL_INT>(M);
+        const MKL_INT n = static_cast<MKL_INT>(N);
+        const MKL_INT k = static_cast<MKL_INT>(K);
+        const MKL_INT stride_a = static_cast<MKL_INT>(a_matrix_size);
+        const MKL_INT stride_b = static_cast<MKL_INT>(b_matrix_size);
+        const MKL_INT stride_c = static_cast<MKL_INT>(c_matrix_size);
+        const MKL_INT batches = static_cast<MKL_INT>(batch_size);
+        const T alpha = static_cast<T>(1.0);
+        const T beta = static_cast<T>(0.0);
 
-        mkl_gemm_2d(a_batch, b_batch, c_batch, M, K, N);
+        if constexpr (std::is_same<T, float>::value) {
+            cblas_sgemm_batch_strided(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                                      m, n, k, alpha,
+                                      a_ptr, k, stride_a,
+                                      b_ptr, n, stride_b,
+                                      beta, c_ptr, n, stride_c, batches);
+        } else {
+            cblas_dgemm_batch_strided(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                                      m, n, k, alpha,
+                                      a_ptr, k, stride_a,
+                                      b_ptr, n, stride_b,
+                                      beta, c_ptr, n, stride_c, batches);
+        }
     }
 
     return Tensor<T>(result_shape, result_data);

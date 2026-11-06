@@ -887,13 +887,18 @@ Tensor<T> maximum(const Tensor<T>& input, T scalar) {
 #ifdef USE_CUDA
 	if (input.device().type == dcz::DeviceType::CUDA) return maximum_cuda(input, scalar);
 #endif
-	std::vector<T> out_data(input.size());
-	const auto& in_data = input.data();
+	// Read in place: contiguous() is a shallow copy for already-contiguous
+	// tensors, and the input is never written to.
+	Tensor<T> src = input.contiguous();
+	const T* in_data = src.raw_data().data() + src.get_offset();
+	const size_t n = src.size();
+	std::vector<T> out_data(n);
 
-	for (size_t i = 0; i < input.size(); i++)
+	#pragma omp parallel for if(n > 65536)
+	for (size_t i = 0; i < n; i++)
 		out_data[i] = std::max(in_data[i], scalar);
 
-	return Tensor<T>(input.get_shape(), out_data);
+	return Tensor<T>(input.get_shape(), std::move(out_data));
 }
 
 template<typename T>
@@ -904,13 +909,16 @@ Tensor<T> minimum(const Tensor<T>& input, T scalar) {
 #ifdef USE_CUDA
 	if (input.device().type == dcz::DeviceType::CUDA) return minimum_cuda(input, scalar);
 #endif
-	std::vector<T> out_data(input.size());
-	const auto& in_data = input.data();
+	Tensor<T> src = input.contiguous();
+	const T* in_data = src.raw_data().data() + src.get_offset();
+	const size_t n = src.size();
+	std::vector<T> out_data(n);
 
-	for (size_t i = 0; i < input.size(); i++)
+	#pragma omp parallel for if(n > 65536)
+	for (size_t i = 0; i < n; i++)
 		out_data[i] = std::min(in_data[i], scalar);
 
-	return Tensor<T>(input.get_shape(), out_data);
+	return Tensor<T>(input.get_shape(), std::move(out_data));
 }
 
 template<typename T>
@@ -921,13 +929,16 @@ Tensor<T> abs(const Tensor<T>& input) {
 #ifdef USE_CUDA
 	if (input.device().type == dcz::DeviceType::CUDA) return abs_cuda(input);
 #endif
-	std::vector<T> out_data(input.size());
-	const auto& in_data = input.data();
+	Tensor<T> src = input.contiguous();
+	const T* in_data = src.raw_data().data() + src.get_offset();
+	const size_t n = src.size();
+	std::vector<T> out_data(n);
 
-	for (size_t i = 0; i < input.size(); i++)
+	#pragma omp parallel for if(n > 65536)
+	for (size_t i = 0; i < n; i++)
 		out_data[i] = std::abs(in_data[i]);
 
-	return Tensor<T>(input.get_shape(), out_data);
+	return Tensor<T>(input.get_shape(), std::move(out_data));
 }
 
 template<typename T>
@@ -938,16 +949,19 @@ Tensor<T> sign(const Tensor<T>& input) {
 #ifdef USE_CUDA
 	if (input.device().type == dcz::DeviceType::CUDA) return sign_cuda(input);
 #endif
-	std::vector<T> out_data(input.size());
-	const auto& in_data = input.data();
+	Tensor<T> src = input.contiguous();
+	const T* in_data = src.raw_data().data() + src.get_offset();
+	const size_t n = src.size();
+	std::vector<T> out_data(n);
 
-	for (size_t i = 0; i < input.size(); i++) {
+	#pragma omp parallel for if(n > 65536)
+	for (size_t i = 0; i < n; i++) {
 		if (in_data[i] > T(0)) out_data[i] = T(1);
 		else if (in_data[i] < T(0)) out_data[i] = T(-1);
 		else out_data[i] = T(0);
 	}
 
-	return Tensor<T>(input.get_shape(), out_data);
+	return Tensor<T>(input.get_shape(), std::move(out_data));
 }
 
 template<typename T>
@@ -958,13 +972,16 @@ Tensor<T> clamp(const Tensor<T>& input, T min_val, T max_val) {
 #ifdef USE_CUDA
 	if (input.device().type == dcz::DeviceType::CUDA) return clamp_cuda(input, min_val, max_val);
 #endif
-	std::vector<T> out_data(input.size());
-	const auto& in_data = input.data();
+	Tensor<T> src = input.contiguous();
+	const T* in_data = src.raw_data().data() + src.get_offset();
+	const size_t n = src.size();
+	std::vector<T> out_data(n);
 
-	for (size_t i = 0; i < input.size(); i++)
+	#pragma omp parallel for if(n > 65536)
+	for (size_t i = 0; i < n; i++)
 		out_data[i] = std::clamp(in_data[i], min_val, max_val);
 
-	return Tensor<T>(input.get_shape(), out_data);
+	return Tensor<T>(input.get_shape(), std::move(out_data));
 }
 
 template<typename T>
@@ -975,14 +992,16 @@ Tensor<T> greater(const Tensor<T>& x, T scalar) {
 #ifdef USE_CUDA
 	if (x.device().type == dcz::DeviceType::CUDA) return greater_cuda(x, scalar);
 #endif
-	const auto& x_data = x.data();
-	std::vector<T> out_data(x.size());
+	Tensor<T> src = x.contiguous();
+	const T* x_data = src.raw_data().data() + src.get_offset();
+	const size_t n = src.size();
+	std::vector<T> out_data(n);
 
-	for (size_t i = 0; i < x.size(); i++)
-		out_data[i] = x_data[i] > scalar ? 1 : 0;
+	#pragma omp parallel for if(n > 65536)
+	for (size_t i = 0; i < n; i++)
+		out_data[i] = x_data[i] > scalar ? T(1) : T(0);
 
-	return Tensor<T>(x.get_shape(), out_data);
-
+	return Tensor<T>(x.get_shape(), std::move(out_data));
 }
 
 }

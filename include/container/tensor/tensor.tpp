@@ -446,23 +446,31 @@ Tensor<T> Tensor<T>::pad(const std::vector<std::pair<size_t, size_t>>& padding, 
 		new_shape[i] = old_shape[i] + padding[i].first + padding[i].second;
 
 	Tensor<T> padded_tensor(new_shape, pad_value);
+	if (ndim == 0 || this->size() == 0)
+		return padded_tensor;
 
-	std::vector<size_t> old_idx(ndim, 0);
-	std::vector<size_t> new_idx(ndim, 0);
+	// Copy row by row: each run along the last dim of the source is contiguous
+	// (after contiguous()) and lands in one contiguous run of the padded output.
+	Tensor<T> src = this->contiguous();
+	const T* src_ptr = src.raw_data().data() + src.get_offset();
+	T* dst_ptr = padded_tensor.raw_data().data();
+	const std::vector<size_t> dst_strides = compute_contiguous_strides(new_shape);
 
-	std::function<void(size_t)> copy_data = [&](size_t dim) {
-		if (dim == ndim) {
-			padded_tensor(new_idx) = (*this)(old_idx);
-			return;
+	const size_t inner = old_shape[ndim - 1];
+	const size_t rows = this->size() / inner;
+	const size_t inner_pad = padding[ndim - 1].first;
+
+	#pragma omp parallel for if(rows > 64)
+	for (size_t row = 0; row < rows; ++row) {
+		size_t rem = row;
+		size_t dst_off = inner_pad;
+		for (size_t d = ndim - 1; d-- > 0;) {
+			const size_t idx = rem % old_shape[d];
+			rem /= old_shape[d];
+			dst_off += (idx + padding[d].first) * dst_strides[d];
 		}
-		for (size_t i = 0; i < old_shape[dim]; i++) {
-			old_idx[dim] = i;
-			new_idx[dim] = i + padding[dim].first;
-			copy_data(dim + 1);
-		}
-	};
-
-	copy_data(0);
+		std::copy(src_ptr + row * inner, src_ptr + (row + 1) * inner, dst_ptr + dst_off);
+	}
 
 	return padded_tensor;
 }

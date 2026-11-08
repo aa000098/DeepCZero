@@ -29,9 +29,9 @@ Variable function::Pooling::forward(
 	size_t C = input_shape[1];
 	size_t H = input_shape[2];
 	size_t W = input_shape[3];
-	auto [KH, KW] = kernel_size;
-	auto [SH, SW] = stride;
-	auto [PH, PW] = pad;
+	const size_t KH = kernel_size.first, KW = kernel_size.second;
+	const size_t SH = stride.first,      SW = stride.second;
+	const size_t PH = pad.first,         PW = pad.second;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
 	size_t OW = get_conv_outsize(W, KW, SW, PW);
 
@@ -107,9 +107,9 @@ Variable function::Pooling2DGrad::forward(
 	size_t C = input_shape[1];
 	size_t H = input_shape[2];
 	size_t W = input_shape[3];
-	auto [KH, KW] = kernel_size;
-	auto [SH, SW] = stride;
-	auto [PH, PW] = pad;
+	const size_t KH = kernel_size.first, KW = kernel_size.second;
+	const size_t SH = stride.first,      SW = stride.second;
+	const size_t PH = pad.first,         PW = pad.second;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
 	size_t OW = get_conv_outsize(W, KW, SW, PW);
 
@@ -169,9 +169,9 @@ Variable function::Pooling2DWithIndexes::forward(
 	size_t C = x_shape[1];
 	size_t H = x_shape[2];
 	size_t W = x_shape[3];
-	auto [KH, KW] = kernel_size;
-	auto [SH, SW] = stride;
-	auto [PH, PW] = pad;
+	const size_t KH = kernel_size.first, KW = kernel_size.second;
+	const size_t SH = stride.first,      SW = stride.second;
+	const size_t PH = pad.first,         PW = pad.second;
 	size_t OH = get_conv_outsize(H, KH, SH, PH);
 	size_t OW = get_conv_outsize(W, KW, SW, PW);
 

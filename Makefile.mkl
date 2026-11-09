@@ -2,20 +2,32 @@
 # This file is included when USE_MKL=1 (default)
 # To disable MKL: make USE_MKL=0
 
+# MKL threading layer must match the compiler's OpenMP runtime:
+#   g++  (-fopenmp) -> libgomp  -> mkl_gnu_thread   (mkl-dynamic-lp64-gomp)
+#   icpx (-qopenmp) -> libiomp5 -> mkl_intel_thread (mkl-dynamic-lp64-iomp)
+# Mixing them loads two OpenMP runtimes and oversubscribes the CPU.
+ifeq ($(USE_SYCL), 1)
+    MKL_PKG_NAME := mkl-dynamic-lp64-iomp
+    MKL_THREAD_LIBS := -lmkl_intel_thread -liomp5
+else
+    MKL_PKG_NAME := mkl-dynamic-lp64-gomp
+    MKL_THREAD_LIBS := -lmkl_gnu_thread -lgomp
+endif
+
 # Try to auto-detect MKL using pkg-config
-MKL_PKG := $(shell pkg-config --exists mkl-dynamic-lp64-gomp 2>/dev/null && echo "yes")
+MKL_PKG := $(shell pkg-config --exists $(MKL_PKG_NAME) 2>/dev/null && echo "yes")
 
 ifeq ($(MKL_PKG), yes)
     # Use pkg-config for automatic detection
-    MKL_CFLAGS := $(shell pkg-config --cflags mkl-dynamic-lp64-gomp)
-    MKL_LDFLAGS := $(shell pkg-config --libs mkl-dynamic-lp64-gomp)
-    MKL_LIB_DIR := $(shell pkg-config --variable=libdir mkl-dynamic-lp64-gomp)
+    MKL_CFLAGS := $(shell pkg-config --cflags $(MKL_PKG_NAME))
+    MKL_LDFLAGS := $(shell pkg-config --libs $(MKL_PKG_NAME))
+    MKL_LIB_DIR := $(shell pkg-config --variable=libdir $(MKL_PKG_NAME))
 
     CXXFLAGS += $(MKL_CFLAGS) -DUSE_MKL
     LDFLAGS += $(MKL_LDFLAGS) -Wl,-rpath,$(MKL_LIB_DIR)
 
     # Link Intel SVML if available (needed for vectorized math like powf)
-    COMPILER_ROOT ?= /opt/intel/oneapi/compiler/2024.2
+    COMPILER_ROOT ?= /opt/intel/oneapi/compiler/latest
     ifneq ($(wildcard $(COMPILER_ROOT)/lib/libsvml.so),)
         LDFLAGS += -L$(COMPILER_ROOT)/lib -lsvml -lintlc -Wl,-rpath,$(COMPILER_ROOT)/lib
         LDFLAGS += -Wl,--allow-shlib-undefined
@@ -32,7 +44,7 @@ else
         MKL_LIB = $(MKL_ROOT)/lib
 
         CXXFLAGS += -I$(MKL_INC) -DUSE_MKL
-        LDFLAGS += -L$(MKL_LIB) -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
+        LDFLAGS += -L$(MKL_LIB) -lmkl_intel_lp64 $(MKL_THREAD_LIBS) -lmkl_core -lpthread -lm -ldl
 
 #         $(info [MKL] Building with Intel MKL from $(MKL_ROOT))
     else
@@ -48,8 +60,12 @@ endif
 USE_DNNL ?= 0
 
 ifeq ($(USE_DNNL), 1)
-    # Try to auto-detect oneDNN using pkg-config
-    DNNL_PKG := $(shell pkg-config --exists dnnl 2>/dev/null && echo "yes")
+    ifdef DNNL_ROOT
+        DNNL_PKG := no
+    else
+        # Try to auto-detect oneDNN using pkg-config
+        DNNL_PKG := $(shell pkg-config --exists dnnl 2>/dev/null && echo "yes")
+    endif
 
     ifeq ($(DNNL_PKG), yes)
         # Use pkg-config for automatic detection
@@ -70,23 +86,7 @@ ifeq ($(USE_DNNL), 1)
             DNNL_LIB = $(DNNL_ROOT)/lib
 
             CXXFLAGS += -I$(DNNL_INC) -DUSE_DNNL
-            LDFLAGS += -L$(DNNL_LIB) -ldnnl
-
-            # oneDNN additional dependencies
-            TBB_ROOT ?= /opt/intel/oneapi/tbb/latest
-            COMPILER_ROOT ?= /opt/intel/oneapi/compiler/latest
-
-            ifneq ($(wildcard $(TBB_ROOT)/lib),)
-                LDFLAGS += -L$(TBB_ROOT)/lib -ltbb
-                LDFLAGS += -Wl,-rpath,$(TBB_ROOT)/lib
-            endif
-
-            ifneq ($(wildcard $(COMPILER_ROOT)/lib),)
-                LDFLAGS += -L$(COMPILER_ROOT)/lib -lsycl
-                LDFLAGS += -Wl,-rpath,$(COMPILER_ROOT)/lib
-            endif
-
-            LDFLAGS += -Wl,-rpath,$(DNNL_LIB)
+            LDFLAGS += -L$(DNNL_LIB) -ldnnl -Wl,-rpath,$(DNNL_LIB) -Wl,--disable-new-dtags
 
             $(info [DNNL] Building with Intel oneDNN from $(DNNL_ROOT))
         else

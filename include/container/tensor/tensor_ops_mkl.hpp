@@ -187,7 +187,7 @@ Tensor<T> dot_mkl(const Tensor<T>& a, const Tensor<T>& b) {
         }
     }
 
-    return Tensor<T>(result_shape, result_data);
+    return Tensor<T>(result_shape, std::move(result_data));
 }
 
 // MKL VML-optimized element-wise math functions
@@ -206,6 +206,64 @@ Tensor<T> exp_mkl(const Tensor<T>& x) {
     }
 
     return Tensor<T>(x.get_shape(), result_data);
+}
+
+// sigmoid / silu with VML exp. Processed in cache-sized blocks so the
+// negate -> exp -> divide passes stay in L1/L2 and parallelise over blocks.
+template<typename T>
+Tensor<T> sigmoid_mkl(const Tensor<T>& x) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    Tensor<T> x_contig = x.contiguous();
+    const T* xp = x_contig.raw_data().data();
+    const size_t n = x_contig.size();
+    std::vector<T> result_data(n);
+    T* yp = result_data.data();
+
+    constexpr size_t BLOCK = 4096;
+    const size_t nblocks = (n + BLOCK - 1) / BLOCK;
+
+    #pragma omp parallel for
+    for (size_t b = 0; b < nblocks; ++b) {
+        const size_t lo = b * BLOCK;
+        const size_t len = std::min(BLOCK, n - lo);
+        T* y = yp + lo;
+        const T* xb = xp + lo;
+        for (size_t i = 0; i < len; ++i) y[i] = -xb[i];
+        if constexpr (std::is_same<T, float>::value) vsExp(len, y, y);
+        else                                          vdExp(len, y, y);
+        for (size_t i = 0; i < len; ++i) y[i] = T(1) / (T(1) + y[i]);
+    }
+
+    return Tensor<T>(x.get_shape(), std::move(result_data));
+}
+
+template<typename T>
+Tensor<T> silu_mkl(const Tensor<T>& x) {
+    static_assert(can_use_mkl<T>(), "MKL VML only supports float and double types");
+
+    Tensor<T> x_contig = x.contiguous();
+    const T* xp = x_contig.raw_data().data();
+    const size_t n = x_contig.size();
+    std::vector<T> result_data(n);
+    T* yp = result_data.data();
+
+    constexpr size_t BLOCK = 4096;
+    const size_t nblocks = (n + BLOCK - 1) / BLOCK;
+
+    #pragma omp parallel for
+    for (size_t b = 0; b < nblocks; ++b) {
+        const size_t lo = b * BLOCK;
+        const size_t len = std::min(BLOCK, n - lo);
+        T* y = yp + lo;
+        const T* xb = xp + lo;
+        for (size_t i = 0; i < len; ++i) y[i] = -xb[i];
+        if constexpr (std::is_same<T, float>::value) vsExp(len, y, y);
+        else                                          vdExp(len, y, y);
+        for (size_t i = 0; i < len; ++i) y[i] = xb[i] / (T(1) + y[i]);
+    }
+
+    return Tensor<T>(x.get_shape(), std::move(result_data));
 }
 
 template<typename T>

@@ -100,8 +100,8 @@ void benchmark_matmul() {
         // Initialize with random values
         auto& A_data = A.raw_data();
         auto& B_data = B.raw_data();
-        for (size_t i = 0; i < A_data.size(); ++i) A_data[i] = static_cast<float>(rand()) / RAND_MAX;
-        for (size_t i = 0; i < B_data.size(); ++i) B_data[i] = static_cast<float>(rand()) / RAND_MAX;
+        for (size_t i = 0; i < A_data.size(); ++i) A_data[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        for (size_t i = 0; i < B_data.size(); ++i) B_data[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
         // Benchmark
         Tensor<float> C;
@@ -140,8 +140,8 @@ void test_batched_matmul() {
 
     auto& A_data = A.raw_data();
     auto& B_data = B.raw_data();
-    for (size_t i = 0; i < A_data.size(); ++i) A_data[i] = static_cast<float>(rand()) / RAND_MAX;
-    for (size_t i = 0; i < B_data.size(); ++i) B_data[i] = static_cast<float>(rand()) / RAND_MAX;
+    for (size_t i = 0; i < A_data.size(); ++i) A_data[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    for (size_t i = 0; i < B_data.size(); ++i) B_data[i] = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
     std::cout << "Batch size: " << batch << ", Matrix size: " << M << "x" << K << " @ " << K << "x" << N << std::endl;
 
